@@ -1039,6 +1039,8 @@ export default function Home() {
         <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '13px', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}>·</span>
         <a
           href="/dreams"
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity whitespace-nowrap"
           style={{ fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}
         >
