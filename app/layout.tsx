@@ -115,7 +115,6 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="slow garden" />
         {/*
           The only facts about slow garden that reach a crawler without running
           JavaScript. The app renders entirely on the client, so the served
