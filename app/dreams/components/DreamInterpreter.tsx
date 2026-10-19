@@ -27,6 +27,7 @@ interface Action {
 interface Lens {
   name: string;
   reading: string;
+  links?: { label: string; url: string }[];
 }
 
 interface Interpretation {
@@ -713,6 +714,22 @@ export default function DreamInterpreter() {
                           {lens.name}
                         </div>
                         <div style={{ fontSize: 18, lineHeight: 1.4 }}>{lens.reading}</div>
+                        {!!lens.links?.length && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 18px', fontSize: 14, lineHeight: 1.4 }}>
+                            <span style={{ opacity: 0.7 }}>read more</span>
+                            {lens.links.map((link, k) => (
+                              <a
+                                key={k}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: YELLOW, textDecoration: 'underline', textUnderlineOffset: 3 }}
+                              >
+                                {link.label} ↗
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
