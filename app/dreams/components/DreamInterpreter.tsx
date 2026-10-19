@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import BackgroundCanvas, { BG_STYLES, type BgStyle } from './BackgroundCanvas';
 
 /**
@@ -19,8 +19,22 @@ interface Symbol {
 }
 
 interface Action {
-  do: string;
-  why: string;
+  kind: 'lucky' | 'think';
+  title: string;
+  text: string;
+}
+
+interface Lens {
+  name: string;
+  reading: string;
+}
+
+interface Interpretation {
+  lenses: Lens[];
+  recurring: string;
+  synthesis: string;
+  actions: Action[];
+  care: string;
 }
 
 interface IndexEntry {
@@ -92,6 +106,21 @@ const INDEX: IndexEntry[] = [
 
 const YELLOW = '#F3F35C';
 const BLUE = '#1438C4';
+const INK = '#0E0E0E';
+
+const BACKDROP = { src: '/dreams/action-backdrop.webp', w: 960, h: 1200 };
+/** The band behind the tiles: the photo, softly tinted in a pale wash of the page blue so ink text stays readable. */
+const BAND_WASH = '#DCE5FF';
+/**
+ * Each tile is a window onto the same photo, tinted in its own colour. `blend`
+ * decides how the grey photo meets the colour: multiply keeps the colour for
+ * highlights and goes dark in shadow, screen lifts the shadows on the ink tile.
+ */
+const TILES = [
+  { base: YELLOW, fg: INK, blend: 'multiply' as const, opacity: 0.7 },
+  { base: BLUE, fg: '#FFFFFF', blend: 'multiply' as const, opacity: 1 },
+  { base: INK, fg: YELLOW, blend: 'screen' as const, opacity: 0.55 },
+];
 
 /** The canvas's fractal-noise grain, reused at two strengths. */
 function noiseBg(baseFrequency: number, alpha: number): string {
@@ -177,22 +206,202 @@ const navFont: CSSProperties = {
   textTransform: 'uppercase',
 };
 
+interface Placement {
+  w: number;
+  h: number;
+  /** where the photo sits inside the band once scaled to cover it */
+  dw: number;
+  dh: number;
+  ox: number;
+  oy: number;
+  tiles: { x: number; y: number }[];
+}
+
+/** The photo drawn grey, positioned so every tile and the band behind them show the same picture. */
+function photoLayer(pl: Placement, x: number, y: number, blend: 'multiply' | 'screen', opacity: number): CSSProperties {
+  return {
+    position: 'absolute',
+    inset: 0,
+    backgroundImage: `url(${BACKDROP.src})`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: `${pl.dw}px ${pl.dh}px`,
+    backgroundPosition: `${pl.ox - x}px ${pl.oy - y}px`,
+    filter: 'grayscale(1) contrast(0.95) brightness(1.08)',
+    mixBlendMode: blend,
+    opacity,
+    pointerEvents: 'none',
+  };
+}
+
+/**
+ * The three actions, laid out like a magazine spread: a tinted photo as the
+ * page, and tiles cut out of it that reveal the same photo in their own colour.
+ * The alignment is measured rather than faked with background-attachment,
+ * which iOS Safari ignores.
+ */
+function ActionsSpread({ actions }: { actions: Action[] }) {
+  const bandRef = useRef<HTMLDivElement>(null);
+  const tileRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [pl, setPl] = useState<Placement | null>(null);
+
+  useLayoutEffect(() => {
+    const band = bandRef.current;
+    if (!band) return;
+    function measure() {
+      if (!band) return;
+      const w = band.clientWidth;
+      const h = band.clientHeight;
+      const scale = Math.max(w / BACKDROP.w, h / BACKDROP.h);
+      const dw = BACKDROP.w * scale;
+      const dh = BACKDROP.h * scale;
+      const box = band.getBoundingClientRect();
+      const tiles = tileRefs.current.map((t) => {
+        if (!t) return { x: 0, y: 0 };
+        const r = t.getBoundingClientRect();
+        return { x: r.left - box.left - band.clientLeft, y: r.top - box.top - band.clientTop };
+      });
+      setPl({ w, h, dw, dh, ox: (w - dw) / 2, oy: (h - dh) / 2, tiles });
+    }
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(band);
+    return () => ro.disconnect();
+  }, [actions.length]);
+
+  return (
+    <div
+      ref={bandRef}
+      style={{
+        position: 'relative',
+        margin: '0 -28px',
+        padding: '28px 22px 22px',
+        background: BAND_WASH,
+        color: INK,
+        borderLeft: `6px solid ${YELLOW}`,
+        borderRight: `6px solid ${YELLOW}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 22,
+        overflow: 'hidden',
+      }}
+    >
+      {pl && <div style={photoLayer(pl, 0, 0, 'multiply', 0.22)} />}
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+        <div
+          style={{
+            color: INK,
+            fontSize: 'clamp(30px, 5vw, 56px)',
+            fontWeight: 500,
+            lineHeight: 0.95,
+            letterSpacing: '-0.04em',
+          }}
+        >
+          to carry
+          <br />
+          with you
+        </div>
+        <div
+          style={{
+            color: INK,
+            fontFamily: 'var(--font-doto)',
+            fontWeight: 900,
+            fontSize: 16,
+            letterSpacing: '0.05em',
+          }}
+        >
+          {String(actions.length).padStart(2, '0')} things
+        </div>
+      </div>
+      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
+        {actions.map((act, i) => {
+          const tile = TILES[i % TILES.length];
+          const at = pl?.tiles[i] ?? { x: 0, y: 0 };
+          return (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div
+                ref={(el) => {
+                  tileRefs.current[i] = el;
+                }}
+                style={{
+                  position: 'relative',
+                  height: 320,
+                  background: tile.base,
+                  color: tile.fg,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: 14,
+                  overflow: 'hidden',
+                  isolation: 'isolate',
+                }}
+              >
+                {pl && <div style={photoLayer(pl, at.x, at.y, tile.blend, tile.opacity)} />}
+                <div
+                  style={{
+                    position: 'relative',
+                    fontFamily: 'var(--font-doto)',
+                    fontWeight: 900,
+                    fontSize: 'clamp(64px, 9vw, 96px)',
+                    lineHeight: 0.8,
+                    letterSpacing: '-0.04em',
+                    alignSelf: 'flex-end',
+                  }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </div>
+                <div
+                  style={{
+                    position: 'relative',
+                    writingMode: 'vertical-rl',
+                    transform: 'rotate(180deg)',
+                    fontSize: 'clamp(24px, 3vw, 34px)',
+                    fontWeight: 300,
+                    lineHeight: 1,
+                    letterSpacing: '-0.02em',
+                    textTransform: 'uppercase',
+                    alignSelf: 'stretch',
+                    maxHeight: '100%',
+                  }}
+                >
+                  {act.title}
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontFamily: 'var(--font-doto)', fontWeight: 900, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', color: BLUE }}>
+                  {act.kind === 'think' ? 'think about' : 'lucky thing'}
+                </div>
+                <div style={{ fontSize: 14, lineHeight: 1.4, fontWeight: 500, color: INK }}>{act.text}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function DreamInterpreter() {
   const [view, setView] = useState<View>('read');
   const [draft, setDraft] = useState('');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [reading, setReading] = useState<string | null>(null);
+  const [reading, setReading] = useState<Interpretation | null>(null);
   const [symbols, setSymbols] = useState<Symbol[]>([]);
-  const [actions, setActions] = useState<Action[]>([]);
   const [error, setError] = useState('');
+  const [deeper, setDeeper] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
   const [bgStyle, setBgStyle] = useState<BgStyle>('marble drift');
   const [motionOn, setMotionOn] = useState(true);
 
   const onRead = view === 'read';
   const q = query.trim().toLowerCase();
   const filtered = q ? INDEX.filter((e) => e.name.includes(q) || e.note.toLowerCase().includes(q)) : INDEX;
-  const paragraphs = reading ? reading.split(/\n+/).filter(Boolean) : [];
+
+  // the reading can take a while, so bring the meaning into view the moment it lands
+  useEffect(() => {
+    if (!reading) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    resultRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }, [reading]);
 
   async function submit() {
     const text = draft.trim();
@@ -204,8 +413,8 @@ export default function DreamInterpreter() {
     setLoading(true);
     setError('');
     setReading(null);
+    setDeeper(false);
     setSymbols([]);
-    setActions([]);
     try {
       const res = await fetch('/api/dreams/interpret', {
         method: 'POST',
@@ -217,9 +426,14 @@ export default function DreamInterpreter() {
         setError(data.error || "reading didn't come back. try again.");
         return;
       }
-      setReading(typeof data.reading === 'string' ? data.reading : '');
+      setReading({
+        lenses: Array.isArray(data.lenses) ? data.lenses : [],
+        recurring: data.recurring ?? '',
+        synthesis: data.synthesis ?? '',
+        actions: Array.isArray(data.actions) ? data.actions : [],
+        care: data.care ?? '',
+      });
       setSymbols(Array.isArray(data.symbols) ? data.symbols : []);
-      setActions(Array.isArray(data.actions) ? data.actions : []);
     } catch {
       setError("reading didn't come back. try again.");
     } finally {
@@ -229,8 +443,8 @@ export default function DreamInterpreter() {
 
   function reset() {
     setReading(null);
+    setDeeper(false);
     setSymbols([]);
-    setActions([]);
     setError('');
     setDraft('');
     window.scrollTo(0, 0);
@@ -418,20 +632,30 @@ export default function DreamInterpreter() {
             )}
 
             {!!reading && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 88 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-                  <div style={navFont}>The reading</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: '26ch' }}>
-                    {paragraphs.map((para, i) => (
-                      <div key={i} style={{ fontSize: 'clamp(24px, 3vw, 34px)', lineHeight: 1.08, letterSpacing: '-0.035em' }}>
-                        {para}
-                      </div>
-                    ))}
+              <div ref={resultRef} style={{ display: 'flex', flexDirection: 'column', gap: 88, scrollMarginTop: 24 }}>
+                {!!reading.care && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
+                    <div style={navFont}>First</div>
+                    <div style={{ maxWidth: '26ch', fontSize: 'clamp(24px, 3vw, 34px)', lineHeight: 1.08, letterSpacing: '-0.035em' }}>
+                      {reading.care}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {!!reading.synthesis && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: '34ch' }}>
+                      {reading.synthesis.split(/\n+/).filter(Boolean).map((para, i) => (
+                        <div key={i} style={{ fontSize: 'clamp(22px, 2.6vw, 30px)', lineHeight: 1.12, letterSpacing: '-0.03em' }}>
+                          {para}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div style={{ ...navFont, paddingBottom: 12 }}>What showed up</div>
+                  {symbols.length > 0 && <div style={{ ...navFont, paddingBottom: 12 }}>What showed up</div>}
                   {symbols.map((sym, i) => (
                     <div
                       key={i}
@@ -461,57 +685,53 @@ export default function DreamInterpreter() {
                   ))}
                 </div>
 
-                {actions.length > 0 && (
-                  <div style={{ position: 'relative', margin: '0 -28px', padding: '64px 28px', background: '#3A3A3A' }}>
-                    <div style={{ position: 'absolute', inset: 0, filter: 'grayscale(0.2)' }}>
-                      <ImageSlot src="/dreams/action-backdrop.webp" alt="" placeholder="drop a street or landscape photo" />
-                    </div>
-                    <div
-                      style={{
-                        position: 'relative',
-                        maxWidth: 620,
-                        margin: '0 auto',
-                        backgroundColor: '#4A72F0',
-                        backgroundImage: noiseBg(0.7, 0.12),
-                        padding: '44px 36px 40px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 34,
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', ...navFont }}>
-                        <div>What to do</div>
-                        <div>This week</div>
-                      </div>
-                      {actions.map((act, i) => (
-                        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                          <div style={{ fontFamily: 'var(--font-doto)', fontWeight: 900, fontSize: 20, color: YELLOW }}>
-                            {String(i + 1).padStart(2, '0')}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 'clamp(22px, 3vw, 30px)',
-                              fontWeight: 600,
-                              lineHeight: 1.02,
-                              letterSpacing: '-0.01em',
-                              textTransform: 'uppercase',
-                              textAlign: 'justify',
-                              textAlignLast: 'justify',
-                              hyphens: 'none',
-                            }}
-                          >
-                            {act.do}
-                          </div>
-                          <div style={{ fontSize: 15, lineHeight: 1.4 }}>{act.why}</div>
-                        </div>
-                      ))}
-                      <div onClick={reset} style={{ pointerEvents: 'auto', cursor: 'pointer', alignSelf: 'flex-end', fontSize: 14 }}>
-                        new dream →
-                      </div>
-                    </div>
+                {(reading.lenses.length > 0 || !!reading.recurring) && (
+                  <div
+                    onClick={() => setDeeper((d) => !d)}
+                    style={{ ...navFont, cursor: 'pointer', color: YELLOW, alignSelf: 'flex-start', borderBottom: `1px solid ${YELLOW}`, paddingBottom: 2 }}
+                  >
+                    {deeper ? 'Fewer readings ↑' : 'More readings ↓'}
                   </div>
                 )}
+
+                {deeper && (
+                  <>
+                {reading.lenses.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 44 }}>
+                                        {reading.lenses.map((lens, i) => (
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 620 }}>
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-doto)',
+                            fontWeight: 900,
+                            fontSize: 'clamp(28px, 3.8vw, 42px)',
+                            lineHeight: 0.95,
+                            color: YELLOW,
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {lens.name}
+                        </div>
+                        <div style={{ fontSize: 18, lineHeight: 1.4 }}>{lens.reading}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!!reading.recurring && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 620 }}>
+                    <div style={navFont}>Coming back</div>
+                    <div style={{ fontSize: 18, lineHeight: 1.4 }}>{reading.recurring}</div>
+                  </div>
+                )}
+                  </>
+                )}
+
+                {reading.actions.length > 0 && <ActionsSpread actions={reading.actions} />}
+
+                <div onClick={reset} style={{ cursor: 'pointer', alignSelf: 'flex-end', fontSize: 14 }}>
+                  new dream →
+                </div>
               </div>
             )}
           </div>
