@@ -33,8 +33,10 @@ const dmMono = DM_Mono({
 // The app's reading face: body copy everywhere, the reading page's meaning
 // copy, the reflection textarea, and the privacy page. 700 carries the privacy
 // page's headings and links, which would otherwise be synthesised into a smear.
+// DM Sans is served as one variable font now: asking for named weights lists the same file several times, and the
+// Turbopack font plugin stops with "next/font/google queries have exactly one entry". No weight = the variable font,
+// which covers 400/500/700 from a single file.
 const dmSans = DM_Sans({
-  weight: ['400', '500', '700'],
   subsets: ['latin'],
   variable: '--font-dm-sans',
 });
