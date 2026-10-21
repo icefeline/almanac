@@ -700,7 +700,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#172211] text-[#C9F24E]">
+      <div className="min-h-screen flex items-center justify-center bg-[#172211] text-[#C9F24E]" style={{ minHeight: '100dvh' }}>
         <AsciiFlower label="loading slow garden" />
       </div>
     );
