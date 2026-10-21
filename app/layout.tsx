@@ -51,7 +51,8 @@ export const metadata: Metadata = {
   // Required for Open Graph: without it Next emits relative image paths, which
   // most link scrapers refuse to resolve, so the preview silently shows nothing.
   metadataBase: new URL("https://slowww.garden"),
-  title: "slow garden",
+  // The browser tab. The share-preview titles below stay "slow garden".
+  title: "almanac ~ the stars are moving",
   /**
    * Two descriptions, because they are answering different questions.
    *
