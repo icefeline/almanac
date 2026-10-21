@@ -10,8 +10,10 @@ import './dreams.css';
  * <body>, so they never leak into the rest of the site and the rest of the
  * site's faces never leak in here.
  */
-const geist = Geist({ subsets: ['latin'], weight: ['300', '400', '600', '700'], variable: '--font-geist' });
-const doto = Doto({ subsets: ['latin'], weight: ['700', '900'], variable: '--font-doto' });
+// Geist and Doto are served as variable fonts, so no weight list: naming weights repeats the same file and trips the
+// Turbopack font plugin ("next/font/google queries have exactly one entry"). The variable file covers every weight used.
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
+const doto = Doto({ subsets: ['latin'], variable: '--font-doto' });
 const schoolbell = Schoolbell({ subsets: ['latin'], weight: '400', variable: '--font-schoolbell' });
 
 export const metadata: Metadata = {
