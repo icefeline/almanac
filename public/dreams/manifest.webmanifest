@@ -1,6 +1,6 @@
 {
-  "name": "dream interpreter",
-  "short_name": "dreams",
+  "name": "milky",
+  "short_name": "milky",
   "description": "a plain-spoken reading for last night.",
   "start_url": "/dreams",
   "scope": "/dreams",
