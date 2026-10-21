@@ -77,6 +77,21 @@ const csp = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /*
+   * milky.slowww.garden is the dream interpreter on its own address. It is the
+   * same deployment as the rest of the app, so it needs no second project: on
+   * that host the front page is /dreams. Every other path (assets, the
+   * /api/dreams routes, /dreams itself) resolves as normal, and no other host
+   * is affected.
+   */
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: '/', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams' },
+      ],
+    };
+  },
+
   async headers() {
     return [
       {
