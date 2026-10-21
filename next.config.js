@@ -53,6 +53,19 @@ const sentryOrigin = (() => {
   }
 })();
 
+/*
+ * Where readers' saved data is carried over from. The tarot app used to live at slowww.garden, so what people
+ * saved is stored under that address; app/components/DataMigration.tsx loads one hidden page from it. This is
+ * the only other origin the app may frame.
+ */
+const transferOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_TRANSFER_URL || 'https://slowww.garden/transfer').origin;
+  } catch {
+    return 'https://slowww.garden';
+  }
+})();
+
 const csp = [
   "default-src 'self'",
   // Vercel Analytics is only same-origin (/_vercel/insights/script.js) once
@@ -67,6 +80,7 @@ const csp = [
   // Sentry tunnels through /monitoring and Vercel's analytics beacon posts to
   // /_vercel/insights — both same-origin, so nothing external is needed.
   `connect-src 'self' https://va.vercel-scripts.com${sentryOrigin ? ' ' + sentryOrigin : ''}${isDev ? ' ws: http://localhost:*' : ''}`,
+  `frame-src ${transferOrigin}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -301,6 +301,14 @@ export default function TermsAndPrivacy() {
               We can&apos;t see any of it. It isn&apos;t backed up, synced, or transmitted
               anywhere, and clearing your browser data deletes all of it permanently.
             </p>
+            <p className="mt-4">
+              slow garden used to live at slowww.garden, and your browser keeps what you saved
+              separately for each address. So the first time you open it at
+              almanac.slowww.garden, it fetches your saved readings from the old address and
+              copies them across. That happens inside your browser, between two of our own
+              addresses, and nothing is sent to us. If something didn&apos;t come across,{' '}
+              <a href="/?restore=1" className="underline" style={{ fontWeight: 700 }}>bring it across again</a>.
+            </p>
           </Clause>
 
           <Clause title="What leaves your device">
