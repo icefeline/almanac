@@ -495,7 +495,7 @@ export default function DreamInterpreter() {
     <div
       style={{
         position: 'relative',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         backgroundColor: BLUE,
         backgroundImage: noiseBg(0.85, 0.09),
         color: '#FFFFFF',
@@ -505,6 +505,7 @@ export default function DreamInterpreter() {
     >
       <BackgroundCanvas motion={motionOn} bgStyle={bgStyle} />
       <div
+        className="di-wrap"
         style={{
           position: 'relative',
           zIndex: 1,
@@ -534,9 +535,10 @@ export default function DreamInterpreter() {
         </div>
 
         {onRead && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(32px, 9vw, 72px)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
+          <div className="di-read" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(32px, 9vw, 72px)' }}>
+            <div className="di-top" style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
               <div
+                className="di-hero"
                 style={{
                   position: 'relative',
                   marginLeft: '12%',
@@ -548,12 +550,13 @@ export default function DreamInterpreter() {
               >
                 <ImageSlot src="/dreams/hero-strip.webp" alt="" placeholder="drop a black and white photo, e.g. a crowd, a corridor, a bed" />
               </div>
-              <div style={{ fontSize: 'clamp(48px, 7.4vw, 92px)', lineHeight: 0.88, letterSpacing: '-0.055em', maxWidth: '11ch' }}>
+              <div className="di-headline" style={{ fontSize: 'clamp(48px, 7.4vw, 92px)', lineHeight: 0.88, letterSpacing: '-0.055em', maxWidth: '11ch' }}>
                 <span style={{ fontWeight: 300 }}>what does my dream mean?</span>
               </div>
             </div>
 
             <div
+              className="di-box"
               style={{
                 position: 'relative',
                 border: `12px solid ${YELLOW}`,
@@ -581,6 +584,7 @@ export default function DreamInterpreter() {
                 Last night
               </div>
               <textarea
+                className="di-input"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={onKey}
