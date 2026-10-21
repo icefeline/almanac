@@ -21,9 +21,12 @@ export const metadata: Metadata = {
   // show the garden's. nested metadata replaces the root's `icons` and `manifest`.
   manifest: '/dreams/manifest.webmanifest',
   icons: {
+    // The SVG recolours itself with the browser theme; the two PNGs are for browsers that ignore SVG favicons,
+    // picked by the same light/dark preference.
     icon: [
-      { url: '/dreams/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/dreams/icons/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/dreams/icons/favicon.svg', type: 'image/svg+xml' },
+      { url: '/dreams/icons/favicon-light-32.png', sizes: '32x32', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/dreams/icons/favicon-dark-32.png', sizes: '32x32', type: 'image/png', media: '(prefers-color-scheme: dark)' },
     ],
     apple: [{ url: '/dreams/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
