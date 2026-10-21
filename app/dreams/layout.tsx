@@ -17,7 +17,7 @@ const doto = Doto({ subsets: ['latin'], variable: '--font-doto' });
 const schoolbell = Schoolbell({ subsets: ['latin'], weight: '400', variable: '--font-schoolbell' });
 
 export const metadata: Metadata = {
-  title: 'dream interpreter — slow garden',
+  title: 'milky ~ still dreaming . . .',
   description: 'a plain-spoken reading for last night, and what to do about it this week.',
   // the interpreter has its own icon, so installing it or pinning a tab doesn't
   // show the garden's. nested metadata replaces the root's `icons` and `manifest`.
