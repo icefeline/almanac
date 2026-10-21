@@ -1303,6 +1303,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     <div
       className="relative min-h-screen w-full overflow-hidden"
       style={{
+        // dvh, not vh: on a phone with its browser toolbars showing, 100vh is taller than what is visible, so
+        // anything centred in it sits too low. min-h-screen stays as the fallback for browsers without dvh.
+        minHeight: '100dvh',
         opacity: shouldCrumble ? 0 : 1,
         filter: shouldCrumble ? 'blur(20px)' : 'none',
         transition: shouldCrumble ? 'opacity 1s ease-out, filter 1s ease-out' : 'none',
@@ -1353,7 +1356,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       </div>
 
       {/* ── DESKTOP layout — device frame, proportionally scaled to fit viewport ── */}
-      <div className="hidden md:flex relative z-10 items-center justify-center min-h-screen">
+      <div className="hidden md:flex relative z-10 items-center justify-center min-h-screen" style={{ minHeight: '100dvh' }}>
         {/*
           Outer sizing box: gives the flex container real dimensions (scaled) so
           centering works correctly without relying on the absolutely-positioned children.
