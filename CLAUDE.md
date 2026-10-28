@@ -151,7 +151,6 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
 | `slow-garden-reading-days` | `string[]` | every day a reading was generated — unbounded; used only to trigger the one-time thank-you-and-ask screen at day 8 |
 | `slow-garden-use-location`, `slow-garden-here` | — | location consent + resolved place |
 | `slow-garden-webview-noticed` | `'true'` | the in-app-browser notice has been dismissed |
-| `slow-garden-transfer-done-v1`, `slow-garden-transfer-empty-v1` | timestamp / count | one-time carry-over of saved data from slowww.garden to this address (`app/components/DataMigration.tsx`); never copied back, never overwrites keys that already existed. `?restore=1` runs it again |
 
 ---
 
