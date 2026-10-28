@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 
 /*
  * The "about" link that sits at the bottom left of every page in the slow garden: tap it and a short list opens
@@ -45,12 +45,20 @@ export const ABOUT = {
 
 /** The four apps, for the little switcher above the about link. Icons are copies kept in each app's public/about-apps. */
 export const APPS = [
-  { key: 'enter', label: 'back to the bracelet', href: 'https://enter.slowww.garden', icon: '/about-apps/enter.png', pose: { r: -12, x: 2, y: 0 } },
-  { key: 'almanac', label: 'almanac', href: 'https://slowww.garden', icon: '/about-apps/almanac.png', pose: { r: 11, x: 18, y: -6 } },
-  { key: 'milky', label: 'milky', href: 'https://milky.slowww.garden', icon: '/about-apps/milky.png', pose: { r: -7, x: 6, y: -2 } },
-  { key: 'root', label: 'root', href: 'https://root.slowww.garden', icon: '/about-apps/root.png', pose: { r: 17, x: 20, y: -4 } },
+  { key: 'enter', label: 'back to the bracelet', href: 'https://enter.slowww.garden', icon: '/about-apps/enter.png' },
+  { key: 'almanac', label: 'almanac', href: 'https://slowww.garden', icon: '/about-apps/almanac.png' },
+  { key: 'milky', label: 'milky', href: 'https://milky.slowww.garden', icon: '/about-apps/milky.png' },
+  { key: 'root', label: 'root', href: 'https://root.slowww.garden', icon: '/about-apps/root.png' },
 ] as const;
 export type AppKey = (typeof APPS)[number]['key'];
+
+/** Each app tosses the other charms down in its own order and angles, so the corner is never the same twice. */
+const LAYOUT: Record<AppKey, { key: AppKey; r: number; x: number; y: number }[]> = {
+  almanac: [{ key: 'enter', r: -14, x: 2, y: 0 }, { key: 'milky', r: 9, x: 20, y: -5 }, { key: 'root', r: -4, x: 6, y: -2 }],
+  milky: [{ key: 'root', r: 12, x: 18, y: 0 }, { key: 'enter', r: -8, x: 2, y: -6 }, { key: 'almanac', r: 16, x: 22, y: -3 }],
+  root: [{ key: 'almanac', r: 15, x: 4, y: 0 }, { key: 'milky', r: -12, x: 20, y: -5 }, { key: 'enter', r: 5, x: 8, y: -2 }],
+  enter: [],
+};
 
 export interface AboutMenuProps {
   /** Which app this is; it's left out of the switcher. The front door passes showApps={false} instead. */
@@ -100,6 +108,18 @@ export default function AboutMenu({
 }: AboutMenuProps) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab | null>(null);
+  // phones: the other apps sit in a pile; a tap fans them out and a second tap goes to one
+  const [fan, setFan] = useState(false);
+  const [ready, setReady] = useState(false); // a tap before the page has woken up would skip the pile and jump straight to an app
+  useEffect(() => setReady(true), []);
+  useEffect(() => {
+    if (!fan) return;
+    const away = (e: PointerEvent) => {
+      if (!(e.target as Element | null)?.closest?.('.sg-about-apps')) setFan(false);
+    };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [fan]);
 
   const root: CSSProperties = {
     position: 'fixed',
@@ -129,7 +149,7 @@ export default function AboutMenu({
   return (
     <>
     <div className={[className, open && panelBackground ? 'sg-about-open' : ''].filter(Boolean).join(' ') || undefined} style={root}>
-      <style>{`@media (max-width:767px){.sg-about-open{background:var(--sg-about-bg);padding:12px 14px;border:1px solid rgba(128,128,128,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:none!important}}.sg-about-link{background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;text-shadow:inherit;text-align:left;cursor:pointer}.sg-about-app{display:block;height:26px;width:auto;margin-bottom:-5px;transform:translate(var(--x),var(--y)) rotate(var(--r));transition:filter .3s;animation:sg-drift 3.4s ease-in-out infinite;animation-play-state:paused;animation-delay:var(--d)}.sg-about-app:hover,.sg-about-app:focus-visible{animation-play-state:running;filter:brightness(1.15)}@keyframes sg-drift{0%,100%{transform:translate(var(--x),var(--y)) rotate(var(--r))}22%{transform:translate(calc(var(--x) + 4px),calc(var(--y) - 5px)) rotate(calc(var(--r) + 9deg))}50%{transform:translate(calc(var(--x) - 3px),calc(var(--y) + 2px)) rotate(calc(var(--r) - 8deg))}78%{transform:translate(calc(var(--x) + 2px),calc(var(--y) - 3px)) rotate(calc(var(--r) + 5deg))}}@media (prefers-reduced-motion:reduce){.sg-about-app{animation:none}}.sg-about-app img{height:100%;width:auto;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}.sg-about-link:hover,.sg-about-link:focus-visible{text-decoration:underline;text-underline-offset:3px}`}</style>
+      <style>{`@media (max-width:767px){.sg-about-open{background:var(--sg-about-bg);padding:12px 14px;border:1px solid rgba(128,128,128,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:none!important}}.sg-about-link{background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;text-shadow:inherit;text-align:left;cursor:pointer}.sg-about-app{display:block;height:26px;width:auto;margin-bottom:-5px;transform:translate(var(--x),var(--y)) rotate(var(--r));transition:filter .3s;animation:sg-drift 3.4s ease-in-out infinite;animation-play-state:paused;animation-delay:var(--d)}.sg-about-app:hover,.sg-about-app:focus-visible{animation-play-state:running;filter:brightness(1.15)}@keyframes sg-drift{0%,100%{transform:translate(var(--x),var(--y)) rotate(var(--r))}22%{transform:translate(calc(var(--x) + 4px),calc(var(--y) - 5px)) rotate(calc(var(--r) + 9deg))}50%{transform:translate(calc(var(--x) - 3px),calc(var(--y) + 2px)) rotate(calc(var(--r) - 8deg))}78%{transform:translate(calc(var(--x) + 2px),calc(var(--y) - 3px)) rotate(calc(var(--r) + 5deg))}}@media (max-width:767px){.sg-about-apps{width:60px;height:36px}.sg-about-app{position:absolute;left:0;top:0;margin:0;animation:none;transform:translate(var(--px),var(--py)) rotate(var(--pr));transition:transform .55s cubic-bezier(.34,1.56,.64,1) calc(var(--i)*50ms);z-index:calc(10 - var(--i))}.sg-fan .sg-about-app{transform:translate(var(--x),calc(var(--y) + var(--i)*22px)) rotate(var(--r))}}@media (prefers-reduced-motion:reduce){.sg-about-app{animation:none;transition:none}}.sg-about-app img{height:100%;width:auto;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}.sg-about-link:hover,.sg-about-link:focus-visible{text-decoration:underline;text-underline-offset:3px}`}</style>
 
       {open && tab === 'why' && (
         <div style={panel}>
@@ -204,13 +224,16 @@ export default function AboutMenu({
       </button>
     </div>
       {showApps && (
-        <nav aria-label="the other slow garden apps" style={{ position: 'fixed', left: appsLeft ?? left, top: typeof appsTop === 'number' ? `calc(env(safe-area-inset-top, 0px) + ${appsTop}px)` : appsTop, zIndex, display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {APPS.filter((a) => a.key !== current).map((a) => (
-          <a key={a.key} href={a.href} title={a.label} aria-label={a.label} className="sg-about-app" style={{ '--r': `${a.pose.r}deg`, '--x': `${a.pose.x}px`, '--y': `${a.pose.y}px`, '--d': `${(a.pose.x % 5) * -0.7}s` } as CSSProperties}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={a.icon} alt="" height={26} />
-          </a>
-        ))}
+        <nav aria-label="the other slow garden apps" className={fan ? 'sg-about-apps sg-fan' : 'sg-about-apps'} style={{ position: 'fixed', left: appsLeft ?? left, top: typeof appsTop === 'number' ? `calc(env(safe-area-inset-top, 0px) + ${appsTop}px)` : appsTop, zIndex, display: 'flex', flexDirection: 'column', gap: 0, pointerEvents: ready ? 'auto' : 'none' }}>
+        {(current ? LAYOUT[current] : []).map(({ key, r, x, y }, i) => {
+          const a = APPS.find((app) => app.key === key)!;
+          return (
+            <a key={a.key} href={a.href} title={a.label} aria-label={a.label} className="sg-about-app" onClick={(e) => { if (!fan && window.matchMedia('(max-width:767px)').matches) { e.preventDefault(); setFan(true); } }} style={{ '--r': `${r}deg`, '--x': `${x}px`, '--y': `${y}px`, '--i': i, '--pr': `${[-6, 5, -2][i] ?? 0}deg`, '--px': `${i * 3}px`, '--py': `${i * 2}px`, '--d': `${(x % 5) * -0.7}s` } as CSSProperties}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={a.icon} alt="" height={26} />
+            </a>
+          );
+        })}
       </nav>
       )}
     </>

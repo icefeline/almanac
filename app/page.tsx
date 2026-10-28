@@ -194,6 +194,14 @@ export default function Home() {
   const convergeTarget = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const cardAnchorRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  // a very faint blur behind the top buttons once the page has scrolled, so the text passing under them stays quiet
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const shuffledImages = useRef<string[]>([...SCATTER_CARD_IMAGES]);
   const [pendingAutoReveal, setPendingAutoReveal] = useState(false);
   const [animateReveal, setAnimateReveal] = useState(false);
@@ -716,14 +724,26 @@ export default function Home() {
       <GroundTexture />
 
       {/*
-        No bar: no background, blur or rule behind it, and no wordmark. Just the view buttons (today, year) and
+        No bar: no background or rule behind it, and no wordmark. A very faint blur fades in only while scrolled. Just the view buttons (today, year) and
         the save icon, floating over the page. The height is still measured below (--nav-h) so the content
         starts under them wherever they end up.
       */}
       <div ref={navRef} className="fixed top-0 left-0 right-0 z-30 pointer-events-none" style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4 flex items-center justify-center">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 transition-opacity duration-500"
+          style={{
+            opacity: scrolled ? 1 : 0,
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)',
+            background: 'linear-gradient(to bottom, rgba(23,34,17,.35), rgba(23,34,17,0))',
+            maskImage: 'linear-gradient(to bottom, #000 60%, transparent)',
+            WebkitMaskImage: 'linear-gradient(to bottom, #000 60%, transparent)',
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4 flex items-center justify-center">
           {/* View Toggle Buttons */}
           <div className="flex gap-2 md:gap-3 items-center pointer-events-auto" role="navigation" aria-label="View switcher">
             <button
