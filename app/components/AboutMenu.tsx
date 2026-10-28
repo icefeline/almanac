@@ -65,6 +65,8 @@ export interface AboutMenuProps {
   current?: AppKey;
   /** The switcher is for the app pages; the front door turns it off. */
   showApps?: boolean;
+  /** 'absolute' parks the link at the foot of its nearest positioned ancestor, so it scrolls away with the page. */
+  position?: 'fixed' | 'absolute';
   /** Where the app switcher sits: top left, by default in line with the about link. */
   appsTop?: number | string;
   appsLeft?: number | string;
@@ -102,6 +104,7 @@ export default function AboutMenu({
   links,
   current,
   showApps = true,
+  position = 'fixed',
   appsTop = 16,
   appsLeft,
   panelBackground,
@@ -122,7 +125,7 @@ export default function AboutMenu({
   }, [fan]);
 
   const root: CSSProperties = {
-    position: 'fixed',
+    position,
     left,
     bottom: typeof bottom === 'number' ? `calc(env(safe-area-inset-bottom, 0px) + ${bottom}px)` : bottom,
     zIndex,
