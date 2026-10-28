@@ -16,6 +16,9 @@ import AboutMenu from './AboutMenu';
 export default function AboutMount({ home = false, flow = false }: { home?: boolean; flow?: boolean }) {
   const pathname = usePathname() || '/';
   const [narrow, setNarrow] = useState(false);
+  // milky.slowww.garden serves the dream page at '/', so the path alone can't say which app this is
+  const [milkyHost, setMilkyHost] = useState(false);
+  useEffect(() => setMilkyHost(window.location.hostname.startsWith('milky.')), []);
   useEffect(() => {
     const mq = window.matchMedia('(max-width:767px)');
     const on = () => setNarrow(mq.matches);
@@ -25,9 +28,9 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
   }, []);
 
   const onLegal = pathname.startsWith('/privacy') || pathname.startsWith('/terms');
-  const onDreams = pathname.startsWith('/dreams');
+  const onDreams = pathname.startsWith('/dreams') || milkyHost;
   // the legal pages are plain documents: no menu, no charms. the home page mounts its own copy.
-  if (onLegal || (pathname === '/' && !home)) return null;
+  if (onLegal || (pathname === '/' && !home && !milkyHost)) return null;
   return (
     <AboutMenu
       current={onDreams ? 'milky' : 'almanac'}
