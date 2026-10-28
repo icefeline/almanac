@@ -43,7 +43,23 @@ export const ABOUT = {
   },
 } as const;
 
+/** The four apps, for the little switcher above the about link. Icons are copies kept in each app's public/about-apps. */
+export const APPS = [
+  { key: 'enter', label: 'back to the bracelet', href: 'https://enter.slowww.garden', icon: '/about-apps/enter.png', pose: { r: -12, x: 2, y: 0 } },
+  { key: 'almanac', label: 'almanac', href: 'https://slowww.garden', icon: '/about-apps/almanac.png', pose: { r: 11, x: 18, y: -6 } },
+  { key: 'milky', label: 'milky', href: 'https://milky.slowww.garden', icon: '/about-apps/milky.png', pose: { r: -7, x: 6, y: -2 } },
+  { key: 'root', label: 'root', href: 'https://root.slowww.garden', icon: '/about-apps/root.png', pose: { r: 17, x: 20, y: -4 } },
+] as const;
+export type AppKey = (typeof APPS)[number]['key'];
+
 export interface AboutMenuProps {
+  /** Which app this is; it's left out of the switcher. The front door passes showApps={false} instead. */
+  current?: AppKey;
+  /** The switcher is for the app pages; the front door turns it off. */
+  showApps?: boolean;
+  /** Where the app switcher sits: top left, by default in line with the about link. */
+  appsTop?: number | string;
+  appsLeft?: number | string;
   /** Text colour. */
   color?: string;
   /** Distance from the left / bottom edge of the screen. */
@@ -76,6 +92,10 @@ export default function AboutMenu({
   termsHref = 'https://slowww.garden/terms',
   privacyHref = 'https://slowww.garden/privacy',
   links,
+  current,
+  showApps = true,
+  appsTop = 16,
+  appsLeft,
   panelBackground,
 }: AboutMenuProps) {
   const [open, setOpen] = useState(false);
@@ -107,8 +127,9 @@ export default function AboutMenu({
   const dim = (t: Tab) => (!tab || tab === t ? 1 : 0.55);
 
   return (
+    <>
     <div className={[className, open && panelBackground ? 'sg-about-open' : ''].filter(Boolean).join(' ') || undefined} style={root}>
-      <style>{`@media (max-width:767px){.sg-about-open{background:var(--sg-about-bg);padding:12px 14px;border:1px solid rgba(128,128,128,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:none!important}}.sg-about-link{background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;text-shadow:inherit;text-align:left;cursor:pointer}.sg-about-link:hover,.sg-about-link:focus-visible{text-decoration:underline;text-underline-offset:3px}`}</style>
+      <style>{`@media (max-width:767px){.sg-about-open{background:var(--sg-about-bg);padding:12px 14px;border:1px solid rgba(128,128,128,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:none!important}}.sg-about-link{background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;text-shadow:inherit;text-align:left;cursor:pointer}.sg-about-app{display:block;height:26px;width:auto;margin-bottom:-5px;transform:translate(var(--x),var(--y)) rotate(var(--r));transition:filter .3s;animation:sg-drift 3.4s ease-in-out infinite;animation-play-state:paused;animation-delay:var(--d)}.sg-about-app:hover,.sg-about-app:focus-visible{animation-play-state:running;filter:brightness(1.15)}@keyframes sg-drift{0%,100%{transform:translate(var(--x),var(--y)) rotate(var(--r))}22%{transform:translate(calc(var(--x) + 4px),calc(var(--y) - 5px)) rotate(calc(var(--r) + 9deg))}50%{transform:translate(calc(var(--x) - 3px),calc(var(--y) + 2px)) rotate(calc(var(--r) - 8deg))}78%{transform:translate(calc(var(--x) + 2px),calc(var(--y) - 3px)) rotate(calc(var(--r) + 5deg))}}@media (prefers-reduced-motion:reduce){.sg-about-app{animation:none}}.sg-about-app img{height:100%;width:auto;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}.sg-about-link:hover,.sg-about-link:focus-visible{text-decoration:underline;text-underline-offset:3px}`}</style>
 
       {open && tab === 'why' && (
         <div style={panel}>
@@ -159,13 +180,14 @@ export default function AboutMenu({
               {ABOUT[t].label}
             </button>
           ))}
-          {links?.map((l) => (
+          {[{ label: 'buy me a coffee', href: 'https://buymeacoffee.com/shxntxnx' }, ...(links ?? [])].map((l) => (
             <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className="sg-about-link" style={{ textDecoration: 'none' }}>
               {l.label} ↗
             </a>
           ))}
         </div>
       )}
+
 
       <button
         type="button"
@@ -181,5 +203,16 @@ export default function AboutMenu({
         <span aria-hidden="true">{open ? '−' : '+'}</span>
       </button>
     </div>
+      {showApps && (
+        <nav aria-label="the other slow garden apps" style={{ position: 'fixed', left: appsLeft ?? left, top: typeof appsTop === 'number' ? `calc(env(safe-area-inset-top, 0px) + ${appsTop}px)` : appsTop, zIndex, display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {APPS.filter((a) => a.key !== current).map((a) => (
+          <a key={a.key} href={a.href} title={a.label} aria-label={a.label} className="sg-about-app" style={{ '--r': `${a.pose.r}deg`, '--x': `${a.pose.x}px`, '--y': `${a.pose.y}px`, '--d': `${(a.pose.x % 5) * -0.7}s` } as CSSProperties}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={a.icon} alt="" height={26} />
+          </a>
+        ))}
+      </nav>
+      )}
+    </>
   );
 }

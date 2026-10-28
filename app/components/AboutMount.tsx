@@ -14,12 +14,9 @@ export default function AboutMount() {
   const onDreams = pathname.startsWith('/dreams');
   return (
     <AboutMenu
+      current={onDreams ? 'milky' : 'almanac'}
       termsHref="/terms"
       privacyHref="/privacy"
-      links={[
-        ...(onDreams ? [] : [{ label: 'dreams?', href: '/dreams' }]),
-        { label: 'buy me a coffee', href: 'https://buymeacoffee.com/shxntxnx' },
-      ]}
       left={16}
       bottom={14}
       color={onLegal ? '#171717' : onDreams ? '#FFFFFF' : '#F7F4E6'}
