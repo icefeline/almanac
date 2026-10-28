@@ -53,7 +53,7 @@ const sections: LegalSection[] = [
           another device, and your history is gone. We can&apos;t recover it, because we never had a copy.
         </p>
         <p>
-          The tarot app can make you a backup copy of your history, which is a file for you to keep (see the{' '}
+          almanac can make you a backup copy of your history, which is a file for you to keep (see the{' '}
           <a href="/privacy#backups" className="underline underline-offset-4">
             Privacy Policy
           </a>

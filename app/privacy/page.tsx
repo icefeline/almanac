@@ -23,7 +23,7 @@ const sections: LegalSection[] = [
     title: 'Who is responsible',
     body: (
       <p>
-        slow garden is made and run by one individual rather than a company. This policy covers the tarot app, its dream interpreter, milky, and its sticker tracker, root. Questions about it go to the address in the last section.
+        slow garden is made and run by one individual rather than a company. This policy covers almanac, its dream interpreter, milky, and its sticker tracker, root. Questions about it go to the address in the last section.
       </p>
     ),
   },
@@ -74,7 +74,7 @@ const sections: LegalSection[] = [
     title: 'What leaves your device',
     body: (
       <>
-        <p>For the tarot app and milky, five outside services are involved, and only these five:</p>
+        <p>For almanac and milky, five outside services are involved, and only these five:</p>
         <UL>
           <li>
             Anthropic writes the personalised part of your reading. It receives your birth details, the card you drew,
@@ -113,7 +113,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          milky works differently from the tarot app in one way that matters: what you write is sent away to be read.
+          milky works differently from almanac in one way that matters: what you write is sent away to be read.
         </p>
         <UL>
           <li>
