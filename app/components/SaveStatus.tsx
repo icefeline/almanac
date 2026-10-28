@@ -161,11 +161,10 @@ export default function SaveStatus() {
         onClick={openSheet}
         aria-label={label}
         title={label}
-        className="sg-osbtn relative flex items-center justify-center px-2 md:px-3 py-1.5 md:py-2"
+        className="sg-osbtn sg-savebtn relative flex items-center justify-center px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem]"
+        style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
       >
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" aria-hidden="true">
-          {flash ? <path d="M3 8.5l3.2 3.2L13 4.5" /> : <path d="M8 2v8M4.6 6.8L8 10.2l3.4-3.4M2.5 11.5v2h11v-2" />}
-        </svg>
+        <span>{flash ? 'saved' : 'save'}</span>
         {(state.due || flash) && (
           <span
             aria-hidden="true"

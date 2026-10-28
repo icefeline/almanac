@@ -568,6 +568,19 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
   return (
     <div className="relative min-h-screen">
 
+      {/* The dark fade lives at the very top of the screen, full width, and eases out downward, so it has no band and
+          no edge of its own: it only darkens what is scrolling up under the nav and the pinned year. */}
+      <div
+        aria-hidden="true"
+        className="fixed top-0 left-0 right-0 z-10 pointer-events-none transition-opacity duration-500"
+        style={{
+          opacity: isPinned ? 1 : 0,
+          height: 'calc(var(--nav-h, 3.5rem) + 8.5rem)',
+          background:
+            'linear-gradient(to bottom, rgba(23,34,17,.94) 0%, rgba(23,34,17,.9) 18%, rgba(23,34,17,.78) 34%, rgba(23,34,17,.6) 50%, rgba(23,34,17,.4) 64%, rgba(23,34,17,.22) 78%, rgba(23,34,17,.08) 90%, rgba(23,34,17,0) 100%)',
+        }}
+      />
+
       {/* What the year rises through. */}
       <div className="h-10 md:h-16" />
 
@@ -575,7 +588,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       <div
         ref={yearHeaderRef}
         className={`sticky z-20 pb-3 md:pb-8 transition-opacity duration-300 ${
-          isPinned ? 'bg-gradient-to-b from-[#172211] via-[#172211] to-[#172211]/0' : ''
+          ''
         }`}
         /* Flush against the nav: a hard-coded offset left a strip of scrolling
            content visible between the two the moment the nav resized. */
@@ -609,7 +622,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
 
       {/* ── ALL SCREENS: 12 months, vertically scrollable, single column ── */}
       <div className="px-4 pb-16">
-        <div className="max-w-sm md:max-w-xl mx-auto">
+        <div className="max-w-sm md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto">
         {MONTH_NAMES.map((monthName, monthIndex) => {
           const isCurrentMonth = monthIndex === currentMonthIndex;
           const monthDays = allMonthCalendarDays[monthIndex];

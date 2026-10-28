@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import TarotCard from './components/TarotCard';
 import SaveStatus from './components/SaveStatus';
+import ScrollVeil from './components/ScrollVeil';
 import YearView from './components/YearView';
 import Onboarding from './components/Onboarding';
 import TearOffPage from './components/TearOffPage';
@@ -196,6 +197,16 @@ export default function Home() {
   const navRef = useRef<HTMLDivElement>(null);
   // a very faint blur behind the top buttons once the page has scrolled, so the text passing under them stays quiet
   const [scrolled, setScrolled] = useState(false);
+  // phones: today / year / save fold into one square button at the corner, so the top of the page stays quiet
+  const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => {
+    if (!navOpen) return;
+    const away = (e: PointerEvent) => {
+      if (!(e.target as Element | null)?.closest?.('[aria-label="View switcher"]')) setNavOpen(false);
+    };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [navOpen]);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -728,24 +739,37 @@ export default function Home() {
         the save icon, floating over the page. The height is still measured below (--nav-h) so the content
         starts under them wherever they end up.
       */}
-      <div ref={navRef} className="fixed top-0 left-0 right-0 z-30 pointer-events-none" style={{
+      <div ref={navRef} className="fixed top-0 left-0 right-0 z-40 pointer-events-none" style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}>
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 transition-opacity duration-500"
-          style={{
-            opacity: scrolled ? 1 : 0,
-            backdropFilter: 'blur(5px)',
-            WebkitBackdropFilter: 'blur(5px)',
-            background: 'linear-gradient(to bottom, rgba(23,34,17,.35), rgba(23,34,17,0))',
-            maskImage: 'linear-gradient(to bottom, #000 60%, transparent)',
-            WebkitMaskImage: 'linear-gradient(to bottom, #000 60%, transparent)',
-          }}
-        />
-        <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4 flex items-center justify-center">
+        <ScrollVeil show={scrolled} />
+        {/* Keeps the nav's measured height where the old row had it; the buttons themselves stack at the right and
+            hang below it, so the page content is not pushed down by the stack. */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4" style={{ minHeight: 'clamp(46px, 7vw, 72px)' }}>
           {/* View Toggle Buttons */}
-          <div className="flex gap-2 md:gap-3 items-center pointer-events-auto" role="navigation" aria-label="View switcher">
+          <div className="absolute right-3 md:right-5 top-2 md:top-4 flex flex-col items-end gap-2 pointer-events-auto" role="navigation" aria-label="View switcher">
+            <button
+              type="button"
+              className="md:hidden sg-osbtn flex items-center justify-center"
+              style={{ width: 34, height: 34 }}
+              aria-expanded={navOpen}
+              aria-label={navOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setNavOpen((o) => !o)}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                {navOpen ? (
+                  <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" fill="none" />
+                ) : (
+                  <>
+                    <rect x="1" y="1" width="5" height="5" />
+                    <rect x="8" y="1" width="5" height="5" />
+                    <rect x="1" y="8" width="5" height="5" />
+                    <rect x="8" y="8" width="5" height="5" />
+                  </>
+                )}
+              </svg>
+            </button>
+            <div className={`${navOpen ? 'flex' : 'hidden'} md:flex flex-col items-end gap-2`} onClick={() => setNavOpen(false)}>
             <button
               onClick={() => {
                 setViewingPastCard(false);
@@ -754,7 +778,7 @@ export default function Home() {
               }}
               aria-pressed={currentView === 'card'}
               aria-label="View today's card"
-              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2"
+              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
               style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
             >
               today
@@ -763,7 +787,7 @@ export default function Home() {
               onClick={() => setCurrentView('year')}
               aria-pressed={currentView === 'year'}
               aria-label="View year history"
-              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2"
+              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
               style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
             >
               year
@@ -809,6 +833,7 @@ export default function Home() {
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>

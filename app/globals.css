@@ -297,3 +297,13 @@ input.rounded-3xl:focus-within {
 @media (prefers-reduced-motion: reduce) {
   .sg-osbtn { transition: none; }
 }
+
+/* The save button reads as its own thing: soft blue, not the lime of the views. */
+.sg-osbtn.sg-savebtn {
+  color: #e1eefc;
+  border-color: rgba(225, 238, 252, 0.5) #0b1108 #0b1108 rgba(225, 238, 252, 0.5);
+}
+.sg-osbtn.sg-savebtn:hover {
+  border-top-color: rgba(225, 238, 252, 0.85);
+  border-left-color: rgba(225, 238, 252, 0.85);
+}
