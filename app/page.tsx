@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import TarotCard from './components/TarotCard';
+import SaveStatus from './components/SaveStatus';
 import YearView from './components/YearView';
 import Onboarding from './components/Onboarding';
 import TearOffPage from './components/TearOffPage';
@@ -714,86 +715,17 @@ export default function Home() {
     <main className="min-h-screen flex flex-col bg-[#172211]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <GroundTexture />
 
-      {/* Navigation Header with Backdrop Blur */}
-      <div ref={navRef} className="fixed top-0 left-0 right-0 z-30" style={{
-        background: 'rgba(23, 34, 17, 0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(206, 241, 123, 0.2)',
+      {/*
+        No bar: no background, blur or rule behind it, and no wordmark. Just the view buttons (today, year) and
+        the save icon, floating over the page. The height is still measured below (--nav-h) so the content
+        starts under them wherever they end up.
+      */}
+      <div ref={navRef} className="fixed top-0 left-0 right-0 z-30 pointer-events-none" style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2 md:gap-3">
-            {/*
-              The spiral is painted, not filtered.
-
-              It used to be an <img> under a filter chain approximating the
-              soft blue — the kind of value you get from a converter and cannot
-              read, adjust, or check against a token. Now it is the wordmark's
-              own paper white, stated once, so the two cannot drift apart.
-
-              Masked rather than recoloured: the source is a black PNG, so its
-              alpha is the shape and the background supplies the colour. The
-              aspect ratio is the file's own 928x1232, which keeps `width:auto`
-              behaviour now that the element is a span rather than an image.
-            */}
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'block',
-                height: 'clamp(36px, 6vw, 56px)',
-                aspectRatio: '928 / 1232',
-                backgroundColor: '#F7F4E6',
-                WebkitMaskImage: 'url(/spiral-logo.png)',
-                maskImage: 'url(/spiral-logo.png)',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain',
-                WebkitMaskRepeat: 'no-repeat',
-                maskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskPosition: 'center',
-              }}
-            />
-            {/*
-              The wordmark in the app's own machine voice.
-
-              Every other piece of chrome that names something is VT323 — the
-              year's header, the titlebar of a window a past card opens in, the
-              > prompts down the reading. The wordmark was DM Mono in synthetic
-              small caps, which is a perfectly good logo and belonged to a
-              different app from the one around it.
-
-              Lowercase, and drawn that way rather than transformed. It was
-              DM Mono in synthetic small caps — lowercase text the browser was
-              rendering as shrunken capitals — which a pixel face survives
-              badly, because the strokes stop landing on the grid it is drawn
-              to. The app's own tone rule is lowercase for labels and headings,
-              so the letters it was given are the letters it shows.
-
-              The splash keeps its Instrument Serif wordmark. That one is the
-              app introducing itself and is allowed its own voice; this one is a
-              label on a toolbar.
-            */}
-            <span
-              className="text-[#F7F4E6]"
-              style={{
-                fontSize: 'clamp(21px, 3.6vw, 29px)',
-                /* Tighter than the 0.1em it carried as DM Mono. That tracking
-                   was opening up a face that is already drawn on a wide grid,
-                   and the two spacings together read as letters standing near
-                   each other rather than as one word. */
-                letterSpacing: '0.04em',
-                fontFamily: 'var(--font-vt323), monospace',
-                lineHeight: '1',
-              }}
-            >
-              slow garden
-            </span>
-          </div>
-
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4 flex items-center justify-center">
           {/* View Toggle Buttons */}
-          <div className="flex gap-2 md:gap-3 items-center ml-4 md:ml-12" role="navigation" aria-label="View switcher">
+          <div className="flex gap-2 md:gap-3 items-center pointer-events-auto" role="navigation" aria-label="View switcher">
             <button
               onClick={() => {
                 setViewingPastCard(false);
@@ -816,6 +748,8 @@ export default function Home() {
             >
               year
             </button>
+
+            <SaveStatus />
 
             {/* Development Reset Buttons */}
             {process.env.NODE_ENV === 'development' && (

@@ -301,6 +301,15 @@ export default function TermsAndPrivacy() {
               We can&apos;t see any of it. It isn&apos;t backed up, synced, or transmitted
               anywhere, and clearing your browser data deletes all of it permanently.
             </p>
+            <p className="mt-4">
+              Because of that, slow garden can make you a backup copy of all of it, but only when you
+              ask. The small note in the corner of the app opens it. The copy is a file saved to your
+              own device &mdash; or, on a phone, wherever you choose in the share sheet, such as iCloud
+              Drive or Google Drive. It is made in your browser and never sent to us. Restoring one
+              reads the file the same way, in your browser. The app also asks your browser to keep this
+              storage from being cleared automatically when space runs low; the browser decides, and it
+              does nothing about you clearing your own data.
+            </p>
           </Clause>
 
           <Clause title="What leaves your device">

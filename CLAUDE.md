@@ -151,6 +151,7 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
 | `slow-garden-reading-days` | `string[]` | every day a reading was generated — unbounded; used only to trigger the one-time thank-you-and-ask screen at day 8 |
 | `slow-garden-use-location`, `slow-garden-here` | — | location consent + resolved place |
 | `slow-garden-webview-noticed` | `'true'` | the in-app-browser notice has been dismissed |
+| `slow-garden-backup-last`, `slow-garden-backup-draws` | timestamp / count | when the reader last made a backup copy and how many draws it held, for the corner note's checkpoint nudge (`app/components/SaveStatus.tsx`, `lib/utils/backup.ts`). Bookkeeping only — never included in a backup |
 
 ---
 
