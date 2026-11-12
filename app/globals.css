@@ -307,3 +307,18 @@ input.rounded-3xl:focus-within {
   border-top-color: rgba(225, 238, 252, 0.85);
   border-left-color: rgba(225, 238, 252, 0.85);
 }
+
+/* While the tear-off leaf is up, the page's own controls are held out of sight: the leaf is
+   thin enough to see the live sky through, and they would ghost through it. The sky, the
+   vellum, the sealed card scene (once pulled) and the leaf itself stay. */
+main[data-sealed] > :not([aria-hidden='true']) { visibility: hidden; }
+main[data-sealed] .tear-root { visibility: visible; }
+
+/* night: every cobalt on the reading page turns lime (set by SkyBackground from the real sun) */
+:root[data-night] {
+  --accent-c: #C9F24E;
+  --on-accent-c: #2B35D6;
+  --lime-c: #2B35D6;
+  --chip-ink: #C9F24E;
+  --vellum-base: #0D1411;
+}

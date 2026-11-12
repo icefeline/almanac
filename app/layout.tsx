@@ -38,6 +38,7 @@ const dmMono = DM_Mono({
 // which covers 400/500/700 from a single file.
 const dmSans = DM_Sans({
   subsets: ['latin'],
+  style: ['normal', 'italic'],
   variable: '--font-dm-sans',
 });
 

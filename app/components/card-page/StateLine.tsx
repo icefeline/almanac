@@ -8,7 +8,7 @@ export function StateLine({ suite, isReversed }: { suite: string; isReversed: bo
   const arcana = suite === 'major' ? 'MAJOR ARCANA' : suite.toUpperCase();
   return (
     <div className={styles.state}>
-      {arcana} · {isReversed ? 'REVERSED' : 'UPRIGHT'}
+      <span style={{ marginRight: '1.4em' }}>{arcana}</span>{isReversed ? 'REVERSED' : 'UPRIGHT'}
     </div>
   );
 }

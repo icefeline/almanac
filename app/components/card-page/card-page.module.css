@@ -15,18 +15,31 @@
    ============================================================ */
 
 .page {
+  /* INK ON PAPER. The names below were chosen when this page was paper-white on
+     dark green, so --paper, --paper-2 and --paper-3 are the *text* ladder and
+     keep their names while their values flip: --paper is now the strongest ink.
+     The year-view window overrides most of these again below (.shellWindow .page)
+     and is unaffected. app/components/type.ts READING is the old dark table and is
+     still what the dreams page reads — it is deliberately no longer the same as
+     this one. */
   --ink: #1B2616;
-  --paper: #F7F4E6;
-  --paper-2: #EFF2E6;
-  --paper-3: #B9C4AE;
-  --lime: #C9F24E;
+  --paper: #15200F;
+  --paper-2: #27351F;
+  --paper-3: rgba(27, 38, 22, .62);
+  --lime: var(--lime-c, #C9F24E);
+  /* the accent is TEXT now, never a ground: cobalt, the app's own brand blue, reads on
+     the vellum where lime does not */
+  --accent: var(--accent-c, #2B35D6);
   --lime-ink: #171F1A;
   --lime-ink-soft: rgba(23, 31, 26, .77);
   --lime-rule: rgba(23, 31, 26, .45);
-  --moss: #8C9683;
-  --moss-2: #6C7864;
-  --moss-3: #4A5C3E;
-  --rule: #3A4A31;
+  --moss: rgba(27, 38, 22, .52);
+  --moss-2: rgba(27, 38, 22, .44);
+  --moss-3: rgba(27, 38, 22, .32);
+  --rule: rgba(27, 38, 22, .34);
+  /* the highlighter: lime is spent behind ink now, never as type on paper */
+  --letter: 680px; /* the reading column: one calm measure, set apart by space not rules */
+  --highlight: linear-gradient(transparent 52%, var(--lime) 52% 92%, transparent 92%);
 
   --f-sans: var(--font-dm-sans), sans-serif;
   --f-mono: var(--font-dm-mono), ui-monospace, monospace;
@@ -60,10 +73,27 @@
   font-family: var(--f-term);
   font-size: 16px;
   letter-spacing: .04em;
-  color: var(--lime);
+  color: var(--accent);
 }
 
 .dots { color: var(--moss-2); }
+
+
+
+/* ── the paper ────────────────────────────────────────────────────────────
+   The vellum itself is a fixed full-screen layer (app/components/Vellum.tsx)
+   laid over the live sky, so the reading is just ink on it: this class only
+   keeps the column clear of the top of the screen. Not applied inside a
+   year-view window, which is already a sheet of its own. */
+.sheet { padding-top: 18px; padding-bottom: 24px; }
+
+
+/* ── the spread ───────────────────────────────────────────────────────────
+   Two pages. One after the other by default (the Letter layout); side by side on
+   the wide page surface. See the @container block at the end of the wide layer. */
+.pages { }
+.pageL { padding-inline: var(--pad); }
+.pageR { }
 
 /* --- 02 card name ------------------------------------------ */
 /* SPEC §1.2: the card name IS the headline. No separate lime name line. */
@@ -98,6 +128,18 @@
 .plate { margin-top: 18px; display: flex; justify-content: center; }
 .marginL, .marginR { display: none; }
 
+/* the keyword ring: wide page only. Below 880px, and in a year-view window, the plain
+   list below the card takes over — a ring twice the card's width doesn't fit either. */
+.plateCenter { position: relative; }
+.ring { display: none; }
+.ringNear text, .ringFar text {
+  font-family: var(--f-mono);
+  font-weight: 300;
+  letter-spacing: .08em;
+}
+.ringNear text { fill: var(--ink); }
+.ringFar text { fill: var(--ink); opacity: .26; }
+
 /* --- 04 state line ----------------------------------------- */
 .state {
   margin-top: 10px;
@@ -111,8 +153,6 @@
 /* --- 05 readout strip (mobile only) ------------------------ */
 .readout {
   margin-top: 18px;
-  border-top: 1px dotted var(--rule);
-  border-bottom: 1px dotted var(--rule);
   padding: 12px 0;
   display: grid;
   /* Tracks take only the width they need and the pair is centred as one unit —
@@ -128,7 +168,7 @@
   letter-spacing: .04em;
 }
 
-.readout span, .marginL span, .marginR span { color: var(--moss-3); }
+.readout span, .marginL span, .marginR span { color: rgba(27, 38, 22, .24); }
 
 /* --- 06 keywords ------------------------------------------- */
 .keywords { padding-top: 18px; }
@@ -149,7 +189,7 @@
 }
 
 /* --- 07 meaning -------------------------------------------- */
-.meaning { margin-top: 16px; padding-top: 14px; border-top: 1px dotted var(--rule); }
+.meaning { margin-top: 16px; padding-top: 14px; }
 
 /* Scoped to their section rather than set bare: `.page p { margin: 0 }` above
    is more specific than a lone class, and silently ate these margins. */
@@ -159,7 +199,7 @@
   font-size: 16px;
   line-height: 1.5;
   letter-spacing: -.014em;
-  text-transform: lowercase;
+  text-transform: uppercase;
 }
 
 .meaning .sub {
@@ -176,12 +216,37 @@
   text-align-last: justify;
 }
 
+
+/* A fold: a one-line summary that opens on a tap. No rule, no animation (SPEC §5). */
+.fold {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.fold::-webkit-details-marker { display: none; }
+.fold::after {
+  content: '+';
+  font-family: var(--f-term);
+  font-size: 18px;
+  color: var(--moss);
+}
+details[open] > .fold::after { content: '\2212'; }
+.more > .fold {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--moss);
+}
+.more .sub, .distill .memory { margin-top: 14px; }
+
 /* --- 08 distill -------------------------------------------- */
 .distill {
   position: relative;
   margin-top: 18px;
   padding-top: 16px;
-  border-top: 1px dotted var(--rule);
   overflow: hidden;
 }
 
@@ -195,7 +260,7 @@
   line-height: 1.6;
   letter-spacing: -.008em;
   color: var(--paper-3);
-  text-transform: lowercase;
+  text-transform: uppercase;
 }
 
 .notes {
@@ -212,38 +277,36 @@
 
 .done {
   margin-top: 12px;
-  border-top: 1px dotted var(--rule);
   padding-top: 9px;
   font-family: var(--f-term);
   font-size: 16px;
   letter-spacing: .04em;
-  color: var(--lime);
+  color: var(--ink);
 }
 
 /* --- 09 lime module ---------------------------------------- */
 /* SPEC §1.4: the terminal log lives inside the module, so the block reads as
    the machine speaking to the reader rather than as a caption above it. */
 .module {
+  position: relative;
   margin: 22px var(--pad) 0;
-  background: var(--lime);
-  color: var(--lime-ink);
-  /* 14px, not the reference's 18: the box is already inset by the page gutter,
-     and stacking both left its copy measurably narrower than the body text it
-     sits under. */
-  /* Published so the full-bleed rules below can undo exactly this much. When
-     it was written twice — once here, once as a negative margin — the desktop
-     override at the bottom of this file changed one and not the other, and the
-     rules came up 12px short at each end. */
-  --mod-pad: 14px;
-  padding: 18px var(--mod-pad) 20px;
+  /* Front sheet: ink on the paper, no box. The lime is spent as a highlighter on
+     the key phrase and the try-this label (.mark), and the machine's log above. */
+  color: var(--ink);
+  /* Published so the full-bleed rules below can undo exactly this much. */
+  --mod-pad: 0px;
+  padding: 16px var(--mod-pad) 20px;
 }
+
+/* emphasis is a colour of type, not a bar behind it */
+.mark { color: var(--accent); }
 
 .log {
   font-family: var(--f-term);
   font-size: 16px;
   letter-spacing: .02em;
   line-height: 1.35;
-  color: var(--lime-ink-soft);
+  color: var(--moss);
 }
 
 .module h2 {
@@ -257,9 +320,9 @@
 
 .module p {
   font-family: var(--f-term);
-  font-size: 16px;
-  line-height: 1.4;
-  text-transform: lowercase;
+  font-size: 23px;
+  line-height: 1.34;
+  text-transform: uppercase;
 }
 
 /* The rule runs the full width of the module, not the width of its copy.
@@ -268,22 +331,16 @@
    as a divider across the box. Negative margins take it back out to the
    edges; the matching padding keeps the copy where it was. */
 .try {
-  border-top: 1px dotted var(--lime-rule);
-  margin: 14px calc(-1 * var(--mod-pad)) 0;
-  padding: 12px var(--mod-pad) 0;
+  margin: 18px 0 0 28px;
+  padding: 0;
 }
-
-/* Same spacing as .try, no rule: the transit toggle is a footnote to the read
-   above it rather than another section of it. */
-.explain { margin-top: 14px; padding-top: 12px; }
 
 .tryLabel {
   font-family: var(--f-mono);
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: .2em;
   text-transform: uppercase;
-  opacity: .65;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 }
 
 /* The module's own waiting and refusal states, in the same voice as its copy —
@@ -458,8 +515,8 @@
    the change is a flat step, not a fade. */
 .coffeeLink {
   display: inline-block;
-  color: var(--lime);
-  background: #2B35D6;
+  color: var(--on-accent-c, var(--lime));
+  background: var(--accent-c, #2B35D6);
   text-decoration: none;
   padding: 2px 8px;
 }
@@ -614,6 +671,21 @@
     overflow: hidden;
   }
 
+  .page.sheet .plateCenter { width: 24rem; margin-inline: auto; }
+  .page.sheet .ring {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 228%; /* the ring's 228 units against the card's 100 */
+    height: auto;
+    transform: translate(-50%, -50%);
+    overflow: visible;
+    pointer-events: none;
+  }
+  /* the ring carries the keywords on the wide page, so the list steps aside */
+  .page.sheet .keywords { display: none; }
+
   .plate { margin-top: 26px; display: grid; grid-template-columns: var(--margin-col, 150px) 1fr var(--margin-col, 150px); align-items: start; }
 
   .marginL, .marginR {
@@ -622,7 +694,7 @@
     font-family: var(--f-term);
     font-size: 17px;
     line-height: 2;
-    color: var(--moss);
+    color: rgba(27, 38, 22, .36);
     letter-spacing: .04em;
   }
 
@@ -632,36 +704,35 @@
   .state { margin-top: 14px; }
   .readout { display: none; }
 
-  /* two-column body split by a dotted spine */
+  /* One column, the letter measure — the two-column body and its spine are gone. */
   .body {
-    margin-top: 20px;
-    padding-top: 18px;
-    border-top: 1px dotted var(--rule);
+    margin: 40px auto 0;
+    width: min(var(--letter), 100%);
     display: grid;
-    grid-template-columns: 1fr 1px 1fr;
+    grid-template-columns: 1fr;
+    gap: 30px;
   }
 
-  .left { padding-right: 28px; display: flex; flex-direction: column; gap: 18px; }
-  .right { padding-left: 28px; }
-
-  /* SPEC §1.3 — 2px-on-5px, the one rule on the page that isn't dotted. */
-  .spine { background: repeating-linear-gradient(180deg, var(--moss-3) 0 2px, transparent 2px 7px); }
+  .left { display: flex; flex-direction: column; gap: 30px; }
+  .right { padding-left: 0; }
+  .spine { display: none; }
 
   .prompt, .done { font-size: 18px; }
   .keywords { padding-top: 0; }
   .keywords ul { font-size: 16px; }
-  .meaning { margin-top: 0; border-top: 1px dotted var(--rule); padding-top: 14px; }
-  .meaning .lede { font-size: 20px; }
+  .meaning { margin-top: 0; padding-top: 0; }
+  .meaning .lede { font-size: 18px; }
   .meaning .sub { font-size: 14px; }
 
-  .distill { margin-top: 0; padding-top: 0; border-top: 0; }
-  /* Keeps the same point-and-a-half over .meaning .sub at 16px. */
-  .distill .memory { font-size: 17.5px; }
+  .distill { margin-top: 0; padding-top: 0; }
+  .distill .memory { font-size: 18px; }
   .notes { font-size: 16px; line-height: 1.8; }
 
   /* The reference insets this to 792px; here it lines up with the measure so
      its edges agree with the body columns above and the input below. */
-  .module { width: var(--measure); margin: 32px auto 0; --mod-pad: 26px; padding: 18px var(--mod-pad) 24px; }
+  .module { width: min(var(--letter), 100%); margin: 40px auto 0; --mod-pad: 0px; padding: 0; }
+  .module p { font-size: 27px; line-height: 1.3; }
+  .module h2 { font-size: 30px; }
   .log { font-size: 18px; }
   .module h2 { margin: 8px 0 14px; }
 
@@ -669,7 +740,7 @@
   .patternHeadline { font-size: 20px; }
   .patternBody { font-size: 19px; line-height: 1.28; }
 
-  .input { margin-top: 28px; padding-top: 0; padding-bottom: 46px; }
+  .input { width: min(var(--letter), 100%); margin: 40px auto 0; padding-top: 0; padding-bottom: 46px; }
   .input textarea, .entry { font-size: 16px; }
   .input textarea { padding: 14px; }
   .saved { font-size: 18px; }
@@ -786,9 +857,950 @@
   font-size: 34px;
   line-height: 1;
   letter-spacing: 0.02em;
-  color: var(--lime);
-  background: #2B35D6;
+  color: var(--on-accent-c, var(--lime));
+  background: var(--accent-c, #2B35D6);
   border: 0;
   padding: 6px 14px 8px;
   cursor: pointer;
+}
+
+/* ── the text, set the way a magazine sets it ─────────────────────────────
+   Emphasis is a colour of type and a change of size inside one passage, never a
+   bar or box behind it: the words that echo the card glow in the accent, the
+   first sentence of the read is set larger as a lead-in, the key phrase is huge
+   and staggered, and "try this" is pulled out as a quote. */
+.hl { color: var(--accent); }
+.module .hl { font-size: 1.12em; }
+.meaning .hl { font-weight: 700; }
+.lead { font-size: 1.5em; line-height: 1.1; letter-spacing: -.01em; }
+.module .pull {
+  font-size: 30px;
+  line-height: 1.08;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+.phrase { margin: 14px 0 12px; }
+.line { display: block; }
+
+/* ── two pages, wide page only ──────────────────────────────────────────── */
+@container style(--wide: 1) {
+  .page.sheet .pages {
+    --letter: 100%;
+    position: relative;
+    width: min(1240px, calc(100cqw - 32px));
+    margin: 26px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .page.sheet .pageL { padding: 8px 0 40px; }
+  .page.sheet .pageR { min-width: 0; padding: 20px 0 40px 120px; }
+
+  /* the card's page: the sky's figures drop under it as credit lines */
+  .page.sheet .pageL .plate { display: flex; flex-direction: column; align-items: center; margin-top: 14px; }
+  .page.sheet .pageL .plateCenter { width: 21rem; margin-inline: auto; }
+  .page .pageL [data-card-image] { width: 21rem; }
+  .page.sheet .pageL .marginR { display: none; }
+  .page.sheet .pageL .marginL {
+    order: 3;
+    display: block;
+    text-align: left;
+    align-self: flex-start;
+    padding: 18px 0 0 6px;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .page.sheet .pageL .state { text-align: left; padding-left: 6px; }
+
+  .page.sheet .pageR .col { width: auto; margin: 0; padding: 0; }
+  .page.sheet .pageR .module,
+  .page.sheet .pageR .body,
+  .page.sheet .pageR .input { width: 100%; margin-inline: 0; }
+
+  /* the key phrase: huge, in the accent, each line starting somewhere different,
+     its last line just overprinting the lead-in beneath it */
+  .page.sheet .pageR .phrase {
+    margin: 18px 0 -.1em;
+    font-family: var(--f-sans);
+    font-weight: 800;
+    font-size: clamp(44px, 5.6vw, 88px);
+    line-height: .92;
+    letter-spacing: -.045em;
+    text-transform: uppercase;
+    color: var(--accent);
+    mix-blend-mode: multiply;
+    position: relative;
+    z-index: 2;
+  }
+  .page.sheet .phrase .line { margin-left: var(--o, 0); }
+  .page.sheet .pageR .module .insight { margin-top: 12px; font-size: 21px; line-height: 1.3; }
+  .page.sheet .pageR .module .pull { font-size: clamp(28px, 2.6vw, 38px); }
+}
+
+/* ── the journey ──────────────────────────────────────────────────────────
+   The whole reading as one horizontal strip of scenes, each taking most of the
+   screen so the edge of the next is always showing. Sideways on the page surface;
+   a year-view window keeps a plain vertical stack, where these are just blocks. */
+
+.sheet { max-width: none; margin: 0; padding: 0; }
+.sheet .journey {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: calc(100dvh - 8px);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+.sheet .journey::-webkit-scrollbar { display: none; }
+.sheet .journey:focus-visible { outline: 1px solid var(--moss-2); outline-offset: -6px; }
+.sheet .journey.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.sheet .journey textarea { cursor: text; }
+
+.sheet .scene {
+  flex: 0 0 92cqw;
+  scroll-snap-align: start;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 76px 3cqw 60px 5cqw;
+}
+.sheet .scene::-webkit-scrollbar { display: none; }
+.sheet .scene > * { max-width: 820px; }
+
+/* the opening scene: the card, in the middle of the screen */
+.sheet .sceneHero {
+  flex-basis: 94cqw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 3cqw 52px;
+}
+.sheet .sceneHero > * { max-width: none; }
+.sheet .sceneHero .cardname {
+  position: static;
+  left: auto;
+  transform: none;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+  margin: 0 0 2dvh;
+  font-size: clamp(36px, 6.2vw, 104px);
+  line-height: .9;
+  letter-spacing: -.045em;
+  text-align: center;
+  white-space: nowrap;
+}
+.sheet .sceneHero .plate { display: flex; flex-direction: column; align-items: center; margin-top: 0; }
+.sheet .sceneHero .plateCenter { position: relative; width: min(22rem, 38dvh); margin-inline: auto; }
+.page .sceneHero [data-card-image] { width: min(22rem, 38dvh); }
+.sheet .sceneHero .marginL,
+.sheet .sceneHero .marginR { display: none; }
+.sheet .sceneHero .state { margin-top: 3dvh; }
+.sheet .sceneHero .readout {
+  display: flex;
+  justify-content: center;
+  gap: 4px 24px;
+  margin-top: 6px;
+  padding: 0;
+  font-size: 14px;
+}
+
+/* the For you scene, for now: the key phrase huge and staggered */
+.sheet .scene .phrase {
+  margin: 14px 0 -.1em;
+  font-family: var(--f-sans);
+  font-weight: 800;
+  font-size: clamp(44px, 7vw, 120px);
+  line-height: .92;
+  letter-spacing: -.045em;
+  text-transform: uppercase;
+  color: var(--accent);
+  mix-blend-mode: multiply;
+  position: relative;
+  z-index: 2;
+}
+.sheet .scene .phrase .line { margin-left: var(--o, 0); }
+.sheet .scene .module { margin: 0; width: 100%; padding: 0; }
+.sheet .scene .module .insight { margin-top: 12px; font-size: 22px; line-height: 1.3; }
+.sheet .scene .module .pull { font-size: clamp(28px, 2.8vw, 42px); }
+.sheet .scene .input { margin: 0; width: 100%; padding-bottom: 0; }
+.sheet .scene .col { width: auto; margin: 0; padding: 0; }
+
+/* ── scenes, centred and closer together ──────────────────────────────────
+   Each scene's contents sit in the middle of it, and the scenes are narrower than the
+   screen with a margin of the journey either side, so the card scene is centred on
+   load and the gap between one scene's contents and the next stays small. */
+.sheet .journey { padding-inline: 7cqw; scroll-padding-inline: 7cqw; }
+.sheet .scene {
+  flex: 0 0 86cqw;
+  display: flex;
+  flex-direction: column;
+  padding: 64px 2cqw 56px;
+  text-align: center;
+}
+.sheet .scene > * { width: 100%; max-width: none; margin-block: auto; }
+.sheet .sceneHero { flex-basis: 86cqw; padding: 56px 2cqw 52px; justify-content: center; }
+.sheet .sceneHero > * { margin-block: 0; width: auto; }
+.sheet .sceneHero > .cardname { width: 100%; }
+
+/* for you: centred, the phrase huge */
+.sheet .scene .module { text-align: center; }
+.sheet .scene .phrase { width: min(100%, 980px); margin-inline: auto; text-align: left; }
+.sheet .scene .module .insight { max-width: 760px; margin: 14px auto 0; font-size: 22px; }
+.sheet .scene .module .try { max-width: 960px; margin: 34px auto 0; padding: 0; text-align: center; }
+.sheet .scene .module .pull { font-size: clamp(32px, 3.6vw, 60px); }
+.sheet .scene .module .log { text-align: center; }
+
+/* meaning: the poem, big */
+.meaningScene .poem { margin: 18px 0 0; }
+.poemLine {
+  display: block;
+  transform: translateX(var(--s, 0));
+  font-family: var(--f-sans);
+  font-weight: 600;
+  font-size: clamp(26px, 3.3vw, 58px);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.poemLine .hl { font-weight: 800; }
+
+/* the sky: figures as giant numerals */
+.skyScene .numerals {
+  margin: 26px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2dvh 5cqw;
+}
+.numeral { transform: translateY(var(--y, 0)); text-align: center; }
+.numVal {
+  display: block;
+  font-family: var(--f-sans);
+  font-weight: 800;
+  font-size: clamp(56px, 9vw, 152px);
+  line-height: .9;
+  letter-spacing: -.05em;
+  color: var(--ink);
+}
+.numLab {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.skyScene .aboutText {
+  max-width: 640px;
+  margin: 6dvh auto 0;
+  font-family: var(--f-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--paper-2);
+}
+
+/* distill: the tracked field */
+.blobField { display: block; width: 100%; max-width: 1400px; height: auto; margin: 10px auto 0; overflow: visible; }
+.trail { fill: none; stroke: var(--ink); stroke-opacity: .32; stroke-width: 1; stroke-dasharray: 3 5; }
+.trackBox { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.tag { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; fill: var(--ink); }
+.tagSub { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; fill: var(--accent); }
+.distillScene .sceneMemory {
+  max-width: 720px;
+  margin: 3dvh auto 0;
+  font-family: var(--f-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* your thoughts: a big prompt and an open field */
+.sheet .scene .input { max-width: 900px; margin-inline: auto; }
+.sheet .scene .input .prompt { font-size: clamp(28px, 3.6vw, 58px); line-height: 1; }
+.sheet .scene .input textarea { min-height: 34dvh; font-size: 22px; line-height: 1.5; margin-top: 18px; text-align: left; }
+.sheet .scene .input .share { align-self: center; }
+
+/* ── one system, one thread ───────────────────────────────────────────────
+   Every scene is built the same way — a small label at the top, one hero in the
+   middle on the same centre line, and a numbered node at the bottom — and one
+   dotted line runs through all of them without a break. Three type roles and no
+   others: a giant face (DM Sans, heavy) for the hero, body DM Sans, tiny mono for
+   labels. Nothing is offset at random; if something is not on the centre line there
+   is a reason. */
+.sceneLabel { display: none; }
+
+.sheet .journey { display: block; padding-inline: 0; }
+.sheet .track {
+  position: relative;
+  display: flex;
+  width: max-content;
+  height: 100%;
+  padding-inline: 7cqw;
+}
+.sheet .scene { position: relative; padding: 118px 2cqw 18dvh; }
+.sheet .sceneHero { padding: 90px 2cqw 18dvh; }
+
+.sheet .sceneLabel {
+  display: block;
+  position: absolute;
+  top: 76px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* for you: the key phrase on the centre line, the rest in two quiet sizes */
+.sheet .scene .phrase { text-align: center; }
+.sheet .scene .phrase .line { margin-left: 0; }
+.sheet .scene .module .log { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--moss); }
+.sheet .scene .module .insight,
+.sheet .scene .module .pull { font-family: var(--f-sans); text-transform: uppercase; }
+.sheet .scene .module .insight { font-size: 19px; line-height: 1.45; max-width: 680px; margin: 22px auto 0; }
+.sheet .scene .module .insight .lead { font-size: 1.45em; font-weight: 700; line-height: 1.2; letter-spacing: -.015em; }
+.sheet .scene .module .try { margin: 30px auto 0; max-width: 820px; }
+.sheet .scene .module .pull { font-weight: 800; font-size: clamp(28px, 3vw, 46px); line-height: 1.08; letter-spacing: -.03em; }
+.sheet .scene .module .tryLabel { font-size: 11px; letter-spacing: .24em; }
+
+/* meaning: the poem, every line on the centre line */
+.poemLine { transform: none; font-weight: 700; }
+.poemLine .hl { font-weight: 800; }
+
+/* the sky: numerals level on one baseline */
+.numeral { transform: none; }
+.skyScene .numerals { align-items: flex-start; }
+
+/* ── whitespace on purpose ────────────────────────────────────────────────
+   The label sits in the group with its hero instead of pinned to the top, the group
+   is centred in the band above the thread, and the heroes scale with the screen's
+   height as well as its width — so a tall window gets a bigger hero rather than a
+   bigger gap. */
+.sheet .scene { padding: 8dvh 2cqw 21dvh; }
+.sheet .sceneHero { padding: 8dvh 2cqw 21dvh; }
+.sheet .sceneStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-block: auto;
+  gap: 2.6dvh;
+}
+.sheet .sceneLabel { position: static; width: auto; margin: 0; }
+.sheet .scene > .sceneStack { width: 100%; }
+
+/* hero sizes follow the height too */
+.sheet .sceneHero .cardname { font-size: clamp(36px, min(6.2vw, 11dvh), 112px); margin: 0; }
+.sheet .sceneHero .plateCenter { width: min(22rem, 40dvh); }
+.page .sceneHero [data-card-image] { width: min(22rem, 40dvh); }
+.sheet .sceneHero .state { margin-top: 1.6dvh; }
+
+.sheet .scene .phrase { font-size: clamp(44px, min(7vw, 12.5dvh), 132px); margin-bottom: 0; }
+.poemLine { font-size: clamp(26px, min(3.3vw, 4.9dvh), 62px); }
+.numVal { font-size: clamp(56px, min(9vw, 16dvh), 172px); }
+.blobField { max-height: 58dvh; }
+.sheet .scene .module .insight { font-size: clamp(16px, 2.3dvh, 22px); margin-top: 2dvh; }
+.sheet .scene .module .try { margin-top: 3dvh; }
+.sheet .scene .input .prompt { font-size: clamp(28px, min(3.6vw, 6dvh), 62px); }
+.sheet .scene .input textarea { min-height: 30dvh; margin-top: 2dvh; }
+
+/* ── no thread; and the VT323 is back ─────────────────────────────────────
+   The line along the bottom is gone, so the group centres on the screen itself.
+   The module's voice is VT323 again — key phrase, read, pull quote, log — and so are
+   the scene labels and the sky's numerals; the human copy (the meaning, the
+   description, the memory) stays DM Sans. */
+.sheet .scene,
+.sheet .sceneHero { padding: 8dvh 2cqw; }
+
+.sheet .sceneLabel {
+  font-family: var(--f-term);
+  font-size: 20px;
+  letter-spacing: .2em;
+}
+
+.sheet .scene .phrase {
+  font-family: var(--f-term);
+  font-weight: 400;
+  font-size: clamp(64px, min(10vw, 17dvh), 190px);
+  line-height: .82;
+  letter-spacing: -.01em;
+}
+.sheet .scene .module .log {
+  font-family: var(--f-term);
+  font-size: 15px;
+  letter-spacing: .06em;
+  text-transform: none;
+}
+.sheet .scene .module .insight,
+.sheet .scene .module .pull { font-family: var(--f-term); }
+.sheet .scene .module .insight { font-size: clamp(21px, 3.1dvh, 30px); line-height: 1.22; max-width: 760px; }
+.sheet .scene .module .insight .lead { font-size: 1.4em; font-weight: 400; line-height: 1.05; letter-spacing: 0; }
+.sheet .scene .module .pull {
+  font-weight: 400;
+  font-size: clamp(36px, min(4.2vw, 7dvh), 70px);
+  line-height: .98;
+  letter-spacing: 0;
+}
+.sheet .scene .module .tryLabel { font-family: var(--f-term); font-size: 18px; letter-spacing: .2em; }
+
+.numVal {
+  font-family: var(--f-term);
+  font-weight: 400;
+  font-size: clamp(80px, min(13vw, 24dvh), 250px);
+  line-height: .8;
+  letter-spacing: 0;
+}
+.numLab { font-family: var(--f-term); font-size: 20px; letter-spacing: .2em; }
+
+/* ── nothing scrolls vertically: each scene is the screen ─────────────────
+   Every scene fits the height of the window, so there is no scrollbar and no
+   vertical gesture anywhere. Type is sized from the screen's height as well as its
+   width, and the busy scenes spread across the width in columns instead of stacking
+   down it. */
+.sheet .scene { overflow: hidden; }
+
+/* for you: the key phrase fills the left, the read and the pull quote the right */
+.sheet .scene .module {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  column-gap: 4cqw;
+  align-items: center;
+  align-content: center;
+}
+.sheet .scene .module > * { grid-column: 2; }
+.sheet .scene .module > .phrase { grid-column: 1; grid-row: 1 / span 12; align-self: center; width: 100%; margin: 0; }
+.sheet .scene .module .insight { margin: 1.6dvh auto 0; }
+.sheet .scene .module .try { margin: 2.4dvh auto 0; }
+.sheet .scene .module .pull { font-size: clamp(30px, min(3.4vw, 6.2dvh), 62px); }
+
+/* meaning: the type follows how many lines there are, so any poem fits */
+.poemLine { font-size: clamp(20px, min(4vw, calc(66dvh / (var(--n, 8) * 1.12))), 68px); }
+
+/* the sky: numerals share the width on one row */
+.skyScene .numerals { flex-wrap: nowrap; gap: 4cqw; }
+.numVal { font-size: clamp(64px, min(12vw, 24dvh), 240px); }
+.aboutText { margin-top: 4dvh; font-size: clamp(14px, 2dvh, 18px); }
+
+/* distill: the field takes the height, the memory sits in two columns beneath */
+.blobField { max-height: 52dvh; }
+.distillScene .sceneMemory { column-count: 2; column-gap: 40px; max-width: 980px; text-align: left; font-size: clamp(12px, 1.8dvh, 16px); }
+
+/* ── every scene is a page, set the way the spreads are ───────────────────
+   Text is flush left or justified, never centred; it fills the whole screen edge
+   to edge within a margin, in columns, the type sized from the screen's height so
+   nothing overflows. The card scene alone keeps a centred composition. */
+.sheet .scene { padding: 7dvh 3cqw 6dvh; text-align: left; }
+.sheet .scene > .sceneStack { height: 100%; width: 100%; margin: 0; align-items: stretch; justify-content: stretch; gap: 0; }
+.sheet .scene .sceneLabel { position: absolute; top: 3dvh; left: 3cqw; width: auto; text-align: left; }
+
+/* the card scene: the one centred composition */
+.sheet .sceneHero { padding: 8dvh 2cqw; text-align: center; }
+.sheet .sceneHero > .sceneStack { height: auto; margin-block: auto; align-items: center; justify-content: center; gap: 2.6dvh; }
+.sheet .sceneHero .sceneLabel { position: static; text-align: center; }
+
+/* for you: a cascade of giant words down the left page, the read in justified
+   columns on the right, the pull quote closing the bottom of the page */
+.sheet .scene .module {
+  height: 100%;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  grid-template-rows: auto auto auto 1fr auto;
+  column-gap: 3.5cqw;
+  row-gap: 1.8dvh;
+  align-items: start;
+  align-content: stretch;
+  text-align: left;
+}
+.sheet .scene .module > * { grid-column: 2; max-width: none; }
+.sheet .scene .module > .phrase {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  text-align: left;
+  font-size: clamp(60px, min(10.5vw, 19dvh), 210px);
+  line-height: .84;
+}
+.sheet .scene .phrase .line { margin-left: var(--o, 0); }
+.sheet .scene .module > .log { grid-row: 1; text-align: left; }
+.sheet .scene .module > .insight {
+  grid-row: 2;
+  columns: 2;
+  column-gap: 2.4cqw;
+  margin: 0;
+  max-width: none;
+  text-align: justify;
+  hyphens: auto;
+  font-size: clamp(18px, 2.6dvh, 27px);
+  line-height: 1.16;
+}
+.sheet .scene .module > .insight .lead { font-size: 1.5em; line-height: 1; }
+.sheet .scene .module > .try { grid-row: 4; align-self: end; margin: 0; max-width: none; text-align: left; }
+.sheet .scene .module > .try .tryLabel { text-align: left; }
+.sheet .scene .module > .try .pull {
+  font-size: clamp(34px, min(4.4vw, 8.4dvh), 84px);
+  line-height: .95;
+  text-align: left;
+}
+.sheet .scene .module > .explain { grid-row: 5; text-align: left; margin: 0; }
+.sheet .scene .module > [class*="patternStamp"] { grid-row: 3; margin: 0; }
+
+/* meaning: a full-page poem in the pixel face, stanzas flush left in two columns */
+.meaningScene { height: 100%; width: 100%; }
+.meaningScene .poem {
+  height: 100%;
+  margin: 0;
+  columns: 2;
+  column-gap: 4cqw;
+  column-fill: balance;
+  font-family: var(--f-term);
+  font-size: clamp(18px, min(calc(38cqw / (var(--m, 30) * .42)), calc(80dvh / ((var(--n, 10) / 2 + 1.6) * .95)), 120px), 120px);
+  line-height: .95;
+  text-transform: uppercase;
+  text-align: left;
+}
+.poemLine { display: block; transform: none; break-inside: avoid; font-family: inherit; font-size: inherit; font-weight: 400; line-height: inherit; letter-spacing: 0; text-transform: inherit; color: var(--ink); }
+.poemGap { margin-top: .9em; }
+.poemLine .hl { font-weight: 400; }
+
+/* the sky: figures stacked down the left, the description justified on the right */
+.skyScene { height: 100%; display: grid; grid-template-columns: 1.15fr 1fr; column-gap: 4cqw; align-items: stretch; }
+.skyScene .numerals { margin: 0; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: space-between; align-items: flex-start; gap: 0; }
+.numeral { display: flex; align-items: baseline; gap: 1.6cqw; text-align: left; }
+.numVal { font-size: clamp(48px, min(12cqw, calc(80dvh / (var(--c, 3) * .86))), 230px); line-height: .8; }
+.numLab { margin: 0; font-size: 22px; }
+.skyScene .aboutText {
+  align-self: start;
+  max-width: none;
+  margin: 0;
+  text-align: justify;
+  hyphens: auto;
+  font-family: var(--f-sans);
+  font-size: clamp(15px, 2.3dvh, 22px);
+  line-height: 1.3;
+}
+
+/* distill: the memory justified on the left, the field filling the rest of the page */
+.distillScene { height: 100%; display: grid; grid-template-columns: .62fr 1.7fr; column-gap: 3.5cqw; align-items: stretch; }
+.distillScene .sceneMemory {
+  align-self: start;
+  columns: 1;
+  max-width: none;
+  margin: 0;
+  text-align: justify;
+  hyphens: auto;
+  font-size: clamp(14px, 2.1dvh, 19px);
+  line-height: 1.32;
+}
+.distillScene .blobField { width: 100%; height: 100%; max-height: none; margin: 0; }
+
+/* thoughts: the prompt big on the left, the field filling the page on the right */
+.sheet .scene .input {
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  display: grid;
+  grid-template-columns: .8fr 1.4fr;
+  grid-template-rows: 1fr auto;
+  column-gap: 3.5cqw;
+  text-align: left;
+}
+.sheet .scene .input .prompt { grid-column: 1; grid-row: 1; align-self: start; font-size: clamp(34px, min(5vw, 9dvh), 96px); line-height: .92; }
+.sheet .scene .input textarea { grid-column: 2; grid-row: 1 / span 2; min-height: 0; height: 100%; margin: 0; font-size: clamp(16px, 2.6dvh, 26px); }
+.sheet .scene .input .share { grid-column: 1; grid-row: 2; align-self: end; justify-self: start; }
+
+/* ── each category lands centred ──────────────────────────────────────────
+   Every scene is snapped to the middle of the screen — across and down — with the
+   next and the last peeking in either side. */
+.sheet .journey { scroll-snap-type: x mandatory; scroll-padding: 0; }
+.sheet .scene { scroll-snap-align: center; scroll-snap-stop: always; padding: 6.5dvh 3cqw; }
+.sheet .sceneHero { padding: 6.5dvh 2cqw; }
+
+/* the read's small lines each get their own row so they stack, not overlap */
+.sheet .scene .module {
+  grid-template-rows: auto auto auto auto 1fr auto auto;
+}
+.sheet .scene .module > .insight { grid-row: 3; }
+.sheet .scene .module > [class*="patternStamp"] { grid-row: 4; }
+.sheet .scene .module > .try { grid-row: 6; }
+.sheet .scene .module > .explain { grid-row: 7; }
+
+/* the journey is exactly the screen: pinned, so the scenes centre on it and nothing
+   is clipped by whatever sits above or below the page */
+.sheet .journey { position: fixed; inset: 0; height: 100dvh; z-index: 1; }
+
+/* the poem fills the page: JS sets the size; here only the columns */
+.meaningScene .poem { column-fill: auto; font-size: 40px; }
+
+/* about this card: one big justified wall of italic capitals, edge to edge */
+.aboutScene { height: 100%; width: 100%; display: flex; }
+.aboutFit {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--f-sans);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -.02em;
+  line-height: .98;
+  text-align: justify;
+  text-align-last: justify;
+  hyphens: auto;
+  color: var(--ink);
+}
+.aboutFit .hl { font-weight: 800; }
+
+/* distill's memory: fitted and justified, in ink, as the left column of the page */
+.distillScene { grid-template-columns: .8fr 1.5fr; }
+.memoryFit {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--f-sans);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -.015em;
+  text-transform: uppercase;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--ink);
+}
+
+/* the two small log lines stack one above the other */
+.sheet .scene .module > .log { grid-row: auto; }
+
+/* distill, as a tracking patch */
+.blobField .grid { opacity: .28; }
+.guide { stroke: var(--ink); stroke-opacity: .22; stroke-width: 1; stroke-dasharray: 2 7; }
+.guideLabel { font-family: var(--f-mono); font-size: 11px; letter-spacing: .24em; fill: var(--ink); opacity: .5; }
+.blobBody { cursor: grab; touch-action: none; }
+.blobBody:active { cursor: grabbing; }
+.blobBody:hover .trackBox { stroke: var(--accent); stroke-width: 2; }
+.blobBody:hover .tag { fill: var(--accent); }
+
+/* distill: the whole page is the detector's field */
+.distillScene { display: block; position: relative; height: 100%; }
+.distillScene .blobField { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; }
+
+/* the retry is the app's own pairing: lime on cobalt */
+.sheet .scene .module .moduleRetry {
+  font-family: var(--f-term);
+  font-size: 26px;
+  letter-spacing: .04em;
+  text-transform: none;
+  color: var(--lime);
+  background: var(--accent);
+  border: 0;
+  padding: 4px 18px 6px;
+  margin-top: 18px;
+  cursor: pointer;
+}
+
+/* sealed: the card scene sits under the tear-off leaf, unseen — the live sky shows through
+   the paper — and fades in behind it once the leaf is pulled. It still takes its space, so
+   nothing moves when it appears. */
+.sealed .journey { opacity: 0; visibility: visible; transition: opacity .35s ease; }
+/* ...until the leaf is pulled: then the page behind it shows */
+.sealed.peek .journey { opacity: 1; }
+
+/* distill: the list and the reading on the left, the tracked field on the right */
+.distillScene .distillBody { display: grid; grid-template-columns: .62fr 1.7fr; column-gap: 3cqw; height: 100%; }
+.distillScene .blobField { position: static; inset: auto; width: 100%; height: 100%; margin: 0; }
+.notePanel { display: flex; flex-direction: column; min-height: 0; text-align: left; }
+.noteList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4dvh; }
+.noteList button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: .5dvh 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--f-mono);
+  font-size: clamp(11px, 1.7dvh, 15px);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: .7;
+}
+.noteList button i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.noteList button:hover, .noteList button.noteOn { opacity: 1; color: var(--c); }
+.noteList button.noteOn { font-weight: 500; }
+.noteDetail { margin-top: 3dvh; min-height: 0; }
+.noteName { font-family: var(--f-sans); font-weight: 800; font-size: clamp(40px, min(5vw, 8dvh), 92px); line-height: .95; letter-spacing: -.04em; text-transform: uppercase; }
+.noteMeta { margin-top: 1dvh; font-family: var(--f-mono); font-size: clamp(11px, 1.6dvh, 14px); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.noteGives { margin: 2dvh 0 0; font-family: var(--f-sans); font-style: italic; font-weight: 600; font-size: clamp(18px, 2.9dvh, 30px); line-height: 1.18; text-transform: uppercase; }
+.noteTie { margin: 1.6dvh 0 0; font-family: var(--f-sans); font-size: clamp(14px, 2.1dvh, 19px); line-height: 1.35; text-transform: uppercase; text-align: justify; hyphens: auto; }
+.noteHint { margin: 0; font-family: var(--f-sans); font-size: clamp(14px, 2.1dvh, 19px); line-height: 1.4; text-transform: uppercase; opacity: .75; }
+
+.leg { stroke-width: 1.8; stroke-opacity: .85; }
+.pulse { fill: var(--lime); stroke: var(--accent); stroke-width: 2; }
+.caption { font-family: var(--f-sans); font-size: 13px; font-style: italic; font-weight: 500; fill: var(--ink); opacity: .85; }
+.blobBody[data-lit] .trackBox { stroke-width: 2.6; }
+.blobBody[data-sel] .trackBox { stroke-width: 3.4; }
+.blobBody[data-sel] .tag { fill: var(--accent); font-weight: 600; }
+
+/* distill, the field again: the whole page, the notes in it, the reading pinned bottom-left */
+.distillScene .distillBody { position: relative; display: block; grid-template-columns: none; height: 100%; }
+.distillScene .blobField { position: absolute; inset: 0; width: 100%; height: 100%; }
+.distillScene .trackOverlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.noteCard {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: min(36cqw, 520px);
+  padding: 2dvh 2cqw 2.4dvh;
+  text-align: left;
+  background: rgba(243, 240, 231, .9);
+  pointer-events: none;
+}
+.noteCard .noteName { font-size: clamp(34px, min(4.2vw, 7dvh), 78px); }
+.noteCard .noteGives { font-size: clamp(16px, 2.5dvh, 26px); }
+.noteCard .noteTie { font-size: clamp(13px, 1.9dvh, 17px); }
+.noteCard .noteHint { font-size: clamp(13px, 1.9dvh, 17px); }
+.blobBody:focus-visible { outline: none; }
+.blobBody:focus-visible .trackBox { stroke-width: 3.4; }
+
+/* the reading page speaks in capitals: DM Sans caps for headings, VT323 for everything small */
+.noteName { letter-spacing: -.02em; }
+.noteGives, .noteTie, .noteHint, .caption {
+  font-family: var(--f-term);
+  font-style: normal;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.noteGives { font-size: clamp(24px, 3.6dvh, 38px); line-height: 1; }
+.noteTie, .noteHint { font-size: clamp(18px, 2.6dvh, 25px); line-height: 1.05; }
+.caption { font-size: 15px; opacity: .9; }
+.noteMeta { display: flex; gap: 1.4em; }
+
+/* no panel: the reading sits straight on the vellum, kept legible by a soft paper halo on the letters */
+.noteCard {
+  background: none;
+  padding-left: 1.6cqw;
+  text-shadow: 0 0 6px rgba(243, 240, 231, .95), 0 0 14px rgba(243, 240, 231, .85), 0 0 26px rgba(243, 240, 231, .7);
+}
+
+/* bare ink: no panel, no halo */
+.noteCard { text-shadow: none; }
+
+/* frosted glass: clear, lightly blurred, with a bright rim */
+.noteCard {
+  background: linear-gradient(135deg, rgba(255,255,255,.34), rgba(255,255,255,.1));
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,.65);
+  border-bottom-color: rgba(255,255,255,.25);
+  border-right-color: rgba(255,255,255,.25);
+  box-shadow: 0 10px 30px rgba(27,38,22,.12), inset 0 1px 0 rgba(255,255,255,.7);
+  border-radius: 14px;
+  left: 1.5cqw;
+  bottom: 1.5dvh;
+  padding: 2dvh 2cqw 2.2dvh;
+  text-shadow: none;
+}
+
+.noteCard {
+  z-index: 3;
+  background: linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.22));
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  backdrop-filter: blur(26px) saturate(1.5);
+}
+
+/* selecting a note: no box, just its corner brackets turn heavy */
+.blobBody:focus, .blobBody:focus-visible { outline: none; }
+.blobBody { -webkit-tap-highlight-color: transparent; }
+.blobBody[data-sel] .trackBox { stroke-width: 6; stroke-linecap: square; }
+.blobBody:focus-visible .trackBox { stroke-width: 1.2; }
+.blobBody[data-sel]:focus-visible .trackBox { stroke-width: 6; }
+
+/* Apple-style glass: thick blur, lifted saturation, a specular rim and a soft inner sheen */
+.noteCard {
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgba(255,255,255,.55), rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.12));
+  -webkit-backdrop-filter: blur(34px) saturate(1.9) brightness(1.06);
+  backdrop-filter: blur(34px) saturate(1.9) brightness(1.06);
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 28px;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,.9),
+    inset 0 -1px 0 rgba(255,255,255,.25),
+    inset 0 0 22px rgba(255,255,255,.18),
+    0 18px 44px rgba(27,38,22,.16),
+    0 2px 6px rgba(27,38,22,.08);
+  padding: 2.4dvh 2.4cqw 2.6dvh;
+}
+
+/* flat glass: a thin border, square corners, no gradient */
+.noteCard {
+  background: rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid rgba(27, 38, 22, .55);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* the reading in the box: three labelled lines, so it is clear why each one is there */
+.noteRows { margin: 1.4dvh 0 0; display: grid; gap: .5dvh; }
+.noteRows dt { font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-top: 1dvh; }
+.noteRows dd { margin: 0; font-family: var(--f-term); font-size: clamp(19px, 2.7dvh, 27px); line-height: 1.02; text-transform: uppercase; }
+.noteRows .noteSo { font-family: var(--f-sans); font-weight: 700; font-size: clamp(15px, 2.1dvh, 20px); letter-spacing: -.01em; line-height: 1; }
+.noteCard { width: min(40cqw, 580px); }
+
+.noteCard { background: rgba(246, 243, 234, .6); }
+
+/* ── phones ───────────────────────────────────────────────────────────────
+   One scene per screen, edge to edge, everything stacked and sized from the width. */
+@media (max-width: 760px) {
+  .sheet .journey { padding-inline: 0; scroll-padding-inline: 0; scroll-snap-type: x mandatory; }
+  .sheet .track { padding-inline: 0; }
+  .sheet .scene,
+  .sheet .sceneHero {
+    flex: 0 0 100cqw;
+    width: 100cqw;
+    padding: 64px 18px 20px;
+    scroll-snap-stop: always;
+  }
+  .sheet .scene > * { max-width: 100%; }
+
+  /* for you */
+  .sheet .scene .module { display: flex; flex-direction: column; gap: 14px; align-items: stretch; text-align: left; }
+  .sheet .scene .module > * { grid-column: auto; grid-row: auto; }
+  .sheet .scene .module > .phrase { width: 100%; font-size: clamp(44px, 15.5vw, 84px); line-height: .86; }
+  .sheet .scene .module > .insight { columns: 1; text-align: left; hyphens: manual; font-size: 19px; line-height: 1.18; margin: 0; max-width: none; }
+  .sheet .scene .module .log { text-align: left; font-size: 12px; }
+  .sheet .scene .module .pull { font-size: clamp(26px, 8.5vw, 40px); }
+  .sheet .scene .module .try { margin: 6px 0 0; text-align: left; max-width: none; }
+
+  /* thoughts */
+  .sheet .scene .input .prompt { font-size: clamp(30px, 10vw, 48px); }
+  .sheet .scene .input textarea { font-size: 19px; min-height: 30dvh; }
+
+  /* distill */
+  .noteCard {
+    left: 10px;
+    right: 10px;
+    bottom: 76px;
+    width: auto;
+    padding: 12px 14px 14px;
+  }
+  .noteCard .noteName { font-size: clamp(28px, 9vw, 40px); }
+  .noteRows { margin-top: 6px; gap: 2px; }
+  .noteRows dt { margin-top: 6px; }
+  .noteRows dd { font-size: 18px; }
+  .noteCard .noteHint { font-size: 17px; }
+  .tag, .tagSub { font-size: 11px; }
+  .caption { font-size: 11px; }
+}
+
+@media (max-width: 760px) {
+  .sheet .sceneLabel { padding-left: 54px; }
+  .sheet .scene .module .tryLabel { font-size: 15px; }
+}
+
+@media (max-width: 760px) {
+  .sheet .scene .input { display: flex; flex-direction: column; gap: 14px; height: 100%; }
+  .sheet .scene .input .prompt { grid-column: auto; grid-row: auto; }
+  .sheet .scene .input textarea { grid-column: auto; grid-row: auto; flex: 1; min-height: 28dvh; height: auto; }
+  .sheet .scene .input .share { grid-column: auto; grid-row: auto; align-self: stretch; justify-self: stretch; text-align: center; }
+}
+
+/* continuous: nothing snaps to a scene, on any screen */
+.sheet .journey { scroll-snap-type: none !important; scroll-behavior: auto; overscroll-behavior-x: contain; }
+.sheet .scene { scroll-snap-align: none !important; scroll-snap-stop: normal !important; }
+
+/* phones: about sits at the bottom, the field takes the whole screen, thoughts is a small box and a thick block */
+@media (max-width: 760px) {
+  .aboutScene { align-items: flex-end; }
+  .aboutFit { align-self: flex-end; height: 60dvh; }
+
+  .sheet .scene:has(.distillScene) { padding: 0; }
+  .distillScene { position: absolute; inset: 0; }
+  .tag, .tagSub, .caption { font-size: 15px; }
+
+  .sheet .scene .input textarea { flex: none; min-height: 0; height: 22dvh; }
+  .sheet .scene .input .share {
+    margin-top: auto;
+    padding: 26px 18px;
+    font-size: 26px;
+    line-height: 1;
+  }
+}
+
+/* phones: room between the sections */
+@media (max-width: 760px) {
+  .sheet .track { gap: 44px; }
+}
+
+/* for you: the two log lines sit right against each other, and the paragraph is one size */
+.sheet .scene .module .insight .lead,
+.sheet .scene .module > .insight .lead { font-size: 1em !important; font-weight: inherit !important; line-height: inherit !important; letter-spacing: inherit !important; }
+@media (min-width: 761px) {
+  .sheet .scene .module {
+    grid-template-rows: 1fr repeat(8, max-content) 1fr;
+    align-content: stretch;
+    row-gap: 0;
+  }
+  .sheet .scene .module::before { content: ''; grid-column: 2; grid-row: 1; }
+  .sheet .scene .module > .phrase { grid-column: 1; grid-row: 1 / -1; }
+  .sheet .scene .module > * { grid-row: auto; }
+  .sheet .scene .module > .phrase { grid-row: 1 / -1; }
+  .sheet .scene .module > .log { margin: 0 0 2px; }
+  .sheet .scene .module > .insight { margin-top: 1.4dvh; }
+}
+
+@media (max-width: 760px) {
+  .sheet .scene .module > .log { margin: 0; }
+  .sheet .scene .module > .log + .log { margin-top: -10px; }
+}
+
+/* a scene never scrolls: it is scaled to fit (Journey), with 20px kept at the bottom on phones */
+.sheet .scene { overflow: hidden; }
+
+/* night: ink turns to paper and paper to ink; blue turns lime (see globals.css) */
+:global(:root[data-night]) .page {
+  --ink: #F4F0E4;
+  --paper: #FBF8EE;
+  --paper-2: #E8E4D5;
+  --paper-3: rgba(244, 240, 231, .72);
+  --moss: rgba(244, 240, 231, .58);
+  --moss-2: rgba(244, 240, 231, .5);
+  --moss-3: rgba(244, 240, 231, .36);
+  --rule: rgba(244, 240, 231, .4);
+}
+:global(:root[data-night]) .noteCard {
+  background: rgba(12, 18, 15, .5);
+  border-color: rgba(244, 240, 231, .6);
+}
+:global(:root[data-night]) .caption { fill: var(--ink); }
+
+:global(:root[data-night]) .page { --lime-ink: #F4F0E4; --lime-ink-soft: rgba(244, 240, 231, .8); --lime-rule: rgba(244, 240, 231, .45); }
+
+/* for you on desktop: one column of text, stacked in order, centred beside the phrase */
+@media (min-width: 761px) {
+  .sheet .scene .module > :not(.phrase) { grid-row: auto !important; grid-column: 2; }
+  .sheet .scene .module > .insight { columns: 1; text-align: left; hyphens: manual; max-width: 40em; }
+  .sheet .scene .module > .log { margin: 0 0 4px; }
+  .sheet .scene .module > .try { margin-top: 3dvh; }
+  .sheet .scene .module > .explain { margin-top: 2.4dvh; }
 }

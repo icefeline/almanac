@@ -130,7 +130,7 @@ export default function SaveStatus() {
     const { written } = restoreBackup(pending.backup, mode);
     setView('done');
     if (written === 0) {
-      setMessage('nothing to add — this browser already has all of it.');
+      setMessage('nothing to add, this browser already has all of it.');
       return;
     }
     setMessage(`brought back ${written} saved items. reloading…`);

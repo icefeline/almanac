@@ -7,8 +7,9 @@ import ScrollVeil from './components/ScrollVeil';
 import AboutMount from './components/AboutMount';
 import YearView from './components/YearView';
 import Onboarding from './components/Onboarding';
-import TearOffPage from './components/TearOffPage';
-import GroundTexture from './components/GroundTexture';
+import TearSheet from './components/TearSheet';
+import SkyBackground from './components/SkyBackground';
+import Vellum from './components/Vellum';
 import AsciiFlower from './components/AsciiFlower';
 import CardSelector from './components/CardSelector';
 import ShareModal from './components/ShareModal';
@@ -309,6 +310,7 @@ export default function Home() {
         // Commit to localStorage immediately so it's stable for the rest of the day
         localStorage.setItem(`card-${today}`, todayCard.id);
         localStorage.setItem(`reversed-${today}`, todayReversed.toString());
+        window.dispatchEvent(new Event('sg:drew')); // the sky garden plants it
       }
 
       setCard(todayCard);
@@ -485,7 +487,14 @@ export default function Home() {
    * Reveal after the tear. No slot-reel here — the tear was the reveal gesture,
    * and running the reel on top of it would be two reveal animations competing.
    */
-  const handleTearReveal = () => revealCard({ animate: false });
+  // true while the tear-off leaf is being pulled: the card scene shows behind it
+  const [peeking, setPeeking] = useState(false);
+  // the leaf is still falling after the tear commits, so the sheet outlives the reveal
+  const [falling, setFalling] = useState(false);
+  const handleTearReveal = () => {
+    setFalling(true);
+    revealCard({ animate: false });
+  };
 
   const handleRevealCard = () => revealCard({ animate: true });
 
@@ -693,6 +702,7 @@ export default function Home() {
 
       localStorage.setItem(`card-${dateString}`, randomCard.id);
       localStorage.setItem(`reversed-${dateString}`, isReversed.toString());
+      window.dispatchEvent(new Event('sg:drew'));
     });
 
     loadJournalEntries();
@@ -732,8 +742,9 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen flex flex-col bg-[#172211]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <GroundTexture />
+    <main data-sealed={!isRevealed && currentView === 'card' ? 'true' : undefined} className="relative min-h-screen flex flex-col bg-[#172211]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <SkyBackground />
+      <Vellum on={(isRevealed || peeking) && currentView === 'card'} />
       <AboutMount home flow={isRevealed && currentView === 'card'} />
 
       {/*
@@ -854,7 +865,7 @@ export default function Home() {
              tear-off — see the invisible CardName below — so a difference here
              would move the card at the moment of opening, which is the one
              moment it has to be still. */
-          <div className={isRevealed ? 'pt-3 pb-6 md:pt-5 md:pb-10' : 'max-w-4xl mx-auto px-4 md:px-8 pt-3 pb-6 md:pt-5 md:pb-10'}>
+          <div className="pt-3 pb-6 md:pt-5 md:pb-10">
             {/* Once revealed, the reading page governs its own measure
                 (1080px), so the wrapper steps out of the way. Sealed, the
                 tear-off still wants the narrow column. */}
@@ -891,51 +902,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/*
-              The card name's space, held open before the tear.
-
-              Once revealed the reading page puts the name above the card, which
-              used to push the card down the screen at the moment of opening —
-              the one moment it should be still. Rendering the real name here,
-              invisible, reserves exactly its height for this card at this width,
-              so the card sits where it will sit and the tear develops the page
-              around it rather than moving it.
-
-              It goes above the anchor, not inside: TearOffPage is absolute
-              inset-0 within the anchor and centres itself there, so anything
-              added inside would drag the calendar off the card.
-
-              The shell, and its width, are both load-bearing.
-
-              The reading measures itself against the shell — that element is
-              the query container — and the real one is a child of the page,
-              the full width of the window. This copy is inside the centred
-              max-w-4xl column, which is 832px on a desktop where the reading
-              gets 1397. Left alone it therefore asked a narrower container the
-              same question and got the phone's answer: a 52px name reserving
-              about 70px too little, a calendar sitting that much too high, and
-              the card dropping to its real place the instant it was torn —
-              exactly what this block exists to prevent.
-
-              So the shell here is pinned to the viewport, which is what the
-              real one resolves to. The overflow is hidden on the wrapper
-              because a 100vw child of a padded, centred column hangs off the
-              right of it; only the height of this thing is ever used.
-            */}
-            {!isRevealed && (
-              <div aria-hidden="true" className="pointer-events-none overflow-hidden" style={{ visibility: 'hidden' }}>
-                <div className={cardPage.shell} style={{ width: '100vw' }}>
-                  <div className={cardPage.page}>
-                    <div className={cardPage.col}>
-                      <CardName name={card.name} />
-                    </div>
-                  </div>
-                </div>
-                {/* the plate's own margin above the card */}
-                <div className="h-[18px] md:h-[26px]" />
-              </div>
-            )}
-
             {/* Card Display — ref wraps TarotCard so getBoundingClientRect gives exact card position.
                 While unrevealed, the tear-off page covers the card; tearing it is the reveal. */}
             <div ref={cardAnchorRef} className="relative">
@@ -947,12 +913,18 @@ export default function Home() {
                 // the tear page is covering the card, so put the real art
                 // underneath it — tearing then uncovers the card itself
                 artVisibleEarly={!isRevealed}
+                peek={peeking}
                 userName={localStorage.getItem('userName') || undefined}
                 cardDate={dateString}
                 footer={isRevealed ? renderInputBlock() : undefined}
               />
-              {!isRevealed && (
-                <TearOffPage onTear={handleTearReveal} disabled={isAnimating} />
+              {(!isRevealed || falling) && (
+                <TearSheet
+                  onTear={handleTearReveal}
+                  onDone={() => setFalling(false)}
+                  onPeek={setPeeking}
+                  disabled={isAnimating}
+                />
               )}
             </div>
 

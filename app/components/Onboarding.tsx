@@ -15,6 +15,7 @@ const DESKTOP_SCALE = 909 / 748;
 const WELCOME_PX = 26;
 import AsciiFlower from './AsciiFlower';
 import Wordmark from './Wordmark';
+import SkyBackground from './SkyBackground';
 import {
   ObBack, ObHead, ObFields, ObTag, ObHint, ObToggle, ObPermission, ObCta,
   fieldStyle, obValue, obPx, LIME, BONE,
@@ -633,79 +634,79 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   const sunInsights: { [key: string]: string } = {
-    aries: "you carry more under the surface than people tend to see. there's a lot more going on than you tend to show, and that's what makes this interesting.",
-    taurus: "you hold things together in ways others only notice when you stop. there's something in you that needs far more than it asks for.",
-    gemini: "you think fast and feel deeply, and most people only catch one of those things. the cards tend to find both.",
-    cancer: "you absorb more than you let on — other people's heaviness, old patterns, things that were never even yours. it shows up.",
-    leo: "there's more tenderness in you than the confidence suggests. it's often the softer version that people actually need.",
-    virgo: "you notice everything, including the things that would be easier to miss. the cards like working with that kind of attention.",
-    libra: "you carry a lot for the people around you and make it look effortless. the cards are good at finding what that costs.",
-    scorpio: "you already sense more than you're saying — about the situation, about people, about yourself. the cards just confirm it.",
-    sagittarius: "you keep looking forward because standing still feels uncomfortable. there's usually something worth pausing for.",
-    capricorn: "you hold everything together and almost never let anyone see the effort. the cards notice what you've stopped noticing about yourself.",
-    aquarius: "you observe more than you participate. the cards tend to ask what you're watching from that distance.",
-    pisces: "everything you feel lands twice as hard because you feel it for yourself and for everyone else. sorting that out is the real work.",
+    aries: "there's usually more going on under the surface than anyone gets to see, and the cards tend to find it.",
+    taurus: "you probably hold a lot of things together, and it mostly shows when you stop. what's needed may be more than what's asked for.",
+    gemini: "you think fast and feel deeply, and most people only catch the first. the cards tend to notice both.",
+    cancer: "you absorb a good deal that isn't yours: other people's heaviness, old patterns. it tends to show somewhere.",
+    leo: "the tenderness may run deeper than the confidence suggests. often the softer version is the one people actually reach for.",
+    virgo: "you notice most things, including the ones that would be easier to miss. the cards like working with that sort of attention.",
+    libra: "you carry a fair bit for the people around you and make it look easy. the cards are good at finding what that costs.",
+    scorpio: "you probably sense more than you say, about a situation, about someone, about yourself. the cards mostly confirm it.",
+    sagittarius: "you keep looking ahead because standing still can feel uncomfortable. there may be something worth stopping for.",
+    capricorn: "you hold a lot together and seldom let anyone see the effort. the cards notice what you've stopped noticing.",
+    aquarius: "you tend to observe more than you join in. the cards usually ask what you're watching, and from how far away.",
+    pisces: "what you feel lands twice, once for you and once for everyone nearby. sorting out which is which is slow work.",
   };
 
   // Short mobile-only insights (1 sentence each)
   const sunInsightsMobile: { [key: string]: string } = {
-    aries: "you carry more under the surface than people know.",
-    taurus: "steadiness that costs more than it looks.",
-    gemini: "quick on the outside, much deeper underneath.",
-    cancer: "you absorb so much that isn't yours to carry.",
-    leo: "more tender than the confidence suggests.",
-    virgo: "you notice everything. even the things you'd rather not.",
-    libra: "holding a lot together for everyone.",
-    scorpio: "you already know. you're just waiting to be sure.",
-    sagittarius: "always moving so you don't have to stop.",
-    capricorn: "composure that takes effort they can't see.",
-    aquarius: "observing from a distance, feeling it all anyway.",
-    pisces: "everything lands twice as hard when you feel it for everyone.",
+    aries: "more under the surface than people see.",
+    taurus: "steadiness that costs more than it looks like.",
+    gemini: "quick on the outside, slower and deeper underneath.",
+    cancer: "you take in a lot that isn't yours to carry.",
+    leo: "gentler underneath than the confidence lets on.",
+    virgo: "you notice everything, even what you'd rather not.",
+    libra: "holding a lot together, for everyone, calmly.",
+    scorpio: "you probably know already and are waiting to be sure.",
+    sagittarius: "always moving so you needn't stop.",
+    capricorn: "composure that takes effort nobody sees.",
+    aquarius: "watching from a distance and feeling it all anyway.",
+    pisces: "feelings land twice when you feel them for everyone.",
   };
 
   const moonInsightsMobile: { [key: string]: string } = {
-    aries: "you process by moving, not by sitting still with it.",
-    taurus: "you need solid ground. change shakes you more than anyone sees.",
-    gemini: "you need to talk it through to make sense of what you feel.",
-    cancer: "your emotions go back further than you — it's ancestral weight.",
-    leo: "you need to be seen when you're soft, not just when you're shining.",
-    virgo: "you try to organise feelings like problems to solve. some refuse to be fixed.",
-    libra: "you feel through the people around you until you've lost track of what's yours.",
-    scorpio: "you're all the way in or all the way shut. no in-between.",
-    sagittarius: "you need space around your feelings. when it tightens, it starts to feel like captivity.",
-    capricorn: "you keep vulnerability contained. letting it loose feels like losing control.",
-    aquarius: "you need distance to understand what you feel. raw emotion without analysis panics you.",
-    pisces: "you soak up everything around you. other people's pain becomes yours.",
+    aries: "you work things out by moving, not by sitting with them.",
+    taurus: "you need solid ground, and change shakes you more than it shows.",
+    gemini: "you talk it through to find out what you feel.",
+    cancer: "your feelings go back further than you do.",
+    leo: "you want to be seen when you're soft, not only when you're shining.",
+    virgo: "you sort feelings like problems, and some refuse to be sorted.",
+    libra: "you feel through other people until you lose track of what's yours.",
+    scorpio: "you're all in or all shut, with little between.",
+    sagittarius: "feelings need room, and closeness can feel like a fence.",
+    capricorn: "vulnerability stays contained, and letting go feels like losing control.",
+    aquarius: "you need distance to know what you feel.",
+    pisces: "you soak up the room, and other people's pain becomes yours.",
   };
 
   const risingInsightsMobile: { [key: string]: string } = {
-    aries: "you walk in direct and braced. people mistake it for fearlessness.",
-    taurus: "you make people feel safe without trying, even when you're still finding your footing.",
-    gemini: "you shift to match whoever's in front of you, then forget which version is actually you.",
-    cancer: "you lead with softness even when you're trying to protect yourself.",
-    leo: "you take up space without trying, even when you're making yourself smaller.",
-    virgo: "you arrive looking put-together. no one sees how much overthinking it took.",
-    libra: "you make everyone comfortable. sometimes you disappear in the process.",
-    scorpio: "people feel your intensity before you've spoken. small talk is agony.",
-    sagittarius: "you show up open and light. people don't realise you're just better at moving than sitting still.",
-    capricorn: "you look composed and fine. they can't see the pressure you're holding inside.",
-    aquarius: "you show up slightly outside the frame. people either get it or they don't.",
-    pisces: "you absorb the feeling of rooms without meaning to. it takes more from you than they realise.",
+    aries: "direct and braced. people call it fearless.",
+    taurus: "people feel safe near you, before you do.",
+    gemini: "you shift to suit the room, then wonder which version was you.",
+    cancer: "you lead with softness even while protecting yourself.",
+    leo: "you take up room without trying, even when shrinking.",
+    virgo: "you arrive put together. nobody sees the overthinking.",
+    libra: "you make everyone comfortable, and sometimes vanish doing it.",
+    scorpio: "your intensity arrives before you do. small talk is hard work.",
+    sagittarius: "open and light, and better at moving than staying.",
+    capricorn: "composed on the surface, with the pressure kept inside.",
+    aquarius: "slightly outside the frame. people get it or they don't.",
+    pisces: "you absorb rooms without meaning to, and it costs you.",
   };
 
   const numerologyInsightsMobile: { [key: number]: string } = {
-    1: "you're here to lead, even when it's isolating.",
-    2: "you build bridges between people. but sometimes you've lost your own voice in the process.",
-    3: "expression is what you're here to do. holding it back makes it fester.",
-    4: "you're building something meant to last. the pressure of being the stable one is exhausting.",
-    5: "freedom isn't optional for you. you're figuring out how to commit without disappearing.",
-    6: "you're built to care for people. you're learning that martyrdom isn't love.",
-    7: "you're here to go deep. surface conversations make your skin itch.",
-    8: "your path is about legacy. real strength isn't the same as control.",
-    9: "you're always finishing cycles, releasing things even when it hurts.",
-    11: "you pick up on frequencies others can't hear. the sensitivity is overwhelming until you realise it's a gift.",
-    22: "you're here to build something massive. the vision is clear but bringing it to earth takes everything.",
-    33: "you carry a healing frequency people feel before you speak. the responsibility gets heavy.",
+    1: "you may find yourself leading, even when it's lonely.",
+    2: "you build bridges, and sometimes lose your own voice crossing.",
+    3: "expression is what you're for. holding it in makes it fester.",
+    4: "you build to last, and being the steady one is tiring.",
+    5: "freedom matters. the work is committing without vanishing.",
+    6: "you're built to care, and learning that martyrdom isn't love.",
+    7: "you go deep, and small talk grates.",
+    8: "legacy is the theme. strength and control are different things.",
+    9: "you're always finishing cycles, letting go even when it hurts.",
+    11: "you pick up frequencies others miss. it's overwhelming until it feels like a use.",
+    22: "the vision is clear and bringing it to earth takes everything.",
+    33: "people feel something healing in you before you speak, and it gets heavy.",
   };
 
   const getWelcomeMessageMobile = (): string => {
@@ -716,62 +717,62 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (hasBirthTime && hasLocation) {
       const moonSign = getMoonSign(birthDate, birthTime);
       const risingSign = getRisingSign(birthDate, birthTime);
-      return `${name}!\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\n${risingInsightsMobile[risingSign]}\nthe cards are ready — pull one!`;
+      return `${name},\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\n${risingInsightsMobile[risingSign]}\nthe cards are ready when you are.`;
     }
     if (hasBirthTime) {
       const moonSign = getMoonSign(birthDate, birthTime);
-      return `${name}!\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\nthe cards are excited. pull one!`;
+      return `${name},\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\nthe cards are ready. pull one when you like.`;
     }
     if (hasLocation) {
-      return `${name}!\n${sunInsightsMobile[sunSign]}\nthe cards are ready for you. pull one!`;
+      return `${name},\n${sunInsightsMobile[sunSign]}\nthe cards are laid out. pull one when you like.`;
     }
     const lifePathNumber = getLifePathNumber(birthDate);
-    return `${name}!\n${sunInsightsMobile[sunSign]}\n${numerologyInsightsMobile[lifePathNumber]}\nthe cards are ready. pull one!`;
+    return `${name},\n${sunInsightsMobile[sunSign]}\n${numerologyInsightsMobile[lifePathNumber]}\nthe cards are ready. pull one whenever.`;
   };
 
   const moonInsights: { [key: string]: string } = {
-    aries: "emotionally, you process by moving — you need to do something with it, not sit still.",
-    taurus: "your inner world needs stability. unexpected shifts rattle you harder than most people around you know.",
-    gemini: "you need to talk through what you feel to make sense of it. silence with big emotions doesn't work for you.",
-    cancer: "some of what you carry emotionally is older than you — pattern, not just feeling.",
-    leo: "you need to be seen when you're soft, not just when you're on.",
-    virgo: "you try to organise feelings like problems to solve. some of them refuse.",
-    libra: "you feel through the people around you until you've lost track of what's actually yours.",
-    scorpio: "there's no in-between emotionally — all in or all the way shut.",
-    sagittarius: "you need space around your feelings. too much closeness starts to feel like confinement.",
-    capricorn: "vulnerability feels like losing control. you're slowly learning that it isn't.",
-    aquarius: "you process feelings better from a distance. raw emotion without analysis makes things worse.",
-    pisces: "you absorb everything around you. other people's pain becomes yours before you've noticed.",
+    aries: "emotionally you tend to work things out by moving. sitting still with a feeling may be the harder option.",
+    taurus: "your inner world likes stability. sudden changes rattle it more than most people around you would guess.",
+    gemini: "talking is how you find out what you feel. a long silence around big feelings may not suit you.",
+    cancer: "some of what you carry emotionally may be older than you, more of a pattern than a mood.",
+    leo: "you may want to be seen when you're soft, and not only when you're switched on.",
+    virgo: "you probably sort feelings the way you'd sort a problem, and some of them won't be sorted.",
+    libra: "you feel through the people around you, sometimes until it's unclear which feelings were yours.",
+    scorpio: "it tends to be all in or all closed, with not much of a middle.",
+    sagittarius: "your feelings may need room around them. closeness can start to feel like a fence.",
+    capricorn: "vulnerability may stay contained, because letting it out feels like losing the handle.",
+    aquarius: "you might need a bit of distance before you can tell what you feel. raw feeling without any room can be a lot.",
+    pisces: "you soak up the room, and other people's pain can become yours before you notice.",
   };
 
   const risingInsights: { [key: string]: string } = {
-    aries: "you show up direct and ready, even when you're not — people read that as certainty.",
-    taurus: "something in your presence makes people feel settled before you've said anything.",
-    gemini: "you shift to fit whoever's in front of you, which works until you've lost track of which one is you.",
-    cancer: "you lead with care even when you're trying to protect yourself — it comes through anyway.",
-    leo: "you take up space effortlessly, even when you're actively trying not to.",
-    virgo: "you arrive looking composed and prepared. they can't see the analysis that got you there.",
-    libra: "you smooth everything over for everyone. sometimes you disappear a little in the process.",
-    scorpio: "people feel the intensity before you've spoken. small talk genuinely costs you something.",
-    sagittarius: "you come across bright and open. people don't realise you're just faster at moving than stopping.",
-    capricorn: "you carry a composed, reliable presence. the pressure behind it isn't visible.",
-    aquarius: "you arrive slightly outside the frame. people either get that or they don't.",
-    pisces: "you absorb the mood of whatever room you enter. it takes more from you than it looks.",
+    aries: "you walk in direct and a little braced, and people often read that as fearlessness.",
+    taurus: "people feel safe near you, usually before you've found your own footing.",
+    gemini: "you may shift a little to match whoever you're with, and later wonder which version was yours.",
+    cancer: "you lead with softness even when you're trying to protect yourself.",
+    leo: "you take up room without trying, even on days you're making yourself smaller.",
+    virgo: "you arrive looking put together, and nobody sees the overthinking that went into it.",
+    libra: "you make people comfortable, and sometimes you leave yourself out of the picture.",
+    scorpio: "people feel your intensity before you've said anything, and small talk can be hard work.",
+    sagittarius: "you arrive open and light. people may not see that you're simply better at moving than staying.",
+    capricorn: "you look composed and fine, and the pressure you hold doesn't show.",
+    aquarius: "you show up a little outside the frame. some people get it right away and some never do.",
+    pisces: "you pick up the mood of a room without meaning to, and it costs you more than they'd guess.",
   };
 
   const numerologyInsights: { [key: number]: string } = {
-    1: "you're being pushed to lead, even when it feels like a solo thing.",
-    2: "you build bridges between people. sometimes you lose your own voice doing it.",
-    3: "expression is what you're here for. holding it in makes things worse.",
-    4: "you're building something solid, and carrying the weight of being the stable one.",
-    5: "freedom isn't optional for you — you're figuring out how to commit without losing yourself.",
-    6: "you're built to care for people. the line between love and self-erasure is the real work.",
-    7: "you're here to go deep. surface-level anything makes your skin itch.",
-    8: "building something real that lasts. strength and control aren't the same thing.",
-    9: "you're always releasing things that others cling to. that's the path.",
-    11: "you pick up on frequencies others miss. the sensitivity is the gift, even when it's overwhelming.",
-    22: "you're here to build something massive. bringing the vision down to earth is everything.",
-    33: "you carry something people feel before you speak. the weight of that responsibility is real.",
+    1: "you may find yourself leading, even when it's lonely.",
+    2: "you build bridges between people, and now and then lose your own voice on the way across.",
+    3: "expression seems to be what you're for, and keeping it in makes it fester.",
+    4: "you tend to build things meant to last, and being the steady one can be tiring.",
+    5: "freedom matters a great deal. the work is committing without disappearing into it.",
+    6: "you're built to care for people, and learning that martyrdom isn't love.",
+    7: "you go deep, and surface chatter may set your teeth on edge.",
+    8: "legacy is the theme here. real strength and control are different things.",
+    9: "you're often finishing cycles, letting things go even when it hurts.",
+    11: "you pick up frequencies others miss. the sensitivity can be overwhelming until it feels like a use.",
+    22: "the vision is clear and bringing it to earth takes everything you have.",
+    33: "people may feel a healing quality in you before you've said anything, and the weight of that grows.",
   };
 
   const getWelcomeMessage = (): string => {
@@ -782,17 +783,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (hasBirthTime && hasLocation) {
       const moonSign = getMoonSign(birthDate, birthTime);
       const risingSign = getRisingSign(birthDate, birthTime);
-      return `${name}!\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\n${risingInsights[risingSign]}\n\nthe cards see all of it — let's find out what's up.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\n${risingInsights[risingSign]}\n\nthe cards have taken it all in. whenever you're ready.`;
     }
     if (hasBirthTime) {
       const moonSign = getMoonSign(birthDate, birthTime);
-      return `${name}!\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\nthe cards get it. pull one when you're ready.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\nthe cards have it. pull one when it feels right.`;
     }
     if (hasLocation) {
-      return `${name}!\n\n${sunInsights[sunSign]}\n\nthe cards get it. pull one when you're ready.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\nthe cards have it. pull one when it feels right.`;
     }
     const lifePathNumber = getLifePathNumber(birthDate);
-    return `${name}!\n\n${sunInsights[sunSign]}\n\n${numerologyInsights[lifePathNumber]}\n\nthe cards are ready whenever you are.`;
+    return `${name},\n\n${sunInsights[sunSign]}\n\n${numerologyInsights[lifePathNumber]}\n\nthe cards are ready whenever you are.`;
   };
 
   // Typewriter effect — waits for the API-generated welcome message
@@ -1311,13 +1312,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         transition: shouldCrumble ? 'opacity 1s ease-out, filter 1s ease-out' : 'none',
       }}
     >
-      {/* Background video */}
-      <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
-        <source src="/onboarding-bg.mp4" type="video/mp4" />
-      </video>
-
-      {/* Dark overlay so text is readable over video */}
-      <div className="absolute inset-0 bg-[#172211]/60" />
+      {/* Real-time dithered sky, same as the main app. Brings its own scrim. */}
+      <SkyBackground />
 
       {/* ── MOBILE layout — full screen, no device frame ── */}
       <div

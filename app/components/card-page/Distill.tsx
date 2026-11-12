@@ -16,7 +16,19 @@ import { distillRows, dotLeader, slotIndex, widestNote } from '@/lib/utils/card-
  * block clips its own overflow already, so the layer can be dropped back in when
  * the drawings are complete without moving anything else.
  */
-export function Distill({ cardId, isReversed = false }: { cardId: string; isReversed?: boolean }) {
+export function Distill({
+  cardId,
+  isReversed = false,
+  shares = [],
+  flat = false,
+}: {
+  cardId: string;
+  isReversed?: boolean;
+  /** Each note's share of the accord, in the notes' own order. Empty if unwritten. */
+  shares?: number[];
+  /** Set out in the open instead of folded — for the sideways reading, where it has a pane of its own. */
+  flat?: boolean;
+}) {
   const scent = cardScents[cardId];
   if (!scent) return null;
 
@@ -33,10 +45,8 @@ export function Distill({ cardId, isReversed = false }: { cardId: string; isReve
   const names = rows.map(row => row.note.toUpperCase());
   const widest = widestNote(names);
 
-  return (
-    <section className={styles.distill}>
-      <div className={styles.prompt}>&gt; DISTILL --NOTES {rows.length}</div>
-
+  const body = (
+    <>
       {memory && <p className={styles.memory}>{memory}</p>}
 
       <div className={styles.notes}>
@@ -47,6 +57,7 @@ export function Distill({ cardId, isReversed = false }: { cardId: string; isReve
               {slotIndex(i)} {name}{' '}
               <span className={styles.dots}>
                 {dotLeader(name, widest)} {row.verb}
+                {shares[i] != null ? `  ${shares[i]}%` : ''}
               </span>
             </div>
           );
@@ -58,6 +69,28 @@ export function Distill({ cardId, isReversed = false }: { cardId: string; isReve
       <div className={styles.done}>
         &gt; DONE. {rows.length} NOTES WRITTEN
       </div>
+    </>
+  );
+
+  const label = (
+    <span className={styles.prompt}>&gt; DISTILL --NOTES {rows.length}</span>
+  );
+
+  return (
+    <section className={styles.distill}>
+      {flat ? (
+        <>
+          {label}
+          {body}
+        </>
+      ) : (
+        // Folded by default: the memory and the notes are a second reading of the
+        // card, there for the asking rather than competing with the first.
+        <details>
+          <summary className={styles.fold}>{label}</summary>
+          {body}
+        </details>
+      )}
     </section>
   );
 }

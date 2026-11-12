@@ -244,23 +244,23 @@ function buildInsight(
 function buildEmotionalReality(cardArchetype: CardArchetype['upright'], transit: TransitData): string {
   const templates = {
     challenging: [
-      'everything feels unclear right now',
-      'the tension is real',
-      'something has to give',
-      'you\'re feeling the pressure',
-      'it feels like friction everywhere'
+      'the edges feel sharp today',
+      'there is some strain in the air',
+      'something is rubbing',
+      'the pressure is hard to miss',
+      'a lot of small frictions'
     ],
     neutral: [
-      'you\'re in a transition',
-      'things are shifting',
-      'something\'s changing',
-      'you\'re processing'
+      'things are between states',
+      'something is turning over',
+      'a slow change is under way',
+      'there is a lot being digested'
     ],
     expansive: [
-      'things are opening up',
-      'there\'s space emerging',
-      'you\'re feeling possibility',
-      'something\'s shifting in a good way'
+      'a bit more room than usual',
+      'something is loosening',
+      'there is lightness near the edges',
+      'an easier current is running'
     ]
   };
 
@@ -385,17 +385,17 @@ function buildTransitInfo(transit: TransitData): string {
  */
 function buildTransitExplanation(transit: TransitData) {
   const aspectMeanings: Record<string, string> = {
-    square: 'a 90° angle creating tension and challenge that demands action',
-    opposition: 'a 180° angle creating polarity and the need to balance extremes',
-    conjunction: 'a 0° angle where energies merge and intensify together',
-    trine: 'a 120° angle creating natural flow and ease',
-    sextile: 'a 60° angle offering opportunities and support'
+    square: 'a 90° angle, two planets at right angles to each other, which tends to feel like friction',
+    opposition: 'a 180° angle, two planets facing across the chart, which tends to feel like a pull in two directions',
+    conjunction: 'a 0° angle, two planets in the same place, so their themes mix and get louder together',
+    trine: 'a 120° angle, two planets in easy contact, which tends to feel like things moving without effort',
+    sextile: 'a 60° angle, two planets lightly connected, which tends to feel like a small opening you can use if you spot it'
   };
 
   const phaseMeanings: Record<string, string> = {
-    approaching: 'You\'re in the approaching phase, meaning the intensity is building as the transit gets closer to being exact. This is when you start feeling the pressure most strongly.',
-    peak: 'The transit is exact right now - this is the peak of intensity. Whatever this transit is about is at maximum strength and demanding your full attention.',
-    separating: 'The transit is separating - past the exact point. The intensity is easing, but the lessons and changes it brought are still integrating into your life.'
+    approaching: 'the transit is still closing in on its exact point, so the feeling tends to build a little each day.',
+    peak: 'the transit is exact today, which is when its themes tend to be loudest.',
+    separating: 'the transit has passed its exact point and is easing off, though what it stirred up may still be settling.'
   };
 
   return {
@@ -426,8 +426,8 @@ function getCardSynthesis(cardId: string, cardArchetype: CardArchetype['upright'
 
   // Fallback
   return {
-    synthesis: ['something is surfacing right now that needs your attention'],
-    action: 'sit with what came up today'
+    synthesis: ['something is surfacing today, quietly, and it may be worth a second look'],
+    action: 'notice what came up and where in your body it sits, and stay there for one slow breath'
   };
 }
 

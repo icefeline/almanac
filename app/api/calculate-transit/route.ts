@@ -120,10 +120,10 @@ async function generateClaudeInsight(
   // breath" every single time — breath is genuinely air's register, not
   // everyone's default.
   const ELEMENT_REGISTER: Record<string, string> = {
-    fire: 'physical and released through the body: unclench a fist, press your feet hard into the floor, roll your shoulders back, dig a heel into the ground, straighten your spine',
-    water: 'felt through sensation and contact: press something cool to your wrist, notice the weight of your own hands, swallow before you speak, feel your own pulse for a second, let your shoulders drop',
-    air: 'breath and voice: one slow exhale, closing your mouth before the reflexive reply, naming the feeling once silently, unclenching your jaw, a held breath let go on purpose',
-    earth: 'grounding and touch: press a palm flat on a surface, feel the chair take your full weight, uncurl your toes inside your shoes, plant both feet, touch something solid near you',
+    fire: 'physical and released through the body: unclench a fist, press your feet hard into the floor, roll your shoulders back, dig a heel into the ground, straighten your spine, shake out your hands, stand up for the length of one breath, warm your palms against each other',
+    water: 'felt through sensation and contact: press something cool to your wrist, notice the weight of your own hands, swallow before you speak, feel your own pulse for a second, let your shoulders drop, run a thumb along the edge of your cup, rest a hand on your sternum',
+    air: 'breath and voice: one slow exhale, closing your mouth before the reflexive reply, naming the feeling once silently, unclenching your jaw, a held breath let go on purpose, letting your tongue drop from the roof of your mouth, counting three sounds you can hear',
+    earth: 'grounding and touch: press a palm flat on a surface, feel the chair take your full weight, uncurl your toes inside your shoes, plant both feet, touch something solid near you, hold a pen or a key and feel its weight, look at one thing in the room until it has a texture',
   };
   const SUIT_ELEMENT: Record<string, string> = { wands: 'fire', cups: 'water', swords: 'air', pentacles: 'earth' };
   // Majors have no suit, so fall back to whichever element the transiting
@@ -138,6 +138,43 @@ async function generateClaudeInsight(
   const suit = cardId.slice(0, cardId.indexOf('-'));
   const cardElement = SUIT_ELEMENT[suit] ?? PLANET_ELEMENT[transitingPlanet.toLowerCase()] ?? 'earth';
   const elementRegister = ELEMENT_REGISTER[cardElement];
+
+  // Variety levers. Left alone, the model lands on the same few openings,
+  // images and sentence shapes day after day. Each reading gets one angle,
+  // one sentence plan and one pool of imagery drawn at random, so two readings
+  // of the same card do not read as the same reading.
+  const OPENING_ANGLES = [
+    'open on something small and physical they may be doing or feeling right now, then bring the card in',
+    'open by stating the card\'s pattern flatly as a plain observation, then let the transit complicate it',
+    'open on the house area as a place (a room, a doorway, a table), then show what the card and transit are doing there',
+    'open on a contradiction they are carrying without having named it',
+    'open on the pressure or opening in the transit, then say what exactly it is pressing on',
+    'open on the story they probably tell themselves about this, then on the small gap between it and what is happening',
+    'open mid-thought, as if continuing something they were already half-saying to themselves',
+  ];
+  const SENTENCE_PLANS = [
+    'two sentences: one long and winding, one short and plain',
+    'three sentences, with the longest one in the middle',
+    'two sentences of roughly equal weight, joined by the logic and not by a conjunction',
+    'four sentences, the third noticeably shorter than the rest',
+    'three sentences, the last one the longest',
+  ];
+  const IMAGE_POOLS = [
+    'kitchens, food and the small chores around them',
+    'weather, light and the time of day',
+    'cloth, thread, mending and clothes',
+    'water, tides, and things that float or sink',
+    'paper, handwriting and the margins of things',
+    'gardens, soil and what grows slowly',
+    'streets, trains, doorways and thresholds',
+    'rooms, furniture and the things on shelves',
+    'sound, silence and the hum of a house',
+    'no imagery at all, only plain direct statement',
+  ];
+  const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
+  const openingAngle = pick(OPENING_ANGLES);
+  const sentencePlan = pick(SENTENCE_PLANS);
+  const imagePool = pick(IMAGE_POOLS);
 
   // Build the memory context block if we have history
   let memoryContext = '';
@@ -160,7 +197,7 @@ ${recentCards.length > 0 ? `\nCards drawn recently: ${recentCards.join(', ')}` :
 
   const prompt = `${memoryContext}You write the personalised synthesis for a tarot app called Slow Garden. This is the "what this could mean for you" section — the part that makes the reading feel like it was written specifically for this person.
 
-The app exists to help people see themselves more clearly, not to tell them what to do or think. The best insight doesn't hand them a conclusion — it holds up a mirror at exactly the right angle so they can find the thing themselves. Think less therapist, more that one friend who says the true thing gently and then lets you sit with it.
+The app exists to help people see themselves more clearly, not to tell them what to do or think. The best insight doesn't hand them a conclusion — it holds up a mirror at exactly the right angle so they can find the thing themselves. Think less therapist, more that one friend who says the true thing across the table, plainly, and then passes the bread.
 
 Astrology context: Vedic sidereal zodiac (Lahiri ayanamsa), Whole Sign houses.
 
@@ -169,7 +206,8 @@ Voice (these matter):
 - British English spelling throughout: realise, recognise, colour, honour, favour, centre, behaviour, practise (verb), towards, grey, judgement. Never the American forms
 - Sound like a perceptive friend, not a practitioner
 - Be specific — vague wisdom is worthless here
-- No "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour your", "give yourself permission"
+- No "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour your", "give yourself permission", "lean into", "hold space", "sit with", "sit in", "make space", "invite", "invitation", "nudge", "unfold", "land" (as a verb for ideas), "resonate", "stirring", "shift" and "shifting" used abstractly, "something in you", "a part of you", "the way you"
+- Reach for the specific word over the stock one. If you are about to write quietly, gently, softly, deeper, tender or space, find the plainer or stranger word that says what actually happens. Do not use the same verb or noun twice in one reading
 - No questions anywhere in the insight or action (the card already asks them)
 - Do not restate or paraphrase the card meaning — they can read it
 - Do not explain the transit in general terms — tell them what THIS transit means in THEIR life right now
@@ -212,6 +250,12 @@ ${vedicContext}
 Supporting western-style reading of the same sky, use only if it adds something:
 - ${transitingPlanet} ${aspectType} ${natalPlanet}, ${phaseMeaning[phase] || phase}
 - landing in the ${house}th house: ${houseTheme}
+
+For this reading only, so it does not sound like yesterday's:
+- Angle: ${openingAngle}
+- Sentence plan for "insight": ${sentencePlan}
+- If you use an image at all, take it from this pool and use only one: ${imagePool}
+- Keep to the plan above even if another shape feels more natural. Naturalness is how the repeats get in
 
 Write a JSON object with exactly these four fields:
 

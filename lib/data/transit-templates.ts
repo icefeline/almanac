@@ -197,19 +197,19 @@ export const transitTemplates: Record<string, TransitTemplate> = {
  * Planet meanings for context
  */
 export const planetMeanings: Record<string, string[]> = {
-  Sun: ['identity', 'life force', 'core self', 'vitality', 'ego'],
-  Moon: ['emotions', 'needs', 'inner world', 'home', 'nurturing'],
-  Mercury: ['communication', 'mind', 'thoughts', 'how you speak', 'mental processing'],
-  Venus: ['love', 'values', 'what you attract', 'pleasure', 'relationships'],
-  Mars: ['action', 'drive', 'anger', 'desire', 'how you fight'],
-  Jupiter: ['expansion', 'growth', 'beliefs', 'abundance', 'optimism'],
-  Saturn: ['structure', 'limits', 'responsibility', 'authority', 'lessons'],
-  Uranus: ['change', 'revolution', 'awakening', 'breakthrough', 'freedom'],
-  Neptune: ['dreams', 'illusions', 'spirituality', 'dissolution', 'the unconscious'],
-  Pluto: ['transformation', 'power', 'death/rebirth', 'the depths', 'intensity'],
-  'North Node': ['destiny', 'growth direction', 'where you\'re headed', 'soul\'s calling'],
-  'South Node': ['past patterns', 'comfort zone', 'what you\'re releasing', 'old ways'],
-  Chiron: ['wounds', 'healing', 'where you teach through pain', 'the hurt', 'medicine']
+  Sun: ['identity', 'vitality', 'the core of you', 'what you stand for', 'the part that wants to be seen'],
+  Moon: ['mood', 'what you need', 'your inner weather', 'home', 'the way you comfort yourself'],
+  Mercury: ['talk', 'the mind', 'how you put things into words', 'daily thinking', 'what you tell yourself'],
+  Venus: ['affection', 'taste', 'what you value', 'pleasure', 'how you meet people'],
+  Mars: ['drive', 'temper', 'appetite', 'nerve', 'how you push'],
+  Jupiter: ['growth', 'generosity', 'belief', 'luck', 'a wider view'],
+  Saturn: ['limits', 'duty', 'what has to be built slowly', 'authority', 'what lasts'],
+  Uranus: ['sudden shifts', 'restlessness', 'breaking with habit', 'surprise', 'room to be odd'],
+  Neptune: ['dreams', 'blur', 'longing', 'faith', 'what lies under the surface'],
+  Pluto: ['deep change', 'power', 'what has to end', 'the underneath', 'compulsion and release'],
+  'North Node': ['the direction you lean toward', 'growth', 'what is unfamiliar and calling', 'a longer purpose'],
+  'South Node': ['old habits', 'what comes easily', 'what you are leaving', 'the familiar groove'],
+  Chiron: ['an old tenderness', 'healing', 'a wound that teaches', 'where it hurts and helps']
 };
 
 /**
