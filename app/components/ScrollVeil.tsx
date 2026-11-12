@@ -25,20 +25,25 @@ const fade = (start: number, end: number) => {
   return `linear-gradient(to bottom, #000 0%, ${stops.join(', ')}, transparent 100%)`;
 };
 
-export default function ScrollVeil({ show }: { show: boolean }) {
+/*
+ * The blur is not faded in with opacity: an ancestor with opacity below 1 cuts a backdrop-filter off from the page behind
+ * it, so the blur would vanish while fading and then pop in at the end. Instead its strength follows `--veil` (0 to 1),
+ * which the page sets from how far it has scrolled, so the blur grows with the scroll.
+ */
+export default function ScrollVeil() {
   return (
     <div
       aria-hidden="true"
-      className="absolute top-0 left-0 right-0 pointer-events-none transition-opacity duration-700"
-      style={{ opacity: show ? 1 : 0, height: 'calc(var(--nav-h, 3.5rem) + 5rem)' }}
+      className="absolute top-0 left-0 right-0 pointer-events-none"
+      style={{ height: 'calc(var(--nav-h, 3.5rem) + 5rem)' }}
     >
       {LAYERS.map((l) => (
         <div
           key={l.blur}
           className="absolute inset-0"
           style={{
-            backdropFilter: `blur(${l.blur}px)`,
-            WebkitBackdropFilter: `blur(${l.blur}px)`,
+            backdropFilter: `blur(calc(${l.blur}px * var(--veil, 0)))`,
+            WebkitBackdropFilter: `blur(calc(${l.blur}px * var(--veil, 0)))`,
             maskImage: fade(l.start, l.end),
             WebkitMaskImage: fade(l.start, l.end),
           }}

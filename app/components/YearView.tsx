@@ -29,10 +29,10 @@ const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 // Each gradient is opaque (black) at hole positions, transparent elsewhere.
 // `subtract` composite removes the opaque circles from the accumulated base rectangle.
 const STAMP_MASK = [
-  `radial-gradient(circle at 50% 0,    black 2.5px, transparent 2.5px) top  left / 5px 5px repeat-x`,
-  `radial-gradient(circle at 50% 100%, black 2.5px, transparent 2.5px) bottom left / 5px 5px repeat-x`,
-  `radial-gradient(circle at 0%  50%,  black 2.5px, transparent 2.5px) top  left / 5px 5px repeat-y`,
-  `radial-gradient(circle at 100% 50%, black 2.5px, transparent 2.5px) top right / 5px 5px repeat-y`,
+  `radial-gradient(circle at 50% 0,    black 3.5px, transparent 3.5px) top  left / 9px 9px repeat-x`,
+  `radial-gradient(circle at 50% 100%, black 3.5px, transparent 3.5px) bottom left / 9px 9px repeat-x`,
+  `radial-gradient(circle at 0%  50%,  black 3.5px, transparent 3.5px) top  left / 9px 9px repeat-y`,
+  `radial-gradient(circle at 100% 50%, black 3.5px, transparent 3.5px) top right / 9px 9px repeat-y`,
   `linear-gradient(black, black)`,
 ].join(', ');
 
@@ -113,7 +113,7 @@ const VerticalLine = ({ isToday }: { isToday?: boolean }) => {
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-        className="text-[#C9F24E]"
+        className="text-[color:var(--lime-c,#C9F24E)]"
         opacity={isToday ? '0.6' : '0.2'}
       />
     </svg>
@@ -122,7 +122,7 @@ const VerticalLine = ({ isToday }: { isToday?: boolean }) => {
 
 // Desktop mini tarot card
 const MiniTarotCard = ({ cardId, cardName, isToday }: { cardId: string; cardName: string; isToday?: boolean }) => (
-  <div className={`w-full h-full rounded overflow-hidden ${isToday ? 'ring-2 ring-[#C9F24E] shadow-lg' : 'shadow-sm'}`}>
+  <div className={`w-full h-full rounded overflow-hidden ${isToday ? 'ring-2 ring-[color:var(--lime-c,#C9F24E)] shadow-lg' : 'shadow-sm'}`}>
     <img
       src={`/cards/${getCardFilename(cardId, cardName)}.png`}
       alt={cardName}
@@ -265,26 +265,6 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
    * down the screen read as a misplaced object rather than as a fade. It is
    * painted only once the header is actually pinned.
    */
-  const [isPinned, setIsPinned] = useState(false);
-  useEffect(() => {
-    const header = yearHeaderRef.current;
-    if (!header) return;
-    const check = () => {
-      const navH = parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue('--nav-h'),
-      ) || (window.innerWidth >= 768 ? 80 : 56);
-      // A pixel of slack: sub-pixel layout means the two are rarely exactly equal.
-      setIsPinned(header.getBoundingClientRect().top <= navH + 1);
-    };
-    check();
-    window.addEventListener('scroll', check, { passive: true });
-    window.addEventListener('resize', check);
-    return () => {
-      window.removeEventListener('scroll', check);
-      window.removeEventListener('resize', check);
-    };
-  }, []);
-
   const daysWithCards = journalEntries.length;
 
   const cardLookup = useMemo(() => {
@@ -568,19 +548,6 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
   return (
     <div className="relative min-h-screen">
 
-      {/* The dark fade lives at the very top of the screen, full width, and eases out downward, so it has no band and
-          no edge of its own: it only darkens what is scrolling up under the nav and the pinned year. */}
-      <div
-        aria-hidden="true"
-        className="fixed top-0 left-0 right-0 z-10 pointer-events-none transition-opacity duration-500"
-        style={{
-          opacity: isPinned ? 1 : 0,
-          height: 'calc(var(--nav-h, 3.5rem) + 8.5rem)',
-          background:
-            'linear-gradient(to bottom, rgba(23,34,17,.94) 0%, rgba(23,34,17,.9) 18%, rgba(23,34,17,.78) 34%, rgba(23,34,17,.6) 50%, rgba(23,34,17,.4) 64%, rgba(23,34,17,.22) 78%, rgba(23,34,17,.08) 90%, rgba(23,34,17,0) 100%)',
-        }}
-      />
-
       {/* What the year rises through. */}
       <div className="h-10 md:h-16" />
 
@@ -598,7 +565,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             between the nav and the year once pinned. */}
         <div className="text-center pt-3 md:pt-4 px-4 md:px-8">
           <h1
-            className="text-[#C9F24E] mb-1"
+            className="text-[color:var(--accent-c,#2B35D6)] mb-1"
             /* The pixel face, as on the tear-off calendar — this is the same
                number in the same role. Sized up from the mono it replaces:
                VT323 sits small for its point size. */
@@ -612,7 +579,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             {year}
           </h1>
           <p
-            className="text-[#F7F4E6] opacity-70"
+            className="text-[color:var(--accent-c,#2B35D6)] opacity-80"
             style={{ ...LABEL_TYPE, fontSize: 'clamp(11px, 2.6vw, 14px)', letterSpacing: '0.14em' }}
           >
             {daysWithCards} {daysWithCards === 1 ? 'day' : 'days'} drawn
@@ -636,7 +603,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             >
               {/* Month name — intentionally small */}
               <h2
-                className={`mb-3 ${isCurrentMonth ? 'text-[#C9F24E]' : 'text-[#C9F24E]/50'}`}
+                className={`mb-3 ${isCurrentMonth ? 'text-[color:var(--accent-c,#2B35D6)]' : 'text-[color:var(--accent-c,#2B35D6)] opacity-60'}`}
                 style={LABEL_TYPE}
               >
                 {monthName}
@@ -647,7 +614,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                 {WEEKDAYS.map(wd => (
                   <div
                     key={wd}
-                    className="text-center text-[#C9F24E] opacity-35"
+                    className="text-center text-[color:var(--accent-c,#2B35D6)] opacity-60"
                     style={{
                       fontSize: '10px',
                       fontFamily: 'var(--font-vt323), monospace',
@@ -677,7 +644,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                     <div
                       key={date}
                       role="gridcell"
-                      className={`relative overflow-hidden rounded-sm aspect-[2/3] ${!isCurrMonth ? 'opacity-20' : ''} ${isToday ? 'ring-1 ring-[#C9F24E]' : ''}`}
+                      className={`relative overflow-hidden rounded-sm aspect-[2/3] ${!isCurrMonth ? 'opacity-20' : ''} ${isToday ? 'ring-1 ring-[color:var(--lime-c,#C9F24E)]' : ''}`}
                     >
                       <button
                         onClick={e => isCurrMonth && handleDayClick(date, hasCard, isToday, e.currentTarget)}
@@ -692,11 +659,11 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                         {/* Stamp or empty cell */}
                         {hasCard && cardData ? (
                           /* STAMP: cream body, perforated edges, card image inset, day as denomination */
-                          <div className="absolute inset-0 bg-[#172211]">
+                          <div className="absolute inset-0">
                             <div
                               className="absolute inset-0"
                               style={{
-                                background: '#C9F24E',
+                                background: 'var(--accent-c, #2B35D6)',
                                 mask: STAMP_MASK,
                                 maskComposite: 'subtract, subtract, subtract, subtract, add',
                                 WebkitMask: STAMP_MASK,
@@ -706,7 +673,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                               {/* Card image — centred with equal cream border on all sides */}
                               <div
                                 className={`absolute ${isReversed ? 'rotate-180' : ''}`}
-                                style={{ inset: '4px' }}
+                                style={{ inset: '7px' }}
                               >
                                 <img
                                   src={`/cards/${getCardFilename(entry!.cardId, cardData.name)}.png`}
@@ -717,12 +684,12 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                               </div>
                               {/* Day number — top-left, same style as empty cells */}
                               <span
-                                className="absolute top-0.5 left-1 leading-none select-none z-10"
+                                className="absolute top-1 left-2 leading-none select-none z-10"
                                 style={{
                                   fontSize: '9px',
                                   fontFamily: 'var(--font-vt323), monospace',
-                                  color: '#172211',
-                                  opacity: 0.7,
+                                  color: 'var(--lime-c, #C9F24E)',
+                                  opacity: 0.9,
                                 }}
                               >
                                 {day}
@@ -731,13 +698,22 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                           </div>
                         ) : (
                           /* Empty cell */
-                          <div className="absolute inset-0 bg-[#172211] border border-[#C9F24E]/10 rounded-sm" />
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              background: 'color-mix(in srgb, var(--accent-c, #2B35D6) 62%, transparent)',
+                              mask: STAMP_MASK,
+                              maskComposite: 'subtract, subtract, subtract, subtract, add',
+                              WebkitMask: STAMP_MASK,
+                              WebkitMaskComposite: 'destination-out, destination-out, destination-out, destination-out, source-over',
+                            } as React.CSSProperties}
+                          />
                         )}
 
                         {/* Date number — only shown on empty cells */}
                         {!hasCard && (
                           <span
-                            className="absolute top-0.5 left-1 leading-none z-10 select-none text-[#C9F24E]/30"
+                            className="absolute top-0.5 left-1 leading-none z-10 select-none text-[color:var(--lime-c,#C9F24E)] opacity-30"
                             style={{ fontSize: '9px', fontFamily: 'var(--font-vt323), monospace' }}
                           >
                             {day}
@@ -762,7 +738,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
               as one movement rather than a panel sliding over a static wall.
               Tied to the drag rather than to a class so it tracks the thumb. */}
           <div
-            className="md:hidden fixed inset-0 bg-[#172211]/60 backdrop-blur-sm z-40"
+            className="md:hidden fixed inset-0 bg-[color:color-mix(in_srgb,var(--accent-c,#2B35D6)_55%,transparent)] backdrop-blur-sm z-40"
             onClick={dismissDrawer}
             aria-hidden="true"
             style={{
@@ -789,7 +765,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                No top border. A lime rule across the head of the sheet drew a
                line under nothing — the rounded corners and the ground change
                already say where the sheet starts. */
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto"
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-[color:color-mix(in_srgb,var(--accent-c,#2B35D6)_86%,transparent)] backdrop-blur-md rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
@@ -837,11 +813,9 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                      as a band with an edge on it. Still fully opaque across the
                      sheet's own top edge, which is the part that was covering
                      the hairline. */
-                  background:
-                    'linear-gradient(to bottom, #172211 0%, #172211 34%, rgba(23,34,17,0.72) 58%, rgba(23,34,17,0.34) 78%, rgba(23,34,17,0) 100%)',
                 }}
               />
-              <div className="relative w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
+              <div className="relative w-12 h-1.5 bg-[color:var(--lime-c,#C9F24E)] opacity-40 rounded-full" />
             </div>
 
             {/* No horizontal padding of its own: the reading page rendered

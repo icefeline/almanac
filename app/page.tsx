@@ -197,6 +197,7 @@ export default function Home() {
   const convergeTarget = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const cardAnchorRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const veilRef = useRef<HTMLDivElement>(null);
   // a very faint blur behind the top buttons once the page has scrolled, so the text passing under them stays quiet
   const [scrolled, setScrolled] = useState(false);
   // phones: today / year / save fold into one square button at the corner, so the top of the page stays quiet
@@ -210,7 +211,12 @@ export default function Home() {
     return () => document.removeEventListener('pointerdown', away);
   }, [navOpen]);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8);
+      // the top blur grows with the scroll, over the first ~260px, on a smooth curve
+      const t = Math.max(0, Math.min(1, window.scrollY / 260));
+      veilRef.current?.style.setProperty('--veil', String(t * t * (3 - 2 * t)));
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -752,10 +758,13 @@ export default function Home() {
         the save icon, floating over the page. The height is still measured below (--nav-h) so the content
         starts under them wherever they end up.
       */}
+      {/* the top blur sits above the page but beneath the app icons, the view tabs and the pinned year (z-20) */}
+      <div ref={veilRef} aria-hidden="true" className="fixed top-0 left-0 right-0 z-[15] pointer-events-none" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <ScrollVeil />
+      </div>
       <div ref={navRef} className="fixed top-0 left-0 right-0 z-40 pointer-events-none" style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}>
-        <ScrollVeil show={scrolled} />
         {/* Keeps the nav's measured height where the old row had it; the buttons themselves stack at the right and
             hang below it, so the page content is not pushed down by the stack. */}
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4" style={{ minHeight: 'clamp(46px, 7vw, 72px)' }}>
