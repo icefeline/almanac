@@ -168,7 +168,7 @@
   letter-spacing: .04em;
 }
 
-.readout span, .marginL span, .marginR span { color: rgba(27, 38, 22, .24); }
+.readout span, .marginL span, .marginR span { color: color-mix(in srgb, var(--ink, #1B2616) 55%, transparent); }
 
 /* --- 06 keywords ------------------------------------------- */
 .keywords { padding-top: 18px; }
@@ -1448,20 +1448,21 @@ details[open] > .fold::after { content: '\2212'; }
 .meaningScene .poem { column-fill: auto; font-size: 40px; }
 
 /* about this card: one big justified wall of italic capitals, edge to edge */
-.aboutScene { height: 100%; width: 100%; display: flex; }
+.aboutScene { height: 100%; width: 100%; display: flex; align-items: flex-end; }
 .aboutFit {
   width: 100%;
-  height: 100%;
+  height: 55dvh;
+  align-self: flex-end;
   overflow: hidden;
-  font-family: var(--f-sans);
-  font-style: italic;
+  font-family: var(--font-doto), var(--f-term);
+  font-variation-settings: 'ROND' 90;
+  font-style: normal;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -.02em;
-  line-height: .98;
-  text-align: justify;
-  text-align-last: justify;
-  hyphens: auto;
+  text-transform: lowercase;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-align: left;
+  hyphens: none;
   color: var(--ink);
 }
 .aboutFit .hl { font-weight: 800; }
@@ -1788,10 +1789,6 @@ details[open] > .fold::after { content: '\2212'; }
   --moss-3: rgba(244, 240, 231, .36);
   --rule: rgba(244, 240, 231, .4);
 }
-:global(:root[data-night]) .noteCard {
-  background: rgba(12, 18, 15, .5);
-  border-color: rgba(244, 240, 231, .6);
-}
 :global(:root[data-night]) .caption { fill: var(--ink); }
 
 :global(:root[data-night]) .page { --lime-ink: #F4F0E4; --lime-ink-soft: rgba(244, 240, 231, .8); --lime-rule: rgba(244, 240, 231, .45); }
@@ -1803,4 +1800,176 @@ details[open] > .fold::after { content: '\2212'; }
   .sheet .scene .module > .log { margin: 0 0 4px; }
   .sheet .scene .module > .try { margin-top: 3dvh; }
   .sheet .scene .module > .explain { margin-top: 2.4dvh; }
+}
+
+/* the note box as an on-screen display: a solid block of the accent, pixel type, a cursor line,
+   the chosen value inverted, and the readings set as reversed strips (a VCR menu / a memory dump) */
+.noteCard {
+  background: var(--accent-c, #2B35D6);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--on-accent-c, #F7F4E6);
+  font-family: var(--f-term);
+  text-transform: uppercase;
+  padding: 2dvh 2cqw 2.2dvh;
+}
+.noteCard .noteName {
+  font-family: var(--f-term);
+  font-weight: 400;
+  font-size: clamp(30px, min(3.6vw, 6dvh), 56px);
+  line-height: 1;
+  letter-spacing: .02em;
+  color: inherit !important;
+}
+.noteCursor { display: inline-block; width: 1.1em; }
+.noteCard .noteMeta {
+  margin: .6dvh 0 0 1.1em;
+  font-family: var(--f-term);
+  font-size: clamp(20px, 3dvh, 28px);
+  letter-spacing: .04em;
+  gap: .9em;
+  color: inherit;
+}
+.noteChip { background: var(--on-accent-c, #F7F4E6); color: var(--accent-c, #2B35D6); padding: 0 .35em; }
+.noteRows { margin: 1.6dvh 0 0; gap: .4dvh; }
+.noteRows dt { font-family: var(--f-term); font-size: clamp(17px, 2.4dvh, 23px); letter-spacing: .06em; color: inherit; opacity: .8; margin-top: 1.2dvh; }
+.noteRows dt::before { content: '> '; }
+.noteRows dd { margin: 0; font-family: var(--f-term); font-size: clamp(22px, 3.1dvh, 32px); line-height: 1.18; }
+.noteStrip {
+  background: var(--on-accent-c, #F7F4E6);
+  color: var(--accent-c, #2B35D6);
+  padding: .02em .35em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.noteCard .noteHint { font-family: var(--f-term); font-size: clamp(20px, 2.8dvh, 28px); line-height: 1.1; opacity: 1; }
+@media (max-width: 760px) {
+  .noteCard { padding: 12px 14px 14px; }
+  .noteCard .noteName { font-size: 34px; }
+  .noteCard .noteMeta { font-size: 20px; }
+  .noteRows dt { font-size: 16px; margin-top: 8px; }
+  .noteRows dd { font-size: 21px; }
+  .noteCard .noteHint { font-size: 19px; }
+}
+
+/* smaller and quieter: a compact readout in the corner */
+.noteCard { width: min(24cqw, 340px); padding: 1.2dvh 1.1cqw 1.3dvh; left: 1.2cqw; bottom: 1.2dvh; }
+.noteCard .noteName { font-size: clamp(22px, min(2.2vw, 3.8dvh), 32px); }
+.noteCard .noteMeta { font-size: clamp(15px, 2.1dvh, 19px); margin-top: .3dvh; }
+.noteRows { margin-top: 1dvh; gap: .2dvh; }
+.noteRows dt { font-size: clamp(13px, 1.7dvh, 16px); margin-top: .8dvh; }
+.noteRows dd { font-size: clamp(16px, 2.2dvh, 21px); line-height: 1.15; }
+.noteCard .noteHint { font-size: clamp(15px, 2dvh, 19px); }
+@media (max-width: 760px) {
+  .noteCard { left: 10px; right: auto; width: min(64vw, 260px); padding: 8px 10px 10px; bottom: 76px; }
+  .noteCard .noteName { font-size: 24px; }
+  .noteCard .noteMeta { font-size: 16px; }
+  .noteRows dt { font-size: 13px; margin-top: 5px; }
+  .noteRows dd { font-size: 17px; }
+  .noteCard .noteHint { font-size: 16px; }
+}
+
+/* the deep VCR menu blue, the same as the share sheet (ShareModal MENU_BLUE); at night the lime block stays */
+.noteCard { background: #010179; color: #F7F4E6; }
+.noteChip, .noteStrip { background: #F7F4E6; color: #010179; }
+:global(:root[data-night]) .noteCard { background: var(--accent-c, #C9F24E); color: var(--on-accent-c, #2B35D6); }
+:global(:root[data-night]) .noteChip, :global(:root[data-night]) .noteStrip { background: var(--on-accent-c, #2B35D6); color: var(--accent-c, #C9F24E); }
+
+/* about this card: Doto in a greyed tint of the accent (cobalt by day, lime by night) */
+.aboutFit { color: color-mix(in srgb, var(--accent-c, #2B35D6) 58%, transparent); }
+
+/* the distill instructions: small, grey, under the scene label */
+.sheet .sceneHint {
+  max-width: 34ch;
+  margin: 6px 0 0;
+  font-family: var(--f-term);
+  font-size: 15px;
+  line-height: 1.1;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-align: left;
+  color: color-mix(in srgb, var(--ink) 48%, transparent);
+  pointer-events: none;
+}
+
+/* one long page: the distill field is not clipped to its scene, so a note can be pulled across the page
+   (the wires set how far); the scene sits above its neighbours so nothing paints over a stretched note */
+.sheet .scene:has(.distillScene) { overflow: visible; z-index: 2; }
+.distillScene { overflow: visible; }
+
+/* the hint sits right under its label */
+.sheet .scene .sceneHint { position: absolute; top: calc(3dvh + 30px); left: 3cqw; margin: 0; }
+@media (max-width: 760px) {
+  .sheet .scene .sceneHint { top: calc(3dvh + 28px); left: 54px; max-width: 30ch; }
+}
+.leg { stroke-linecap: round; transition: stroke-width .15s linear; }
+
+.leg { stroke-linejoin: round; stroke-linecap: round; }
+
+/* phones: the opening label is centred on the card (the 54px left pad is only for scenes whose label sits by the logo),
+   and the strip under the card clears the floating Pick Card pill */
+@media (max-width: 760px) {
+  .sheet .sceneHero .sceneLabel { padding-left: 0; }
+  .sheet .sceneHero { padding-bottom: 104px; }
+}
+
+/* the line under the card (suit, upright) and the drawn/draws strip sit right up against it, on every screen */
+.sheet .sceneHero .state { margin-top: calc(-2.6dvh + 8px); }
+.sheet .sceneHero .readout { margin-top: calc(-2.6dvh + 12px); }
+
+/* phones: the spinning keyword ring comes back around a smaller card, so it fits the width
+   (the ring is 2.28 times the card wide) */
+@media (max-width: 760px) {
+  .sheet .sceneHero .plateCenter,
+  .page .sceneHero [data-card-image] { width: min(54vw, 34dvh); }
+  .sheet .sceneHero .plate { margin-block: 6vw; }
+  .sheet .sceneHero .ring {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 228%;
+    height: auto;
+    transform: translate(-50%, -50%);
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sheet .sceneHero .ringNear text, .sheet .sceneHero .ringFar text { font-weight: 400; }
+  .sheet .sceneHero .keywords { display: none; }
+  /* only the near ring on a phone: the ghosted outer words would need a card half this size */
+  .sheet .sceneHero .ringFar { display: none; }
+}
+
+/* phones: a small readout, tucked low over the field, clear of the Pick Card pill */
+@media (max-width: 760px) {
+  .noteCard { left: 8px; right: auto; bottom: 84px; width: min(56vw, 214px); padding: 7px 9px 9px; }
+  .noteCard .noteName { font-size: 20px; }
+  .noteCard .noteMeta { font-size: 14px; margin-top: 1px; gap: .6em; }
+  .noteRows { margin-top: 5px; gap: 1px; }
+  .noteRows dt { font-size: 11px; margin-top: 4px; }
+  .noteRows dd { font-size: 14px; line-height: 1.12; }
+  .noteStrip { padding: 0 .28em; }
+}
+@media (max-width: 760px) {
+  .noteCard { width: min(68vw, 256px); padding: 6px 8px 8px; bottom: 80px; }
+  .noteCard .noteName { font-size: 18px; }
+  .noteCard .noteMeta { font-size: 13px; }
+  .noteRows { margin-top: 3px; }
+  .noteRows dt { font-size: 10px; margin-top: 3px; }
+  .noteRows dd { font-size: 13px; line-height: 1.1; }
+}
+
+/* phones: each scene's heading starts where its text starts (18px), under the logo instead of beside it */
+@media (max-width: 760px) {
+  .sheet .scene .sceneLabel { left: 18px; top: 56px; padding-left: 0; }
+  .sheet .scene .sceneHint { left: 18px; top: 82px; }
+  .sheet .scene:not(.sceneHero) { padding-top: 100px; }
+}
+
+/* wide screens: the heading starts at the scene's text edge (2cqw), not 1cqw inside it */
+@media (min-width: 761px) {
+  .sheet .scene .sceneLabel, .sheet .scene .sceneHint { left: 2cqw; }
 }

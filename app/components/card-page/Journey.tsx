@@ -177,12 +177,13 @@ export function Journey({ children }: { children: ReactNode }) {
  * One scene of the journey: a small label at the top, the scene's one hero in the
  * middle. Every scene is built the same way, so they read as one thing. `hero` is the opening scene, the card.
  */
-export function Scene({ children, hero = false, name }: { children: ReactNode; hero?: boolean; name?: string }) {
+export function Scene({ children, hero = false, name, hint }: { children: ReactNode; hero?: boolean; name?: string; hint?: string }) {
   return (
     <section className={`${styles.scene} ${hero ? styles.sceneHero : ''}`}>
       {/* the label and the hero are one centred group, so there is no dead space between them */}
       <div className={styles.sceneStack}>
         {name && <div className={styles.sceneLabel}>{name}</div>}
+        {hint && <div className={styles.sceneHint}>{hint}</div>}
         {children}
       </div>
     </section>

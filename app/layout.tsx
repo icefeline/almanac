@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans } from "next/font/google";
+import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans, Doto } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import AboutMount from "./components/AboutMount";
 import "./globals.css";
@@ -22,6 +22,13 @@ const vt323 = VT323({
   weight: '400',
   subsets: ['latin'],
   variable: '--font-vt323',
+});
+
+// Doto: the dotted face for "about this card". Variable, with its roundness axis switched on.
+const doto = Doto({
+  subsets: ['latin'],
+  axes: ['ROND'],
+  variable: '--font-doto',
 });
 
 const dmMono = DM_Mono({
@@ -163,7 +170,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} antialiased`}>
+      <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} ${doto.variable} antialiased`}>
         {children}
         <AboutMount />
         <Analytics />

@@ -15,8 +15,10 @@ export interface Blob {
   verb: string;
   /** The note's silhouette, a path in a 100-wide box centred on the origin. */
   shape: string;
-  /** This note's slice of the card's memory, dealt out in the order the notes unfold. */
+  /** How the note might help, in a short line under the blob. */
   caption: string;
+  /** What the note calls up: a scene the smell belongs to. */
+  calls: string;
   /** What the note gives, in a line. */
   gives: string;
   /** How it speaks to this card. */
@@ -93,20 +95,84 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
     ro.observe(svg);
     return () => ro.disconnect();
   }, []);
+  // on a tall phone the notes sit between the heading and the floating pill, not under them
+  const mapY = (y: number) => H * (0.27 + ((y / H - 0.16) / 0.68) * 0.5);
   const vw = aspect < 1 ? Math.round(H * aspect) : W;
   const vx = (W - vw) / 2;
   // pull the notes' homes in so they all sit inside what is visible
   const blobs = useMemo(() => {
-    const k = vw < W ? Math.min(1, (vw * 0.62) / 600) : 1;
-    const r = vw < W ? 0.8 : 1;
-    return raw.map((b) => ({ ...b, x: W / 2 + (b.x - W / 2) * k, rad: b.rad * r }));
+    const k = vw < W ? Math.min(1, (vw * 0.7) / 600) : 1;
+    const r = vw < W ? 0.42 : 1;
+    return raw.map((b) => ({ ...b, x: W / 2 + (b.x - W / 2) * k, y: vw < W ? mapY(b.y) : b.y, rad: b.rad * r }));
   }, [raw, vw]);
   const cores = useRef<(SVGPathElement | null)[]>([]);
   const bodies = useRef<(SVGGElement | null)[]>([]);
-  const segs = useRef<(SVGLineElement | null)[]>([]);
+  const segs = useRef<(SVGPathElement | null)[]>([]);
   const pulse = useRef<SVGCircleElement>(null);
   const [sel, setSel] = useState(-1);
   const picked = sel >= 0 ? blobs[sel] : null;
+  const cardRef = useRef<HTMLDivElement>(null);
+  const lastPointer = useRef<{ x: number; y: number } | null>(null);
+
+  // with a mouse, the reading follows the cursor once a note is picked; on touch it stays in its corner
+  useEffect(() => {
+    const track = (e: PointerEvent) => { lastPointer.current = { x: e.clientX, y: e.clientY }; };
+    window.addEventListener('pointermove', track, { passive: true });
+    window.addEventListener('pointerdown', track, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', track);
+      window.removeEventListener('pointerdown', track);
+    };
+  }, []);
+
+  // put the reading away: Escape, or a press anywhere that is not a note
+  useEffect(() => {
+    if (sel < 0) return;
+    const away = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (t?.closest?.('[role="button"][aria-label$="what it gives."]')) return;
+      if (cardRef.current?.contains(t)) return;
+      setSel(-1);
+    };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setSel(-1); };
+    window.addEventListener('pointerdown', away);
+    window.addEventListener('keydown', esc);
+    return () => {
+      window.removeEventListener('pointerdown', away);
+      window.removeEventListener('keydown', esc);
+    };
+  }, [sel]);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    const parent = card?.offsetParent as HTMLElement | null;
+    if (!card || !parent || !picked) return;
+    if (!window.matchMedia('(pointer: fine)').matches || window.innerWidth <= 760) return;
+    const place = () => {
+      const p = lastPointer.current;
+      if (!p) return;
+      const pr = parent.getBoundingClientRect();
+      const k = parent.offsetWidth ? pr.width / parent.offsetWidth : 1;
+      const px = (p.x - pr.left) / k;
+      const py = (p.y - pr.top) / k;
+      const w = card.offsetWidth;
+      const h = card.offsetHeight;
+      let x = px + 20;
+      let y = py + 20;
+      if (x + w > parent.offsetWidth - 8) x = px - 20 - w;
+      if (y + h > parent.offsetHeight - 8) y = py - 20 - h;
+      card.style.left = `${Math.max(8, x)}px`;
+      card.style.top = `${Math.max(8, y)}px`;
+      card.style.bottom = 'auto';
+    };
+    card.style.transition = 'left .12s ease-out, top .12s ease-out';
+    place();
+    window.addEventListener('pointermove', place, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', place);
+      card.style.left = card.style.top = card.style.bottom = card.style.transition = '';
+    };
+  }, [picked]);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -115,6 +181,13 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
 
     const sim = blobs.map((b) => ({ x: b.x, y: b.y, vx: 0, vy: 0, phase: b.n * 1.7 }));
     const pointer = { x: 0, y: 0 };
+    // each wire has a rest length a little longer than the gap between homes, so it hangs slack;
+    // a note can be pulled a long way, but only to the end of its wires
+    const rest = blobs.slice(0, -1).map((b, i) => Math.hypot(blobs[i + 1].x - b.x, blobs[i + 1].y - b.y) * 1.22);
+    const MAX_PULL = 460;
+    // a coiled cord: this many turns per wire, drawn as loops that open up as the cord is stretched
+    const turns = rest.map((r) => Math.max(7, Math.round(r / 17)));
+    const LOOP = 9;
     let drag = -1;
     let hover = -1;
     let travelled = 0;
@@ -140,8 +213,14 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
         const s = sim[i];
         const v = VOLATILITY[b.tier];
         if (i === drag) {
-          s.vx = ((pointer.x - s.x) * 0.4) / v.mass;
-          s.vy = ((pointer.y - s.y) * 0.4) / v.mass;
+          let px = pointer.x;
+          let py = pointer.y;
+          const hx = px - b.x;
+          const hy = py - b.y;
+          const hd = Math.hypot(hx, hy);
+          if (hd > MAX_PULL) { px = b.x + (hx / hd) * MAX_PULL; py = b.y + (hy / hd) * MAX_PULL; }
+          s.vx = ((px - s.x) * 0.4) / v.mass;
+          s.vy = ((py - s.y) * 0.4) / v.mass;
         } else {
           // home, wandering around it at this stage's own pace
           const tx = b.x + Math.sin(t * v.freq + s.phase) * v.amp;
@@ -163,6 +242,20 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
             if (j !== drag) { o.vx -= (nx * f) / VOLATILITY[blobs[j].tier].mass; o.vy -= (ny * f) / VOLATILITY[blobs[j].tier].mass; }
           }
         }
+        // the wire to the next note: once it runs out of slack it tugs both ends
+        if (i < blobs.length - 1) {
+          const o = sim[i + 1];
+          const dx = o.x - s.x;
+          const dy = o.y - s.y;
+          const d = Math.hypot(dx, dy) || 0.01;
+          if (d > rest[i]) {
+            const f = (d - rest[i]) * 0.02;
+            const nx = dx / d;
+            const ny = dy / d;
+            if (i !== drag) { s.vx += (nx * f) / v.mass; s.vy += (ny * f) / v.mass; }
+            if (i + 1 !== drag) { o.vx -= (nx * f) / VOLATILITY[blobs[i + 1].tier].mass; o.vy -= (ny * f) / VOLATILITY[blobs[i + 1].tier].mass; }
+          }
+        }
         s.vx *= 0.82;
         s.vy *= 0.82;
         s.x += s.vx;
@@ -179,20 +272,58 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
       }
 
       // the line from note to note, and a pulse running along it: the scent unfolding
+      const wire = (i: number) => {
+        const a = sim[i];
+        const c = sim[i + 1];
+        const d = Math.hypot(c.x - a.x, c.y - a.y);
+        // a hanging wire: a parabola whose sag follows how much slack is left
+        const sag = d < rest[i] ? Math.sqrt((3 * d * (rest[i] - d)) / 8) : 0;
+        return { a, c, sag, taut: d >= rest[i] * 0.985 };
+      };
       for (let i = 0; i < blobs.length - 1; i++) {
         const seg = segs.current[i];
         if (!seg) continue;
-        seg.setAttribute('x1', sim[i].x.toFixed(1));
-        seg.setAttribute('y1', sim[i].y.toFixed(1));
-        seg.setAttribute('x2', sim[i + 1].x.toFixed(1));
-        seg.setAttribute('y2', sim[i + 1].y.toFixed(1));
+        const { a, c, sag } = wire(i);
+        const d = Math.hypot(c.x - a.x, c.y - a.y);
+        const qx = (a.x + c.x) / 2;
+        const qy = (a.y + c.y) / 2 + sag * 2;
+        // pulled past its rest length the coil thins out and its loops open; slack, it bunches
+        const stretch = d / rest[i];
+        const r = LOOP * (stretch > 1 ? Math.max(0.45, 1 / stretch) : 1);
+        const N = turns[i] * 10;
+        let path = '';
+        for (let k = 0; k <= N; k++) {
+          const t = k / N;
+          const u = 1 - t;
+          const cx = u * u * a.x + 2 * u * t * qx + t * t * c.x;
+          const cy = u * u * a.y + 2 * u * t * qy + t * t * c.y;
+          let tx = 2 * u * (qx - a.x) + 2 * t * (c.x - qx);
+          let ty = 2 * u * (qy - a.y) + 2 * t * (c.y - qy);
+          const tl = Math.hypot(tx, ty) || 1;
+          tx /= tl;
+          ty /= tl;
+          // taper to nothing at both ends, so the cord leaves each note cleanly
+          const env = Math.min(1, t * 14, (1 - t) * 14);
+          const ph = t * turns[i] * Math.PI * 2;
+          const side = Math.sin(ph) * r * env;
+          const along = Math.cos(ph) * r * 1.15 * env;
+          path += `${k === 0 ? 'M' : 'L'}${(cx - ty * side + tx * along).toFixed(1)} ${(cy + tx * side + ty * along).toFixed(1)}`;
+        }
+        seg.setAttribute('d', path);
+        seg.style.strokeWidth = stretch > 1 ? String(Math.max(0.9, 1.7 / stretch)) : '1.7';
       }
       if (blobs.length > 1 && pulse.current) {
         const u = ((t % 11) / 11) * (blobs.length - 1);
         const i = Math.min(blobs.length - 2, Math.floor(u));
         const f = u - i;
-        pulse.current.setAttribute('cx', (sim[i].x + (sim[i + 1].x - sim[i].x) * f).toFixed(1));
-        pulse.current.setAttribute('cy', (sim[i].y + (sim[i + 1].y - sim[i].y) * f).toFixed(1));
+        const { a, c, sag } = wire(i);
+        const qx = (a.x + c.x) / 2;
+        const qy = (a.y + c.y) / 2 + sag * 2;
+        const w0 = (1 - f) * (1 - f);
+        const w1 = 2 * (1 - f) * f;
+        const w2 = f * f;
+        pulse.current.setAttribute('cx', (w0 * a.x + w1 * qx + w2 * c.x).toFixed(1));
+        pulse.current.setAttribute('cy', (w0 * a.y + w1 * qy + w2 * c.y).toFixed(1));
         bodies.current.forEach((el, k) => {
           if (!el) return;
           if (Math.abs(u - k) < 0.35) el.setAttribute('data-lit', '');
@@ -238,7 +369,8 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
       if (drag < 0) return;
       // a tap, not a drag: pick the note, and give it a small kick
       if (travelled < 6) {
-        setSel(drag);
+        const hit = drag;
+        setSel((cur) => (cur === hit ? -1 : hit));
         const a = Math.random() * Math.PI * 2;
         sim[drag].vx += Math.cos(a) * 9;
         sim[drag].vy += Math.sin(a) * 9;
@@ -295,8 +427,8 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
         <rect className={styles.grid} x={vx} width={vw} height={H} fill="url(#blob-grid)" />
         {Object.entries(tierY).map(([tier, y]) => (
           <g key={tier}>
-            <line className={styles.guide} x1={vx} x2={vx + vw} y1={y * H} y2={y * H} />
-            <text className={styles.guideLabel} x={vx + 4} y={y * H - 8}>
+            <line className={styles.guide} x1={vx} x2={vx + vw} y1={vw < W ? mapY(y * H) : y * H} y2={vw < W ? mapY(y * H) : y * H} />
+            <text className={styles.guideLabel} x={vx + 4} y={(vw < W ? mapY(y * H) : y * H) - 8}>
               {tier.toUpperCase()}
             </text>
           </g>
@@ -304,14 +436,12 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
 
         {/* the line the scent follows, note to note, each leg in its stage's colour */}
         {blobs.slice(0, -1).map((b, i) => (
-          <line
+          <path
             key={b.n}
             ref={(el) => { segs.current[i] = el; }}
             className={styles.leg}
-            x1={b.x}
-            y1={b.y}
-            x2={blobs[i + 1].x}
-            y2={blobs[i + 1].y}
+            fill="none"
+            d={`M${b.x} ${b.y}L${blobs[i + 1].x} ${blobs[i + 1].y}`}
             style={{ stroke: TIER_COLOUR[b.tier] }}
           />
         ))}
@@ -391,32 +521,32 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
       <TrackingOverlay seed={blobs.map((b) => b.note).join('|')} />
 
       {/* what the touched note gives, pinned to the page */}
-      <div className={styles.noteCard} aria-live="polite">
-        {picked ? (
+      {picked && (
+      <div ref={cardRef} className={styles.noteCard} aria-live="polite">
           <>
-            <div className={styles.noteName} style={{ color: TIER_COLOUR[picked.tier] }}>
-              {picked.note}
+            <div className={styles.noteName}>
+              <span className={styles.noteCursor} aria-hidden="true">&gt;</span>{picked.note}
             </div>
             <div className={styles.noteMeta}>
-              <span>{picked.tier}</span><span>{picked.verb}</span><span>{picked.share}%</span>
+              <span>{picked.tier}</span>
+              <span className={styles.noteChip}>{picked.verb}</span>
+              <span>{picked.share}%</span>
             </div>
             <dl className={styles.noteRows}>
               <dt>the smell</dt>
-              <dd>{picked.gives}</dd>
-              {picked.caption && (
+              <dd><span className={styles.noteStrip}>{picked.gives}</span></dd>
+              {picked.tie && (
                 <>
-                  <dt>what it calls up</dt>
-                  <dd>{picked.caption}</dd>
+                  <dt>what it says</dt>
+                  <dd><span className={styles.noteStrip}>{picked.tie}</span></dd>
                 </>
               )}
+              <dt>what it calls up</dt>
+              <dd><span className={styles.noteStrip}>{picked.calls}</span></dd>
             </dl>
           </>
-        ) : (
-          <p className={styles.noteHint}>
-            touch a note to read what it gives. top notes leave first, so they shake; the base stays, so it holds still.
-          </p>
-        )}
       </div>
+      )}
     </div>
   );
 }

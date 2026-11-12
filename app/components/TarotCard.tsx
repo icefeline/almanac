@@ -661,7 +661,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
           </Scene>
         )}
 
-        <Scene name="distill">
+        <Scene name="distill" hint={surface === 'window' ? undefined : 'touch a note to read what it gives'}>
           {surface === 'window' ? (
             <Distill cardId={card.id} isReversed={isReversed} shares={noteShares(card.id, noteCount)} />
           ) : (

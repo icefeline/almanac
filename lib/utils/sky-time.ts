@@ -66,9 +66,12 @@ export interface SkyStop {
  * paper-white text on top stays readable at every hour. Altitudes ascend.
  */
 const NIGHT: SkyStop = { alt: -14, top: '#0d1230', mid: '#1b2152', horizon: '#33306a', cloudLight: '#5d6399', cloudShade: '#1e2349' };
+// the small hours: nearly black, a green-blue cast, the clouds barely lit
+const DEEP: SkyStop = { alt: -34, top: '#04060f', mid: '#080d1c', horizon: '#0d1626', cloudLight: '#2a3552', cloudShade: '#0a1020' };
 const DAY: SkyStop = { alt: 42, top: '#4c82c4', mid: '#86b8e0', horizon: '#cde4ee', cloudLight: '#fdfcf4', cloudShade: '#9dbbd8' };
 
 const MORNING: SkyStop[] = [
+  DEEP,
   NIGHT,
   { alt: -6, top: '#2b2f70', mid: '#8a63a2', horizon: '#f0a38c', cloudLight: '#ffcaa8', cloudShade: '#6b4b8c' },
   { alt: 1, top: '#6577b8', mid: '#eaa6b4', horizon: '#ffd7a0', cloudLight: '#fff0d4', cloudShade: '#b87f9e' },
@@ -82,6 +85,7 @@ const EVENING: SkyStop[] = [
   { alt: 1, top: '#4b4c9a', mid: '#d6708c', horizon: '#ffa85e', cloudLight: '#ffdca4', cloudShade: '#9b507c' },
   { alt: -6, top: '#241f5e', mid: '#7b4b92', horizon: '#e0727c', cloudLight: '#f2a4a2', cloudShade: '#5b3b7c' },
   NIGHT,
+  DEEP,
 ];
 
 function mix(a: string, b: string, t: number): string {

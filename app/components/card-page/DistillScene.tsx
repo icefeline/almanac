@@ -5,6 +5,7 @@ import { distillRows } from '@/lib/utils/card-readout';
 import { rng } from '@/lib/utils/garden';
 import { SHAPES, shapeFor } from '@/lib/utils/scent-shapes';
 import { noteGift } from '@/lib/data/note-gifts';
+import { noteCalls, noteHelp, noteSays } from '@/lib/data/note-reads';
 import { tarotDeck } from '@/lib/data/tarot-deck';
 
 /**
@@ -42,18 +43,6 @@ export function DistillScene({
   const rows = distillRows(scent);
   if (rows.length === 0) return null;
   const memory = (isReversed ? cardMemoriesReversed[cardId] : undefined) ?? cardMemories[cardId];
-
-  // The memory is written against the notes in the order they unfold, so it is dealt out in
-  // that order: the first clauses belong to the top notes, the last to the base.
-  const clauses = memory
-    ? memory.split(/(?<=[.,;?!])\s+/).map((c) => c.trim().toLowerCase().replace(/[.,;]$/, '')).filter((c) => c.length > 3)
-    : [];
-  const sliceFor = (i: number): string => {
-    if (clauses.length === 0) return '';
-    const start = Math.floor((i * clauses.length) / rows.length);
-    const end = Math.max(start + 1, Math.floor(((i + 1) * clauses.length) / rows.length));
-    return clauses.slice(start, end).join(', ');
-  };
 
   let h = 2166136261;
   for (let i = 0; i < cardId.length; i++) h = Math.imul(h ^ cardId.charCodeAt(i), 16777619);
@@ -100,9 +89,10 @@ export function DistillScene({
           tier: b.row.tier as 'top' | 'heart' | 'base',
           verb: b.row.verb,
           shape: SHAPES[shapeFor(b.row.note)],
-          caption: sliceFor(b.n - 1),
+          caption: noteHelp(b.row.note),
+          calls: noteCalls(b.row.note),
           gives: noteGift(b.row.note),
-          tie: '',
+          tie: noteSays(b.row.note),
         }))}
       />
 

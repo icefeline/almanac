@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { skyMoment, skyPalette, type SkyStop } from '@/lib/utils/sky-time';
+import TimeSwitch from './TimeSwitch'; // TEMP
+import { skyMoment, skyPalette, type SkyMoment, type SkyStop } from '@/lib/utils/sky-time';
 import { drawGarden, gardenFor, islandPose, readDraws, type Plant } from '@/lib/utils/garden';
 import { paintCreatures } from '@/lib/utils/creatures';
 import { getHere } from '@/lib/utils/here';
@@ -110,7 +111,8 @@ export default function SkyBackground() {
     if (!ctx) return;
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const override = parseOverride();
+    let override = parseOverride();
+    let forced: SkyMoment | null = null; // TEMP: set by the time switcher
     let where: { latitude: number; longitude: number } | null = null;
     let palette: SkyStop = skyPalette(skyMoment(override ?? new Date(), null));
     let ramp: RGB[] = [];
@@ -160,7 +162,7 @@ export default function SkyBackground() {
     loadGarden(true);
 
     const refreshPalette = () => {
-      const m = skyMoment(override ?? new Date(), where);
+      const m = forced ?? skyMoment(override ?? new Date(), where);
       palette = skyPalette(m);
       const top = rgb(palette.top);
       const mid = rgb(palette.mid);
@@ -339,6 +341,15 @@ export default function SkyBackground() {
       loadGarden(false);
       if (reduced) draw(performance.now());
     };
+    // TEMP: the time-of-day switcher below pins the sky to a chosen hour (null = live)
+    const onSky = (e: Event) => {
+      // detail: { altitude, morning } pins the sun; null goes back to the real sky
+      const v = (e as CustomEvent<{ altitude: number; morning: boolean } | null>).detail;
+      forced = v ? { altitude: v.altitude, morning: v.morning } : null;
+      refreshPalette();
+      if (reduced) draw(performance.now());
+    };
+    window.addEventListener('sg:sky', onSky);
     window.addEventListener('sg:drew', replant);
     window.addEventListener('storage', replant);
     const minute = window.setInterval(() => {
@@ -356,12 +367,14 @@ export default function SkyBackground() {
       window.clearInterval(minute);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('sg:drew', replant);
+      window.removeEventListener('sg:sky', onSky);
       window.removeEventListener('storage', replant);
     };
   }, []);
 
   return (
     <>
+      <TimeSwitch />
       <canvas
         ref={ref}
         aria-hidden="true"
