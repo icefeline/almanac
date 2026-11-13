@@ -2107,3 +2107,46 @@ details[open] > .fold::after { content: '\2212'; }
   :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(62vw, 40dvh); }
   :global(html[data-embed]) .sheet .sceneHero .plate { margin-block: 3vw; }
 }
+
+
+/* ── a scene is as tall as its words ──────────────────────────────────────
+   Nothing is cut and nothing is shrunk to fit: a scene whose words run past the bottom scrolls up and down inside
+   itself, while the strip as a whole still moves sideways. The For you scene is the long one, so it is set to
+   take whatever the reading gives it. */
+.sheet .scene { overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.sheet .scene > .sceneStack { height: auto; min-height: 100%; }
+@media (min-width: 761px) {
+  .sheet .scene .module {
+    height: auto;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    align-content: start;
+    align-items: start;
+  }
+  .sheet .scene .module > * { min-width: 0; overflow-wrap: break-word; }
+  .sheet .scene .module > .phrase {
+    grid-row: 1 / span 8;
+    align-self: start;
+    justify-content: flex-start;
+    font-size: clamp(44px, min(7.5vw, 13dvh), 140px);
+  }
+  .sheet .scene .module > .insight {
+    columns: 1;
+    text-align: left;
+    hyphens: none;
+    font-size: clamp(16px, 2.3dvh, 22px);
+    line-height: 1.32;
+  }
+  .sheet .scene .module > .try { align-self: start; }
+  .sheet .scene .module > .try .pull { font-size: clamp(24px, min(2.8vw, 5dvh), 46px); line-height: 1.05; }
+  .sheet .scene .module > .explain { grid-row: auto; }
+  .sheet .scene:not(.sceneHero) { padding-bottom: 80px; }
+}
+/* phones: the header clears the status bar, and the content starts below it */
+@media (max-width: 760px) {
+  .sheet .scene .sceneLabel { top: calc(env(safe-area-inset-top, 0px) + 56px); }
+  .sheet .scene .sceneHint { top: calc(env(safe-area-inset-top, 0px) + 82px); }
+  .sheet .scene:not(.sceneHero) { padding-top: calc(env(safe-area-inset-top, 0px) + 110px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); }
+  .sheet .sceneHero { padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+}
