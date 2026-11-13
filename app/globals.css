@@ -318,6 +318,16 @@ input.rounded-3xl:focus-within {
     inset calc(-1 * (var(--b) + var(--h))) calc(-1 * (var(--b) + var(--h))) 0 0 var(--hi);
   transform: translate(1px, 1px);
 }
+/* the view switcher's labels: the same pixel face as every other button, set lowercase */
+.sg-navbtn {
+  font-family: var(--font-vt323), monospace;
+  font-size: clamp(17px, 4.6vw, 20px);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+/* today, year and save stack as one block: each shares the frame line with the one above it */
+.sg-navstack > .sg-osbtn + .sg-osbtn,
+.sg-navstack > .sg-osbtn + .sg-savebtn { margin-top: calc(-1 * var(--b)); }
 /* the current view: primary, and pressed in */
 .sg-osbtn[aria-pressed='true'] {
   --face: var(--accent-c, #2B35D6);

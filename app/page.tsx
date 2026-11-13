@@ -737,8 +737,12 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#172211] text-[#C9F24E]" style={{ minHeight: '100dvh' }}>
-        <AsciiFlower label="loading slow garden" />
+      <div className="min-h-screen flex items-center justify-center" style={{ minHeight: '100dvh', color: 'var(--accent-c, #2B35D6)' }}>
+        {/* the live sky is the ground; the flower takes the sky's own accent so it reads at every hour */}
+        <SkyBackground />
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <AsciiFlower label="loading slow garden" weight={500} />
+        </div>
       </div>
     );
   }
@@ -791,7 +795,7 @@ export default function Home() {
                 )}
               </svg>
             </button>
-            <div className={`${navOpen ? 'flex' : 'hidden'} md:flex flex-col items-end gap-2`} onClick={() => setNavOpen(false)}>
+            <div className={`${navOpen ? 'flex' : 'hidden'} md:flex flex-col items-end sg-navstack`} onClick={() => setNavOpen(false)}>
             <button
               onClick={() => {
                 setViewingPastCard(false);
@@ -800,8 +804,8 @@ export default function Home() {
               }}
               aria-pressed={currentView === 'card'}
               aria-label="View today's card"
-              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
-              style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
+              className="sg-osbtn sg-navbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
+             
             >
               today
             </button>
@@ -809,8 +813,8 @@ export default function Home() {
               onClick={() => setCurrentView('year')}
               aria-pressed={currentView === 'year'}
               aria-label="View year history"
-              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
-              style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
+              className="sg-osbtn sg-navbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
+             
             >
               year
             </button>
