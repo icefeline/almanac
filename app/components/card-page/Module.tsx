@@ -193,7 +193,7 @@ export function Module({
         <div style={{ marginTop: 12 }}>
           <p className={styles.moduleQuiet}>&gt; NO CONNECTION TO THE READING.</p>
           {onRetry && (
-            <button type="button" className={styles.moduleRetry} onClick={onRetry}>
+            <button type="button" className={`${styles.moduleRetry} sg-retro`} onClick={onRetry}>
               retry
             </button>
           )}
@@ -264,7 +264,7 @@ export function Module({
             <div className={styles.explain}>
               <button
                 type="button"
-                className={styles.moduleRetry}
+                className={`${styles.moduleRetry} sg-retro`}
                 style={{ marginTop: 0 }}
                 onClick={() => setIsExpanded(!isExpanded)}
                 aria-expanded={isExpanded}

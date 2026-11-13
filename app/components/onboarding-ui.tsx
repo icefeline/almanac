@@ -33,18 +33,42 @@ const shadow = (tone: Tone) => (tone === 'dark' ? '0 2px 18px rgba(0,0,0,.5)' : 
 /** design px → rendered px */
 const px = (n: number, s: number) => `${n * s}px`;
 
+/** A chunky pixel arrow pointing left, drawn square by square so it stays sharp at any size. */
+const ARROW = ['...#....', '..##....', '.#######', '########', '.#######', '..##....', '...#....'];
+
 export function ObBack({ tone, scale, onClick }: { tone: Tone; scale: number; onClick: () => void }) {
   return (
     <button
+      className="sg-retro sg-ob-back"
       onClick={onClick}
+      aria-label="back"
       style={{
-        position: 'absolute', left: px(24, scale), top: px(26, scale), zIndex: 10,
-        fontFamily: MONO, fontSize: px(9.5, scale), letterSpacing: '0.24em',
-        color: accentOf(tone), background: 'none', border: 'none', cursor: 'pointer',
-        padding: 0,
-      }}
+        position: 'absolute', left: px(24, scale), top: px(22, scale), zIndex: 10,
+        display: 'inline-flex', alignItems: 'center', gap: px(8, scale),
+        fontFamily: PIXEL, fontSize: px(19, scale), letterSpacing: '0.02em', lineHeight: 1,
+        // classic grey button: grey face, black type, white lit edge, dark grey shaded edge
+        '--face': '#C0C0C0',
+        '--ink': '#000',
+        '--hi': '#FFFFFF',
+        '--lo': '#808080',
+        '--b': px(2, scale), '--h': px(2, scale),
+        padding: `${px(7, scale)} ${px(14, scale)} ${px(8, scale)}`,
+        cursor: 'pointer',
+      } as unknown as React.CSSProperties}
     >
-      ← BACK
+      <svg
+        width={px(11, scale)}
+        height={px(9.6, scale)}
+        viewBox="0 0 8 7"
+        shapeRendering="crispEdges"
+        aria-hidden="true"
+        style={{ display: 'block' }}
+      >
+        {ARROW.flatMap((row, y) =>
+          row.split('').map((c, x) => (c === '#' ? <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="currentColor" /> : null)),
+        )}
+      </svg>
+      <span>back</span>
     </button>
   );
 }
@@ -62,7 +86,7 @@ export function ObHead({
         display: 'flex', flexDirection: 'column', gap: px(12, scale),
       }}
     >
-      <div style={{ fontFamily: PIXEL, fontSize: px(22, scale), color: bodyOf(tone), opacity: tone === 'dark' ? 0.8 : 1 }}>
+      <div style={{ fontFamily: PIXEL, fontSize: px(22, scale), color: bodyOf(tone), opacity: tone === 'dark' ? 0.95 : 1 }}>
         {eyebrow}
       </div>
       <div
@@ -80,8 +104,8 @@ export function ObHead({
       {sub && (
         <div
           style={{
-            fontFamily: MONO, fontSize: px(11, scale), letterSpacing: '0.13em',
-            lineHeight: 1.85, color: bodyOf(tone), opacity: tone === 'light' ? 0.78 : 0.75,
+            fontFamily: MONO, fontSize: px(12, scale), letterSpacing: '0.1em', fontWeight: 500,
+            lineHeight: 1.8, color: bodyOf(tone), opacity: 1,
           }}
         >
           {sub}
@@ -138,11 +162,11 @@ export function ObTag({ tone, scale, required }: { tone: Tone; scale: number; re
   return (
     <span
       style={{
-        fontFamily: MONO, fontSize: px(9, scale), letterSpacing: '0.2em',
+        fontFamily: MONO, fontSize: px(10, scale), letterSpacing: '0.16em', fontWeight: 500,
         padding: `${px(3, scale)} ${px(7, scale)}`,
         ...(required
           ? { background: accentOf(tone), color: tone === 'light' ? '#F7F4E6' : INK }
-          : { opacity: 0.45, color: bodyOf(tone) }),
+          : { opacity: 0.9, color: bodyOf(tone), boxShadow: `inset 0 0 0 1px ${bodyOf(tone)}` }),
       }}
     >
       {required ? 'REQ' : 'OPT'}
@@ -159,9 +183,9 @@ export function ObHint({
   children: React.ReactNode;
 }) {
   const style: React.CSSProperties = {
-    marginTop: px(10, scale), fontFamily: MONO, fontSize: px(9, scale),
-    letterSpacing: '0.2em', color: bodyOf(tone), opacity: tone === 'light' ? 0.7 : 0.6,
-    lineHeight: 1.8, textAlign: 'left',
+    marginTop: px(10, scale), fontFamily: MONO, fontSize: px(10.5, scale), fontWeight: 500,
+    letterSpacing: '0.12em', color: bodyOf(tone), opacity: 0.95,
+    lineHeight: 1.7, textAlign: 'left',
   };
 
   if (!onClick) return <div style={style}>{children}</div>;
@@ -226,9 +250,9 @@ export function ObPermission({
               // the only place onboarding sets a full sentence in caps, and at
               // .14em it wrapped to six lines on a phone and pushed the box into
               // the CTA below it.
-              marginTop: px(9, scale), fontFamily: MONO, fontSize: px(8.5, scale),
-              letterSpacing: '0.07em', lineHeight: 1.65,
-              color: bodyOf(tone), opacity: tone === 'light' ? 0.55 : 0.65,
+              marginTop: px(9, scale), fontFamily: MONO, fontSize: px(10, scale), fontWeight: 500,
+              letterSpacing: '0.05em', lineHeight: 1.6,
+              color: bodyOf(tone), opacity: 0.92,
             }}
           >
             {children}
@@ -299,6 +323,7 @@ export function ObCta({
    */
   return (
     <button
+      className="sg-retro"
       onClick={onClick}
       disabled={disabled}
       // pointer-down beats the blur that would otherwise close the keyboard and
@@ -309,17 +334,20 @@ export function ObCta({
           ? { position: 'relative', marginTop: px(30, scale), width: '100%' }
           : { position: 'absolute', left: px(24, scale), right: px(24, scale), bottom: px(34 + raise, scale) }),
         height: px(62, scale),
-        // lime with ink at night; cobalt with paper by day, so it holds against a bright sky
-        background: tone === 'light' ? COBALT : LIME, color: tone === 'light' ? '#F7F4E6' : INK,
+        // lime with ink at night; cobalt with paper by day, so it holds against a bright sky.
+        // The retro bevel works the light and shaded edges out from the face.
+        '--face': tone === 'light' ? COBALT : LIME,
+        '--ink': tone === 'light' ? '#F7F4E6' : INK,
+        '--b': px(3, scale), '--h': px(3, scale),
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: `0 ${px(22, scale)}`, border: 'none', borderRadius: 0,
+        padding: `0 ${px(26, scale)}`,
         fontFamily: PIXEL, fontSize: px(28, scale),
         cursor: disabled ? 'default' : 'pointer',
         // kept in place rather than unmounted so the layout never jumps
-        opacity: disabled ? 0.35 : 1,
+        opacity: disabled ? 0.55 : 1,
         pointerEvents: disabled ? 'none' : 'auto',
         transition: 'opacity .2s ease',
-      }}
+      } as unknown as React.CSSProperties}
     >
       <span>{label}</span>
       <span>→</span>

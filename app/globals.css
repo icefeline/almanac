@@ -247,65 +247,118 @@ input.rounded-3xl:focus-within {
    the state a screen reader is given rather than a second class that could
    disagree with it.
    ────────────────────────────────────────────────────────────────────────── */
+/* ── the retro button, as on the old desktop: a black frame, a bright edge on the top and left,
+   a dark edge on the bottom and right, and a flat face. Pressed, the light and the shadow swap and
+   the face slips down and right. The colours are the app's own: set --face and --ink and the bright
+   and dark edges are worked out from the face. ─────────────────────────────────────────────── */
+.sg-retro,
 .sg-osbtn {
+  --face: #c9f24e;
+  --ink: #172211;
+  --edge: #0b0b0b;
+  --b: 2px; /* the black frame */
+  --h: 2px; /* the lit and shaded edges inside it */
+  --hi: color-mix(in srgb, var(--face) 42%, #fff);
+  --lo: color-mix(in srgb, var(--face) 58%, #000);
+  background: var(--face);
+  color: var(--ink);
+  border: 0;
   border-radius: 0;
-  border-width: 2px;
-  border-style: solid;
-  /* top | right | bottom | left */
-  border-color: rgba(201, 242, 78, 0.5) #0b1108 #0b1108 rgba(201, 242, 78, 0.5);
-  background: #172211;
-  color: #c9f24e;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
-  /* Colour only. The bevel and the 1px shift are the press, and a press that
-     eases is a press that feels late. */
-  transition: background-color 0.15s ease, color 0.15s ease;
+  box-shadow:
+    inset 0 0 0 var(--b) var(--edge),
+    inset calc(var(--b) + var(--h)) calc(var(--b) + var(--h)) 0 0 var(--hi),
+    inset calc(-1 * (var(--b) + var(--h))) calc(-1 * (var(--b) + var(--h))) 0 0 var(--lo);
+  /* colour only: the bevel swap and the one-pixel slip are the press, and a press that eases feels late */
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
 
+.sg-retro:hover:not(:disabled) {
+  --hi: color-mix(in srgb, var(--face) 30%, #fff);
+}
+
+.sg-retro:active:not(:disabled),
+.sg-retro[aria-pressed='true'] {
+  box-shadow:
+    inset 0 0 0 var(--b) var(--edge),
+    inset calc(var(--b) + var(--h)) calc(var(--b) + var(--h)) 0 0 var(--lo),
+    inset calc(-1 * (var(--b) + var(--h))) calc(-1 * (var(--b) + var(--h))) 0 0 var(--hi);
+  transform: translate(1px, 1px);
+}
+
+.sg-retro:focus-visible {
+  outline: 2px dotted var(--edge);
+  outline-offset: 2px;
+}
+
+/* the top nav buttons: the app's dark ground with lime type; the current view is lime with dark type */
+.sg-osbtn {
+  --face: #172211;
+  --ink: #c9f24e;
+  --edge: #050805;
+  --hi: color-mix(in srgb, #c9f24e 42%, var(--face));
+  --lo: #0b1108;
+}
 .sg-osbtn:hover {
-  border-top-color: rgba(201, 242, 78, 0.8);
-  border-left-color: rgba(201, 242, 78, 0.8);
+  --hi: color-mix(in srgb, #c9f24e 62%, var(--face));
 }
-
-/* Held down, but not the current view — the button a finger is on reads as
-   pressed for as long as it is held, then springs back. */
 .sg-osbtn:active {
-  border-color: #0b1108 rgba(201, 242, 78, 0.5) rgba(201, 242, 78, 0.5) #0b1108;
-  box-shadow: none;
-  transform: translate(2px, 2px);
+  box-shadow:
+    inset 0 0 0 var(--b) var(--edge),
+    inset calc(var(--b) + var(--h)) calc(var(--b) + var(--h)) 0 0 var(--lo),
+    inset calc(-1 * (var(--b) + var(--h))) calc(-1 * (var(--b) + var(--h))) 0 0 var(--hi);
+  transform: translate(1px, 1px);
 }
-
-/* The current view. Pressed and staying pressed: the light comes from the other
-   side, the shadow it was casting is gone, and it sits where a pressed key sits. */
 .sg-osbtn[aria-pressed='true'] {
-  background: #c9f24e;
-  color: #172211;
-  border-color: #7fa02f #e6fba8 #e6fba8 #7fa02f;
-  box-shadow: none;
-  transform: translate(2px, 2px);
+  --face: #c9f24e;
+  --ink: #172211;
+  --hi: #e6fba8;
+  --lo: #7fa02f;
+  box-shadow:
+    inset 0 0 0 var(--b) var(--edge),
+    inset calc(var(--b) + var(--h)) calc(var(--b) + var(--h)) 0 0 var(--lo),
+    inset calc(-1 * (var(--b) + var(--h))) calc(-1 * (var(--b) + var(--h))) 0 0 var(--hi);
+  transform: translate(1px, 1px);
 }
-
-.sg-osbtn[aria-pressed='true']:hover {
-  border-top-color: #7fa02f;
-  border-left-color: #7fa02f;
-}
-
 .sg-osbtn:focus-visible {
   outline: 2px dotted #c9f24e;
   outline-offset: 2px;
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .sg-osbtn { transition: none; }
+  .sg-retro, .sg-osbtn { transition: none; }
 }
 
 /* The save button reads as its own thing: soft blue, not the lime of the views. */
 .sg-osbtn.sg-savebtn {
-  color: #e1eefc;
-  border-color: rgba(225, 238, 252, 0.5) #0b1108 #0b1108 rgba(225, 238, 252, 0.5);
+  --ink: #e1eefc;
+  --hi: color-mix(in srgb, #e1eefc 42%, var(--face));
 }
 .sg-osbtn.sg-savebtn:hover {
-  border-top-color: rgba(225, 238, 252, 0.85);
-  border-left-color: rgba(225, 238, 252, 0.85);
+  --hi: color-mix(in srgb, #e1eefc 62%, var(--face));
+}
+
+/* onboarding: placeholders in the fields were the browser's pale grey; they take the field's own ink, a little softened */
+[data-onboarding] input::placeholder { color: inherit; opacity: 0.7; }
+
+/* onboarding: on a wide screen the Back button sits to the left of the fields, halfway down the column */
+@media (min-width: 768px) {
+  .sg-ob-back {
+    left: auto !important;
+    right: calc(100% + 130px) !important;
+    top: 50% !important;
+    translate: 0 -50%;
+    white-space: nowrap;
+  }
+}
+
+/* the pixel hand over anything that can be pressed (a mouse only: touch has no cursor) */
+button:not(:disabled),
+a[href],
+[role='button'],
+select,
+summary,
+label[for],
+.sg-retro:not(:disabled) {
+  cursor: url('/cursor-hand-v2.png') 2 1, pointer !important;
 }
 
 /* While the tear-off leaf is up, the page's own controls are held out of sight: the leaf is

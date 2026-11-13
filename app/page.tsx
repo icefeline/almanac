@@ -586,7 +586,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setShareOpen(true)}
-          className={cardPage.share}
+          className={`${cardPage.share} sg-retro`}
         >
           &gt; SHARE THIS CARD
         </button>
@@ -822,7 +822,7 @@ export default function Home() {
               <div className="hidden md:flex gap-3">
                 <button
                   onClick={handleReset}
-                  className="px-3 py-1.5 rounded-full text-sm bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all"
+                  className="sg-osbtn px-3 py-1.5 text-sm"
                   title="Reset today's card"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -830,7 +830,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={generateRandomCards}
-                  className="px-3 py-1.5 rounded-full text-xs bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all"
+                  className="sg-osbtn px-3 py-1.5 text-xs"
                   title="Generate 60 random cards"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -838,7 +838,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={handleFullReset}
-                  className="px-3 py-1.5 rounded-full text-sm bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all"
+                  className="sg-osbtn px-3 py-1.5 text-sm"
                   title="Full reset (including onboarding)"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -847,7 +847,7 @@ export default function Home() {
                 <button
                   onClick={() => runScatterAnimation(() => {})}
                   disabled={isAnimating}
-                  className="px-3 py-1.5 rounded-full text-xs bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all disabled:opacity-40"
+                  className="sg-osbtn px-3 py-1.5 text-xs disabled:opacity-40"
                   title="Preview scatter animation"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >

@@ -1284,6 +1284,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   // ── Main render ───────────────────────────────────────────────────────────
   return (
     <div
+      data-onboarding=""
       className="relative min-h-screen w-full overflow-hidden"
       style={{
         // dvh, not vh: on a phone with its browser toolbars showing, 100vh is taller than what is visible, so

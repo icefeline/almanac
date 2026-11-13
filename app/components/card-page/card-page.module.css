@@ -857,10 +857,10 @@ details[open] > .fold::after { content: '\2212'; }
   font-size: 34px;
   line-height: 1;
   letter-spacing: 0.02em;
-  color: var(--on-accent-c, var(--lime));
-  background: var(--accent-c, #2B35D6);
-  border: 0;
-  padding: 6px 14px 8px;
+  /* the retro bevel (globals .sg-retro) takes its face and ink from these */
+  --face: var(--accent-c, #2B35D6);
+  --ink: var(--on-accent-c, var(--lime));
+  padding: 8px 18px 10px;
   cursor: pointer;
 }
 
@@ -1504,10 +1504,9 @@ details[open] > .fold::after { content: '\2212'; }
   font-size: 26px;
   letter-spacing: .04em;
   text-transform: none;
-  color: var(--lime);
-  background: var(--accent);
-  border: 0;
-  padding: 4px 18px 6px;
+  --face: var(--accent);
+  --ink: var(--lime);
+  padding: 7px 20px 9px;
   margin-top: 18px;
   cursor: pointer;
 }

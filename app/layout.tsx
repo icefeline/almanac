@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans, Doto } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import AboutMount from "./components/AboutMount";
+import ClickSounds from "./components/ClickSounds";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -173,6 +174,7 @@ export default function RootLayout({
       <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} ${doto.variable} antialiased`}>
         {children}
         <AboutMount />
+        <ClickSounds />
         <Analytics />
       </body>
     </html>
