@@ -2380,3 +2380,9 @@ details[open] > .fold::after { content: '\2212'; }
 /* the words of the reading that echo the card, in blue, are set larger */
 .sheet .scene .module .insight .hl { font-size: 1.4em; line-height: .9; }
 .sheet .scene .module .pull .hl { font-size: 1.15em; }
+
+/* the blue echo words in the reading, a little larger again; a long one may still break to fit the narrow column */
+.sheet .scene .module .insight .hl { font-size: 1.7em; line-height: .85; overflow-wrap: anywhere; hyphens: auto; }
+
+/* wide screens: the reading a little narrower (still wider than on a phone) */
+@media (min-width: 761px) { .sheet .scene .module > .insight { max-width: min(100%, 15em); } }
