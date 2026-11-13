@@ -2386,3 +2386,18 @@ details[open] > .fold::after { content: '\2212'; }
 
 /* wide screens: the reading a little narrower (still wider than on a phone) */
 @media (min-width: 761px) { .sheet .scene .module > .insight { max-width: min(100%, 15em); } }
+
+/* the opened transit explanation is written in red pen: a bold red marker hand, like a note in the margin */
+.sheet .scene .module > .explain { --pen: #D1281C; }
+:global(:root[data-night]) .sheet .scene .module > .explain { --pen: #FF6A5C; }
+.sheet .scene .module > .explain p {
+  color: var(--pen);
+  font-family: var(--font-reenie-beanie), 'Reenie Beanie', cursive;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: .01em;
+  -webkit-text-stroke: .5px currentColor;
+  max-width: 24em;
+  hyphens: none;
+}
+.sheet .scene .module > .explain p strong { font-weight: 400; }
