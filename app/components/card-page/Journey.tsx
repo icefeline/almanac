@@ -55,7 +55,11 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
     const at = scenes.reduce((best, sc) => (Math.abs(sc.offsetLeft - el.scrollLeft) < Math.abs(best.offsetLeft - el.scrollLeft) ? sc : best), scenes[0]);
     const atRest = Math.abs(at.offsetLeft - el.scrollLeft) < 8;
     const next = el.scrollLeft < el.scrollWidth - el.clientWidth - 12;
-    const scrollable = at.scrollHeight > at.clientHeight + 12;
+    // only a scene that really scrolls (the distill field and others that merely overflow do not)
+    const oy = getComputedStyle(at).overflowY;
+    // the distill field is never a scrolling scene, however its boxes overflow
+    const isField = !!at.querySelector('[class*="distillScene"]');
+    const scrollable = !isField && (oy === 'auto' || oy === 'scroll') && at.scrollHeight > at.clientHeight + 12;
     const atTop = at.scrollTop < 8;
     const atBottom = at.scrollTop + at.clientHeight >= at.scrollHeight - 12;
     const down = atRest && scrollable && atTop;
@@ -165,6 +169,38 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
           stack.style.width = `${100 / z}%`;
           stack.style.height = `${100 / z}%`;
           if (stack.scrollHeight <= stack.clientHeight + 1) break;
+        }
+      });
+      // On a wide screen nothing scrolls up and down (the mouse wheel moves the strip sideways), so a scene whose words are taller than the
+      // screen, a long reading and its try-this, is set a little smaller until it fits. Phones scroll within the scene instead.
+      const wide = window.innerWidth > 760;
+      // (a transform, not zoom: zoom's treatment of widths differs between browsers, and a stack wider than its scene is cut off at the scene's edge)
+      el.querySelectorAll<HTMLElement>(`.${styles.scene}:not(.${styles.sceneHero})`).forEach((scene) => {
+        const stack = scene.firstElementChild as HTMLElement | null;
+        if (!stack) return;
+        stack.style.transform = '';
+        stack.style.transformOrigin = '';
+        stack.style.width = '';
+        // it fits when nothing scrolls and the stack ends inside the scene's own bottom padding (words may not run into the margin either)
+        // (scenes that only overflow on show, like the distill field, are left alone: only a scene that scrolls is fitted)
+        const oy = getComputedStyle(scene).overflowY;
+        if (oy !== 'auto' && oy !== 'scroll') return;
+        const padB = parseFloat(getComputedStyle(scene).paddingBottom) || 0;
+        const contentBottom = () => {
+          let b = 0;
+          stack.querySelectorAll<HTMLElement>('*').forEach((n) => {
+            if (n.children.length || !n.textContent?.trim() || n.closest('svg')) return;
+            b = Math.max(b, n.getBoundingClientRect().bottom);
+          });
+          return b;
+        };
+        const fits = () => scene.scrollHeight <= scene.clientHeight + 1 && contentBottom() <= scene.getBoundingClientRect().bottom - padB + 1;
+        if (!wide || fits()) return;
+        stack.style.transformOrigin = 'top left';
+        for (let z = 0.96; z > 0.5; z -= 0.04) {
+          stack.style.transform = `scale(${z})`;
+          stack.style.width = `${100 / z}%`;
+          if (fits()) break;
         }
       });
     };
