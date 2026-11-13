@@ -67,12 +67,16 @@ export function CardName({ name }: { name: string }) {
         return;
       }
       if (mode === 'dither') {
+        // measuring or drawing in a stand-in face gives a wrong size (too large, and clipped): wait until the serif is in;
+        // the font events below draw again as it arrives
+        const fam = getComputedStyle(document.body).getPropertyValue('--font-instrument-serif');
+        if (document.fonts && !document.fonts.check(`italic 400 100px ${fam}`)) return;
         if (phone) {
           // the widest line takes (nearly) the whole width, as large as the height allows
           const probe = document.createElement('canvas').getContext('2d')!;
           probe.font = `italic 400 100px ${getComputedStyle(document.body).getPropertyValue('--font-instrument-serif')}`;
           const widest = Math.max(...lines.map((l) => probe.measureText(l).width), 1);
-          const fit = Math.min((el.clientWidth * 0.97 * 100) / widest, window.innerHeight * 0.21);
+          const fit = Math.min((el.clientWidth * 0.97 * 100) / widest, window.innerHeight * 0.21, window.innerWidth * 0.26);
           if (Math.abs(parseFloat(el.style.fontSize || '0') - fit) > 0.5) el.style.fontSize = `${fit}px`;
         } else if (el.style.fontSize) {
           el.style.fontSize = '';

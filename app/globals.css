@@ -392,3 +392,7 @@ main[data-sealed] .tear-root { visibility: visible; }
 /* a past reading's window: paper laid on the live sky, in the app's ink and paper (swapped at night with the rest) */
 .sg-win { --w-ink: #15200F; --w-body: #27351F; --w-veil: rgba(247, 244, 230, .86); }
 :root[data-night] .sg-win { --w-ink: #F3F0E7; --w-body: #DCD9CF; --w-veil: rgba(14, 20, 17, .86); }
+
+/* the phone's own bars: the status bar and clock above, the home indicator below. Named once so everything that has to clear
+   them says so the same way (and so they can be tried out by hand in a browser that has neither). */
+:root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); }

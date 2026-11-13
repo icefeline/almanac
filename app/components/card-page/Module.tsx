@@ -2,13 +2,14 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { staggerLines } from '@/lib/utils/stagger';
-import { emphasise, withLead } from './emphasise';
+import { emphasise, withParagraphs } from './emphasise';
 import styles from './card-page.module.css';
 import { PatternStamps } from './PatternStamp';
 
 /** The pattern cards are held back for now: they crowd the reading. Flip this to bring them back. */
 const SHOW_PATTERNS = false;
 import type { DetectedPattern } from '@/lib/utils/pattern-detector';
+import { explainTransit } from '@/lib/data/transit-plain';
 
 /**
  * How the module fills in.
@@ -88,6 +89,11 @@ interface ModuleProps {
  * below the card. The explanation the ticker used to open is still here, as a
  * static toggle.
  */
+/** The phrase's size follows its longest line and its number of lines, so a long phrase and a short one both fill the space. */
+function phraseVars(lines: { len: number }[]): CSSProperties {
+  return { '--len': Math.max(...lines.map((l) => l.len), 1), '--lines': lines.length } as CSSProperties;
+}
+
 export function Module({
   keyPhrase,
   insight,
@@ -154,6 +160,46 @@ export function Module({
     return `> TRANSIT: ${transitExplanation.transitingPlanet.toUpperCase()} ${glyph} ${transitExplanation.natalPlanet.toUpperCase()}${exactness}`;
   })();
 
+  // "what is this transit" sits right under the transit line it explains
+  const showMain = !isLoading && bodyShown && !hasError && !(isRateLimited && !insight);
+  const plain = transitExplanation
+    ? explainTransit({
+        transitingPlanet: transitExplanation.transitingPlanet,
+        natalPlanet: transitExplanation.natalPlanet,
+        aspectType: transitExplanation.aspectType,
+        exact,
+        phaseMeaning: transitExplanation.phaseMeaning,
+      })
+    : null;
+  const explainBlock = plain || transitExplanation?.transitingPlanetMeaning ? (
+    <div className={styles.explain}>
+      <button
+        type="button"
+        className={`${styles.moduleRetry} sg-retro`}
+        style={{ marginTop: 0 }}
+        onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+      >
+        {isExpanded ? 'close' : 'what is this transit'}
+      </button>
+      {isExpanded && plain && (
+        <>
+          <p style={{ marginTop: 10 }}><strong>what it is.</strong> {plain.whatItIs}</p>
+          <p style={{ marginTop: 6 }}><strong>{plain.whyLabel}.</strong> {plain.why}</p>
+          <p style={{ marginTop: 6 }}><strong>how long.</strong> {plain.howLong}</p>
+        </>
+      )}
+      {isExpanded && !plain && transitExplanation && (
+        <p style={{ marginTop: 10 }}>
+          {transitExplanation.transitingPlanet} ({transitExplanation.transitingPlanetMeaning})
+          is making a {transitExplanation.aspectType} ({transitExplanation.aspectMeaning}) to
+          your natal {transitExplanation.natalPlanet} (
+          {transitExplanation.natalPlanetMeaning}). {transitExplanation.phaseMeaning}
+        </p>
+      )}
+    </div>
+  ) : null;
+
   return (
     <section className={styles.module}>
       <div className={styles.log}>&gt; READ CARD --VERBOSE</div>
@@ -170,6 +216,7 @@ export function Module({
       )}
 
       {!isLoading && transitLine && <div className={styles.log}>{transitLine}</div>}
+      {showMain && explainBlock}
 
       {/* while the read is on its way the page is not empty: the phrase's place holds the
           machine's own words, with its cursor */}
@@ -186,9 +233,9 @@ export function Module({
 
       {isLoading || !bodyShown ? null : hasError ? (
         <>
-        <h2 className={styles.phrase}>
+        <h2 className={styles.phrase} style={phraseVars(staggerLines('no connection to the reading', seed ?? 'offline'))}>
           {staggerLines('no connection to the reading', seed ?? 'offline').map((line, i) => (
-            <span key={i} className={styles.line} style={{ '--o': line.offset } as CSSProperties}>
+            <span key={i} className={styles.line} style={{ '--o': line.offset, '--n': line.len } as CSSProperties}>
               {line.text}
             </span>
           ))}
@@ -243,14 +290,14 @@ export function Module({
         </>
       ) : (
         <>
-          <h2 className={styles.phrase}>
+          <h2 className={styles.phrase} style={phraseVars(staggerLines(keyPhrase || 'what this could mean for you', seed ?? keyPhrase))}>
             {staggerLines(keyPhrase || 'what this could mean for you', seed ?? keyPhrase).map((line, i) => (
-              <span key={i} className={styles.line} style={{ '--o': line.offset } as CSSProperties}>
+              <span key={i} className={styles.line} style={{ '--o': line.offset, '--n': line.len } as CSSProperties}>
                 {line.text}
               </span>
             ))}
           </h2>
-          <p className={styles.insight}>{withLead(insight, [keyPhrase, ...terms])}</p>
+          <p className={styles.insight}>{withParagraphs(insight, [keyPhrase, ...terms])}</p>
 
           {SHOW_PATTERNS && patternShown && patterns && patterns.length > 0 && <PatternStamps patterns={patterns} />}
 
@@ -263,27 +310,6 @@ export function Module({
             </div>
           )}
 
-          {transitExplanation?.transitingPlanetMeaning && (
-            <div className={styles.explain}>
-              <button
-                type="button"
-                className={`${styles.moduleRetry} sg-retro`}
-                style={{ marginTop: 0 }}
-                onClick={() => setIsExpanded(!isExpanded)}
-                aria-expanded={isExpanded}
-              >
-                {isExpanded ? 'close' : 'what is this transit'}
-              </button>
-              {isExpanded && (
-                <p style={{ marginTop: 10 }}>
-                  {transitExplanation.transitingPlanet} ({transitExplanation.transitingPlanetMeaning})
-                  is making a {transitExplanation.aspectType} ({transitExplanation.aspectMeaning}) to
-                  your natal {transitExplanation.natalPlanet} (
-                  {transitExplanation.natalPlanetMeaning}). {transitExplanation.phaseMeaning}
-                </p>
-              )}
-            </div>
-          )}
         </>
       )}
     </section>

@@ -557,7 +557,7 @@ export default function Home() {
           <textarea
             aria-label="Write your reflection on today's card"
             rows={4}
-            placeholder="spill your thoughts here"
+            placeholder="i had a particularly weird feeling today. i keep coming back to it, and i think it started when..."
             defaultValue={reflection}
             onChange={(e) => handleJournalChange(e.target.value)}
             onBlur={(e) => setSavedLength(e.target.value.trim().length)}

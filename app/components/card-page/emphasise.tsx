@@ -52,3 +52,35 @@ export function withLead(text: string, terms: string[]): ReactNode {
     </>
   );
 }
+
+/**
+ * The reading set as short paragraphs: the same words, in the same order, broken after every second sentence (or sooner when
+ * a paragraph has already run long), the first sentence of the first paragraph set larger as the lead-in. A long unbroken
+ * block is hard to read in a narrow column; the breaks give the eye somewhere to rest.
+ */
+export function withParagraphs(text: string, terms: string[]): ReactNode {
+  const sentences = text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  const paras: string[][] = [];
+  let cur: string[] = [];
+  for (const sentence of sentences) {
+    cur.push(sentence);
+    if (cur.length >= 2 || cur.join(' ').length >= 170) {
+      paras.push(cur);
+      cur = [];
+    }
+  }
+  if (cur.length) paras.push(cur);
+  return paras.map((para, i) => (
+    <span key={i} className={styles.para}>
+      {i === 0 ? (
+        <>
+          <span className={styles.lead}>{emphasise(para[0], terms)}</span>
+          {para.length > 1 ? ' ' : ''}
+          {emphasise(para.slice(1).join(' '), terms)}
+        </>
+      ) : (
+        emphasise(para.join(' '), terms)
+      )}
+    </span>
+  ));
+}

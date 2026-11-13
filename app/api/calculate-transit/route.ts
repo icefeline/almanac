@@ -58,6 +58,24 @@ interface ClaudeInsight {
   memoryNote: string;
 }
 
+/**
+ * Keeps whole sentences up to a word budget. The first sentence is always kept,
+ * even if it alone is over, because a clipped half-sentence reads worse than a
+ * long one. Anything after the budget is dropped.
+ */
+function clipToSentences(text: string, maxWords: number): string {
+  const sentences = text.trim().match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) ?? [text];
+  const kept: string[] = [];
+  let words = 0;
+  for (const sentence of sentences) {
+    const n = sentence.trim().split(/\s+/).filter(Boolean).length;
+    if (kept.length > 0 && words + n > maxWords) break;
+    kept.push(sentence.trim());
+    words += n;
+  }
+  return kept.join(' ');
+}
+
 async function generateClaudeInsight(
   cardId: string,
   isReversed: boolean,
@@ -153,11 +171,11 @@ async function generateClaudeInsight(
     'open mid-thought, as if continuing something they were already half-saying to themselves',
   ];
   const SENTENCE_PLANS = [
-    'two sentences: one long and winding, one short and plain',
-    'three sentences, with the longest one in the middle',
+    'two sentences: one longer, one short and plain',
     'two sentences of roughly equal weight, joined by the logic and not by a conjunction',
-    'four sentences, the third noticeably shorter than the rest',
-    'three sentences, the last one the longest',
+    'one sentence, long enough to carry the whole thought',
+    'two sentences, the second shorter than the first',
+    'one plain sentence and then one that runs on a little',
   ];
   const IMAGE_POOLS = [
     'kitchens, food and the small chores around them',
@@ -259,12 +277,14 @@ For this reading only, so it does not sound like yesterday's:
 
 Write a JSON object with exactly these four fields:
 
-"keyPhrase": 3-6 words. The headline for this specific moment — something that could only come from the combination of this card and this transit. Not a platitude. Lowercase.
+Length is a hard limit. This is read on a phone in a few seconds, so shorter is better than fuller. Cut anything that does not carry the one idea.
 
-"insight": 2-4 sentences. This is the main reading. The card is a pattern. The transit is a pressure or an opening. The house is where it's playing out in their life. Put those three things together — not as separate facts, but as one coherent thing that's happening to them right now. Let their sun sign quietly shape the flavour of how they experience it. Make them feel seen in a way that surprises them slightly. No moralising, no advice. No questions.
+"keyPhrase": 3-5 words. The headline for this specific moment, something that could only come from this card and this transit. Not a platitude. Lowercase.
 
-"action": 1-2 sentences. Still a practice of noticing, not a task to schedule — the awareness is still the point. Help them catch themselves at the exact moment the pattern runs automatically: the flinch, the deflection, the story they tell to stay comfortable. Attach one small thing to actually do the instant they catch it, not later — and draw it from this card's own element, ${cardElement}: ${elementRegister}. Only reach outside that register if none of it fits this specific moment. It has to happen right where they already are, in seconds — never something that needs minutes set aside or a task for later. Noticing plus one immediate, tiny move, not noticing alone.
-Do not default to opening with "notice". Vary the opening across readings — start from the moment itself ("the second you..."), the feeling ("when your jaw tightens..."), a direct instruction ("catch..." / "watch for..." / "stay with..."), or the person ("you already do this:"). The sentence should never announce itself as an instruction before it becomes one.
+"insight": at most 40 words in total, in one or two sentences, plain words. This is the main reading. Put the card, the transit and the house together as one thing happening to them right now, not as three separate facts, and let it surprise them slightly. One idea only. No moralising, no advice, no questions. Do not try to cover everything you were given; choose the single sharpest connection and leave the rest out.
+
+"action": one sentence, at most 25 words. A practice of noticing, not a task to schedule. Name the moment the pattern runs automatically (the flinch, the deflection, the story that keeps them comfortable) and one tiny thing to do the instant they catch it, drawn from this card's own element, ${cardElement}: ${elementRegister}. It must happen in seconds, right where they are.
+Do not default to opening with "notice". Vary the opening: the moment itself ("the second you..."), the feeling ("when your jaw tightens..."), or a plain "catch..." / "watch for...". It should never announce itself as an instruction before it becomes one.
 
 "memoryNote": One sentence, lowercase. An honest private note about what's active in this person's inner life right now — written as a theme, not an event. No card names, no planet names, no "they" or "you". Pattern language only ("tension between X and Y" or "themes of A surfacing alongside B").
 
@@ -281,7 +301,7 @@ Return only valid JSON, no markdown, no extra text.`;
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
+      max_tokens: 300,
       messages: [
         {
           role: 'user',
@@ -302,6 +322,12 @@ Return only valid JSON, no markdown, no extra text.`;
 
     // The prompt asks for no em dashes and mostly gets its way. This is the
     // part that does not depend on being obeyed — see lib/utils/humanise.ts.
+    // Length is the other thing the prompt asks for and cannot guarantee, so
+    // it is enforced here too: whole sentences only, never cut mid-thought.
+    parsed.insight = clipToSentences(parsed.insight, 45);
+    parsed.action = clipToSentences(parsed.action, 30);
+    parsed.keyPhrase = parsed.keyPhrase.split(/\s+/).slice(0, 6).join(' ');
+
     return humaniseFields(parsed);
   } catch (error) {
     console.error('Claude insight generation failed:', error);

@@ -40,7 +40,7 @@ const FAR: [number, number][] = [
 // where each word sits on its arc, in degrees clockwise from east. Right-hand
 // words read downward and left-hand words read upward, so their tops always
 // face outward.
-const NEAR_SLOTS = [-30, 3, 32, 152, 207];
+const NEAR_SLOTS = [-21, 3, 32, 152, 207];
 const FAR_SLOTS = [-28, 10, 34, 150, 205];
 
 function arc(rx: number, ry: number, centre: number, half = 32): string {
