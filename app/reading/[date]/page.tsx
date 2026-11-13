@@ -48,7 +48,35 @@ export default function ReadingEmbed() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-embed', '');
-    return followParentTheme();
+    const stopFollowing = followParentTheme();
+    // The strip should open on the card. While the page settles (fonts, the card art, the shrink-to-fit, the
+    // insight arriving) something moves it on to another scene, so until the reader touches it, it is held at the start.
+    let touched = false;
+    const touch = () => { touched = true; };
+    window.addEventListener('pointerdown', touch);
+    window.addEventListener('wheel', touch, { passive: true });
+    window.addEventListener('touchstart', touch, { passive: true });
+    window.addEventListener('keydown', touch);
+    const hold = (e: Event) => {
+      const el = e.target as HTMLElement;
+      if (!touched && el.getAttribute?.('role') === 'region' && el.scrollLeft !== 0) el.scrollTo({ left: 0, behavior: 'instant' as ScrollBehavior });
+    };
+    document.addEventListener('scroll', hold, true);
+    // ...and put back at the start now and as the page settles, in case it moved before there was a scroll to hear
+    const home = () => {
+      const el = document.querySelector<HTMLElement>('[role="region"]');
+      if (!touched && el && el.scrollLeft !== 0) el.scrollTo({ left: 0, behavior: 'instant' as ScrollBehavior });
+    };
+    const timers = [0, 150, 400, 900, 1800, 3000, 5000].map((ms) => window.setTimeout(home, ms));
+    return () => {
+      timers.forEach(clearTimeout);
+      stopFollowing();
+      document.removeEventListener('scroll', hold, true);
+      window.removeEventListener('pointerdown', touch);
+      window.removeEventListener('wheel', touch);
+      window.removeEventListener('touchstart', touch);
+      window.removeEventListener('keydown', touch);
+    };
   }, []);
 
   useEffect(() => {

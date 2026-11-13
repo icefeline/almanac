@@ -2088,8 +2088,20 @@ details[open] > .fold::after { content: '\2212'; }
 
 /* a past reading framed in a window (html[data-embed], set by /reading/[date]): no menu icon to clear at the top and no
    Pick Card pill to clear at the bottom, so the card and its name get that room back and need less shrinking to fit */
-:global(html[data-embed]) .sheet .sceneHero { padding-top: 40px; padding-bottom: 28px; }
-:global(html[data-embed]) .sheet .scene:not(.sceneHero) { padding-top: 48px; }
+:global(html[data-embed]) .sheet .sceneHero { padding-bottom: 28px; }
+/* every scene starts at the same line from the top, instead of being centred in whatever height the frame has */
+:global(html[data-embed]) .sheet .scene,
+:global(html[data-embed]) .sheet .sceneHero { justify-content: flex-start; }
+/* the header of every scene (its label, and the hint under it) sits on one line near the top; the scene's own
+   content starts below that band, so the two never overlap */
+:global(html[data-embed]) .sheet .sceneHero { padding-top: 30px; }
+:global(html[data-embed]) .sheet .scene:not(.sceneHero) { padding-top: 104px; }
+:global(html[data-embed]) .sheet .scene .sceneLabel { top: 30px; left: 18px; padding-left: 0; }
+:global(html[data-embed]) .sheet .scene .sceneHint { left: 18px; top: 62px; max-width: none; }
+:global(html[data-embed]) .sheet .scene > *,
+:global(html[data-embed]) .sheet .sceneStack,
+:global(html[data-embed]) .sheet .sceneHero > .sceneStack { margin-block: 0; }
+:global(html[data-embed]) .sheet .sceneHero > .sceneStack { justify-content: flex-start; }
 @media (max-width: 760px) {
   :global(html[data-embed]) .sheet .sceneHero .plateCenter,
   :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(62vw, 40dvh); }
