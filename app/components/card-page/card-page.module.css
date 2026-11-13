@@ -2269,3 +2269,15 @@ details[open] > .fold::after { content: '\2212'; }
   }
   .sheet .scene .module > .insight { max-width: min(100%, 17em); }
 }
+
+/* "what is this transit" is a small aside, not a headline: a compact button, quiet next to the reading */
+.sheet .scene .module > .explain .moduleRetry {
+  font-size: 14px;
+  letter-spacing: .02em;
+  padding: 4px 10px 5px;
+  margin: 0;
+  line-height: 1.1;
+  --b: 1px;
+  --h: 1px;
+}
+.sheet .scene .module > .explain p { font-size: 15px; line-height: 1.35; max-width: 30em; }
