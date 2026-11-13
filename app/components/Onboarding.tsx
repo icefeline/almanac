@@ -551,9 +551,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       const date = new Date(year, month - 1, day);
       const today = new Date();
       if (date.getMonth() + 1 !== month || date.getDate() !== day || date.getFullYear() !== year) {
-        setDateError('please enter a valid date');
+        setDateError('that date looks a little off. could you check it?');
       } else if (date > today) {
-        setDateError('birthdate cannot be in the future');
+        setDateError('that one is still ahead of us. could you check the year?');
       } else { setDateError(''); }
     } else { setDateError(''); }
   };
@@ -567,7 +567,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (digitsOnly.length === 4) {
       const hours = parseInt(digitsOnly.slice(0, 2));
       const minutes = parseInt(digitsOnly.slice(2, 4));
-      if (hours > 23 || minutes > 59) { setTimeError('please enter a valid time (00:00-23:59)'); }
+      if (hours > 23 || minutes > 59) { setTimeError('that time looks a little off. try 00:00 to 23:59?'); }
       else { setTimeError(''); }
     } else { setTimeError(''); }
   };
@@ -580,11 +580,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (value.length === 0) { setLocationError(''); return; }
     if (value.includes(',')) {
       const parts = value.split(',').map(p => p.trim());
-      if (parts[1] && parts[1].length > 0 && parts[1].length < 2) { setLocationError('please enter a valid location'); return; }
-      if (parts[0].length < 2) { setLocationError('please enter a valid location'); return; }
+      if (parts[1] && parts[1].length > 0 && parts[1].length < 2) { setLocationError('could you check that place name?'); return; }
+      if (parts[0].length < 2) { setLocationError('could you check that place name?'); return; }
       setLocationError('');
     } else {
-      if (value.trim().length < 2) { setLocationError('please enter a valid location'); return; }
+      if (value.trim().length < 2) { setLocationError('could you check that place name?'); return; }
       setLocationError('');
     }
 
@@ -1014,7 +1014,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               tone={T}
               scale={mobileScale}
               title={<>WHAT&apos;S<br />YOUR NAME?</>}
-              sub="FIRST NAME IS FINE"
+              eyebrow="▸ HELLO"
+              sub="A FIRST NAME IS PLENTY"
             />
             {/* Sits under the heading, at the permissions step's height, so the
                 field is still in full view once the keyboard is up — rather
@@ -1032,7 +1033,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{ ...obValue(mobileScale, true), color: bodyOf(T), textTransform: 'uppercase' }}
                 />
               </div>
-              <ObHint tone={T} scale={mobileScale}>STORED ON YOUR DEVICE ONLY</ObHint>
+              <ObHint tone={T} scale={mobileScale}>IT STAYS ON YOUR DEVICE, WITH YOU</ObHint>
               <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} disabled={!canContinueFromName} />
             </ObFields>
           </div>
@@ -1046,7 +1047,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               tone={T}
               scale={mobileScale}
               title={<>WHEN WERE<br />YOU BORN?</>}
-              sub="SLOW GARDEN READS A VEDIC CHART."
+              eyebrow="▸ THANK YOU"
+              sub="THIS HELPS THE CARDS FEEL A LITTLE MORE LIKE YOURS."
             />
             <ObFields scale={mobileScale} stack top={330}>
               <div>
@@ -1105,11 +1107,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 </div>
                 {locationError && <FieldError message={locationError} variant={T} />}
                 {!locationError && locationChecking && (
-                  <ObHint tone={T} scale={mobileScale}>CHECKING…</ObHint>
+                  <ObHint tone={T} scale={mobileScale}>LOOKING IT UP…</ObHint>
                 )}
                 {!locationError && !locationChecking && locationResolved !== null && (
                   <ObHint tone={T} scale={mobileScale}>
-                    {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "COULDN'T FIND THAT — TRY ANOTHER SPELLING"}
+                    {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "WE COULDN'T FIND THAT ONE. MAYBE TRY ANOTHER SPELLING?"}
                   </ObHint>
                 )}
               </div>
@@ -1126,27 +1128,28 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               tone={T}
               scale={mobileScale}
               tight
-              title={<>ENABLE<br />PERMISSIONS</>}
-              sub={<>BOTH ARE OPTIONAL, AND BOTH CAN BE<br />TURNED OFF ANY DAY.</>}
+              eyebrow="▸ LAST ONE"
+              title={<>TWO SMALL<br />CHOICES</>}
+              sub={<>BOTH ARE YOURS TO MAKE, AND YOU CAN<br />CHANGE YOUR MIND ANY DAY.</>}
             />
             <ObFields scale={mobileScale} top={330}>
               <ObPermission
                 tone={T} scale={mobileScale} label="READ MY CHART"
                 on={personalise} onChange={setPersonalise}
               >
-                READS YOUR CHART AGAINST TODAY'S SKY, SO THE CARD CAN OPEN OUT INTO WHAT IT MIGHT MEAN FOR YOU.
+                LETS THE CARD TALK ABOUT YOUR OWN CHART AND TODAY'S SKY.
               </ObPermission>
               <ObPermission
                 tone={T} scale={mobileScale} label="USE MY LOCATION"
                 on={useLocation} onChange={handleLocationToggle}
               >
-                SETS YOUR SUNRISE, SUNSET AND MOON PHASE FROM WHERE YOU ACTUALLY ARE.
+                SHOWS YOUR OWN SUNRISE, SUNSET AND MOON, FROM WHEREVER YOU ARE.
               </ObPermission>
               {locationBlocked && (
                 <ObHint tone={T} scale={mobileScale} onClick={() => handleLocationToggle(true)}>
                   {locationRetried
-                    ? 'STILL BLOCKED — ALLOW LOCATION FROM THE LOCK ICON IN YOUR ADDRESS BAR'
-                    : 'YOUR BROWSER BLOCKED LOCATION — TAP TO ASK AGAIN'}
+                    ? 'STILL NOT ALLOWED. YOU CAN SWITCH IT ON FROM THE LOCK ICON IN YOUR ADDRESS BAR.'
+                    : 'YOUR BROWSER SAID NO TO LOCATION. TAP TO ASK AGAIN.'}
                 </ObHint>
               )}
               <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} />

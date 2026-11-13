@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { BAYER8 } from './dither';
 
 /**
  * The splash: the word "almanac" set big in a heavy italic, cut into hard pixels, the way the
@@ -13,25 +14,6 @@ import { useEffect, useRef } from 'react';
  * the cream desktop window; `tone="sky"` follows the live sky (cobalt by day, lime at night), the
  * same swap the reading page makes.
  */
-
-// an 8x8 ordered-dither matrix, built up from the 2x2 one: sixty-four levels, so a gradient steps smoothly
-const BAYER8 = (() => {
-  let m = [[0, 2], [3, 1]];
-  for (let n = 2; n < 8; n *= 2) {
-    const next: number[][] = Array.from({ length: n * 2 }, () => Array(n * 2).fill(0));
-    for (let y = 0; y < n; y++) {
-      for (let x = 0; x < n; x++) {
-        const v = m[y][x] * 4;
-        next[y][x] = v;
-        next[y][x + n] = v + 2;
-        next[y + n][x] = v + 3;
-        next[y + n][x + n] = v + 1;
-      }
-    }
-    m = next;
-  }
-  return m;
-})();
 
 const COBALT = '#2B35D6';
 const LIME = '#C9F24E';

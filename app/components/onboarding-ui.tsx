@@ -104,7 +104,7 @@ export function ObHead({
       {sub && (
         <div
           style={{
-            fontFamily: MONO, fontSize: px(12, scale), letterSpacing: '0.1em', fontWeight: 500,
+            fontFamily: MONO, fontSize: px(12, scale), letterSpacing: '0.03em', fontWeight: 500,
             lineHeight: 1.8, color: bodyOf(tone), opacity: 1,
           }}
         >
@@ -162,7 +162,7 @@ export function ObTag({ tone, scale, required }: { tone: Tone; scale: number; re
   return (
     <span
       style={{
-        fontFamily: MONO, fontSize: px(10, scale), letterSpacing: '0.16em', fontWeight: 500,
+        fontFamily: MONO, fontSize: px(10, scale), letterSpacing: '0.08em', fontWeight: 500,
         padding: `${px(3, scale)} ${px(7, scale)}`,
         ...(required
           ? { background: accentOf(tone), color: tone === 'light' ? '#F7F4E6' : INK }
@@ -184,7 +184,7 @@ export function ObHint({
 }) {
   const style: React.CSSProperties = {
     marginTop: px(10, scale), fontFamily: MONO, fontSize: px(10.5, scale), fontWeight: 500,
-    letterSpacing: '0.12em', color: bodyOf(tone), opacity: 0.95,
+    letterSpacing: '0.03em', color: bodyOf(tone), opacity: 0.95,
     lineHeight: 1.7, textAlign: 'left',
   };
 
@@ -251,7 +251,7 @@ export function ObPermission({
               // .14em it wrapped to six lines on a phone and pushed the box into
               // the CTA below it.
               marginTop: px(9, scale), fontFamily: MONO, fontSize: px(10, scale), fontWeight: 500,
-              letterSpacing: '0.05em', lineHeight: 1.6,
+              letterSpacing: '0.02em', lineHeight: 1.6,
               color: bodyOf(tone), opacity: 0.92,
             }}
           >

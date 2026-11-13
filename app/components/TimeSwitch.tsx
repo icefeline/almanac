@@ -20,14 +20,28 @@ const HOURS: { label: string; sun: { altitude: number; morning: boolean } | null
   { label: 'deep night', sun: { altitude: -45, morning: false } },
 ];
 
+const FACES = ['dither', 'sixtyfour', 'sans', 'serif', 'plain'];
+
 export default function TimeSwitch() {
   const [i, setI] = useState(0);
+  const [face, setFace] = useState(0);
   if (process.env.NODE_ENV === 'production') return null;
 
   const go = (n: number) => {
     const k = (n + HOURS.length) % HOURS.length;
     setI(k);
     window.dispatchEvent(new CustomEvent('sg:sky', { detail: HOURS[k].sun }));
+  };
+
+  const nextFace = () => {
+    const k = (face + 1) % FACES.length;
+    setFace(k);
+    try {
+      localStorage.setItem('sg-namefont', FACES[k]);
+    } catch {
+      /* storage unavailable */
+    }
+    window.dispatchEvent(new Event('sg:namefont'));
   };
 
   const btn: React.CSSProperties = {
@@ -50,6 +64,7 @@ export default function TimeSwitch() {
         {HOURS[i].label}
       </button>
       <button type="button" style={btn} onClick={() => go(i + 1)} aria-label="later">&gt;</button>
+      <button type="button" style={{ ...btn, marginLeft: 6 }} onClick={nextFace}>name: {FACES[face]}</button>
     </div>
   );
 }

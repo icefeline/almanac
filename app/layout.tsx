@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans, Doto } from "next/font/google";
+import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans, Doto, Fredoka, DM_Serif_Display, Sixtyfour } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import AboutMount from "./components/AboutMount";
 import ClickSounds from "./components/ClickSounds";
@@ -31,6 +31,16 @@ const doto = Doto({
   axes: ['ROND'],
   variable: '--font-doto',
 });
+
+// The card name on the reading page: wide, heavy and round, in a monoline with fully rounded ends.
+// Fredoka is variable in weight and width; the width axis is what makes it wide.
+const fredoka = Fredoka({ subsets: ['latin'], axes: ['wdth'], variable: '--font-fredoka' });
+
+// the card name's pixel serif is this face, cut into pixels in CardName
+const dmSerif = DM_Serif_Display({ weight: '400', style: ['normal', 'italic'], subsets: ['latin'], variable: '--font-dm-serif' });
+
+// a wide pixel face with a scanline axis, for the card name
+const sixtyfour = Sixtyfour({ subsets: ['latin'], axes: ['BLED', 'SCAN'], variable: '--font-sixtyfour' });
 
 const dmMono = DM_Mono({
   weight: ['300', '400', '500'],
@@ -171,7 +181,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} ${doto.variable} antialiased`}>
+      <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} ${doto.variable} ${fredoka.variable} ${dmSerif.variable} ${sixtyfour.variable} antialiased`}>
         {children}
         <AboutMount />
         <ClickSounds />
