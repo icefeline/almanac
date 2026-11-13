@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans } from "next/font/google";
+import { Reenie_Beanie, VT323, Instrument_Serif, DM_Mono, DM_Sans, Doto, Fredoka, DM_Serif_Display, Sixtyfour } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import AboutMount from "./components/AboutMount";
+import ClickSounds from "./components/ClickSounds";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -24,6 +25,23 @@ const vt323 = VT323({
   variable: '--font-vt323',
 });
 
+// Doto: the dotted face for "about this card". Variable, with its roundness axis switched on.
+const doto = Doto({
+  subsets: ['latin'],
+  axes: ['ROND'],
+  variable: '--font-doto',
+});
+
+// The card name on the reading page: wide, heavy and round, in a monoline with fully rounded ends.
+// Fredoka is variable in weight and width; the width axis is what makes it wide.
+const fredoka = Fredoka({ subsets: ['latin'], axes: ['wdth'], variable: '--font-fredoka' });
+
+// the card name's pixel serif is this face, cut into pixels in CardName
+const dmSerif = DM_Serif_Display({ weight: '400', style: ['normal', 'italic'], subsets: ['latin'], variable: '--font-dm-serif' });
+
+// a wide pixel face with a scanline axis, for the card name
+const sixtyfour = Sixtyfour({ subsets: ['latin'], axes: ['BLED', 'SCAN'], variable: '--font-sixtyfour' });
+
 const dmMono = DM_Mono({
   weight: ['300', '400', '500'],
   subsets: ['latin'],
@@ -38,6 +56,7 @@ const dmMono = DM_Mono({
 // which covers 400/500/700 from a single file.
 const dmSans = DM_Sans({
   subsets: ['latin'],
+  style: ['normal', 'italic'],
   variable: '--font-dm-sans',
 });
 
@@ -162,9 +181,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} antialiased`}>
+      <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} ${doto.variable} ${fredoka.variable} ${dmSerif.variable} ${sixtyfour.variable} antialiased`}>
         {children}
         <AboutMount />
+        <ClickSounds />
         <Analytics />
       </body>
     </html>

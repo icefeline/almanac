@@ -17,11 +17,14 @@ import type { MarginRow } from './types';
 export function Plate({
   left,
   shares,
+  ring,
   children,
 }: {
   left: MarginRow[];
   /** The six note percentages, in the accord's own order. Empty if unwritten. */
   shares: number[];
+  /** The keyword ring, drawn around the card. Wide layouts only (see .ring). */
+  ring?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -34,7 +37,10 @@ export function Plate({
         ))}
       </div>
 
-      {children}
+      <div className={styles.plateCenter}>
+        {ring}
+        {children}
+      </div>
 
       <div className={styles.marginR}>
         {shares.map((share, i) => (

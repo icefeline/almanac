@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 
 const CARING_MESSAGES = [
-  "how's your day going? 🌙",
-  "hope you're doing okay today ✨",
-  "thinking of you — how are you feeling?",
-  "checking in on you 💫",
-  "how's everything been lately?",
-  "just wanted to see how you are 🌿",
-  "hope today's treating you well",
-  "hey, how are you doing? ✨",
+  "your card for today is waiting",
+  "a quiet minute, if you have one",
+  "today's card is here whenever you are",
+  "the day has a card now",
+  "there's a card for this afternoon",
+  "one card, whenever you get to it",
+  "a small pause is on offer",
+  "the card is drawn and nobody is hurrying you",
 ];
 
 function getRandomMessage() {
@@ -48,7 +48,7 @@ export default function NotificationSettings() {
 
   const requestPermission = async () => {
     if (!('Notification' in window)) {
-      alert('This browser doesn\'t support notifications 😢');
+      alert('this browser can\'t show notifications.');
       return;
     }
 
@@ -62,17 +62,17 @@ export default function NotificationSettings() {
         scheduleNotification(notificationTime);
 
         // Show test notification
-        new Notification('Slow Garden ✨', {
-          body: 'notifications are on! you\'re all set',
+        new Notification('slow garden', {
+          body: 'notifications are on. you\'ll hear from us once a day, at the time you picked.',
           tag: 'setup',
           requireInteraction: false,
         });
       } else if (result === 'denied') {
-        alert('Notifications were blocked. You can enable them in your browser settings.');
+        alert('notifications were blocked. they can be switched back on in your browser settings.');
       }
     } catch (error) {
       console.error('Error requesting notification permission:', error);
-      alert('Could not request notification permission. Try again?');
+      alert('the browser didn\'t answer the permission request. it may work if you try again.');
     }
   };
 
@@ -146,7 +146,7 @@ export default function NotificationSettings() {
 
     if (permission !== 'granted') {
       console.warn('Permission not granted:', permission);
-      alert('Please enable notifications first! Current permission: ' + permission);
+      alert('notifications are switched off for now. turn them on first, then try the test again.');
       return;
     }
 
@@ -182,14 +182,14 @@ export default function NotificationSettings() {
       setTimeout(() => setTestSuccess(false), 5000);
     } catch (error) {
       console.error('Error creating notification:', error);
-      alert('Error: ' + (error instanceof Error ? error.message : String(error)));
+      alert('couldn\'t send it: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto px-6 md:px-8 py-12">
       <h1 className="text-4xl md:text-5xl font-handwritten text-forest-900 mb-8">
-        Notifications
+        notifications
       </h1>
 
       <div className="space-y-8">
@@ -198,10 +198,10 @@ export default function NotificationSettings() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1 pr-4">
               <h3 className="text-2xl font-light text-forest-900 mb-2">
-                Daily Reminders
+                daily reminder
               </h3>
               <p className="text-forest-600 text-lg font-light">
-                Get a gentle nudge when it's time to draw your card
+                a small note when your card is ready
               </p>
             </div>
             <button
@@ -220,7 +220,7 @@ export default function NotificationSettings() {
 
           {permission === 'denied' && (
             <p className="text-clay-600 text-base font-light mt-4 p-4 bg-clay-50 rounded-lg">
-              Notifications are blocked. You'll need to enable them in your browser settings.
+              notifications are blocked. they can be allowed again in your browser settings.
             </p>
           )}
         </div>
@@ -229,7 +229,7 @@ export default function NotificationSettings() {
         {notificationsEnabled && permission === 'granted' && (
           <div className="bg-cream-100/50 border border-forest-200 rounded-xl p-8">
             <h3 className="text-2xl font-light text-forest-900 mb-6">
-              What time works for you?
+              what time suits you?
             </h3>
             <input
               type="time"
@@ -238,7 +238,7 @@ export default function NotificationSettings() {
               className="w-full px-6 py-4 bg-cream-50 border border-forest-300 rounded-lg text-forest-900 font-light text-2xl focus:outline-none focus:ring-2 focus:ring-forest-500"
             />
             <p className="text-forest-600 text-lg font-light mt-4">
-              You'll get a notification at this time each day
+              one notification a day, at this time
             </p>
           </div>
         )}
@@ -250,14 +250,14 @@ export default function NotificationSettings() {
               onClick={testNotification}
               className="w-full px-8 py-4 bg-forest-100 hover:bg-forest-200 text-forest-800 font-light rounded-xl transition-all text-xl"
             >
-              Send Test Notification
+              send a test
             </button>
 
             {testSuccess && (
               <div className="mt-4 p-4 bg-sage-100 border border-sage-300 rounded-lg text-forest-900 text-lg font-light animate-fade-in">
-                ✨ Notification sent!
+                sent. it should appear in a moment.
                 <br />
-                <span className="text-base">If you don't see it: Check your system notification center, or your browser/OS might be blocking notifications even though you gave permission.</span>
+                <span className="text-base">if nothing shows up, check your system's notification centre. the browser or the device may be holding it back even though permission was given.</span>
               </div>
             )}
           </div>
@@ -266,13 +266,13 @@ export default function NotificationSettings() {
         {/* Info Box */}
         <div className="bg-sage-50/50 border border-sage-200 rounded-xl p-8">
           <h4 className="text-2xl font-light text-forest-900 mb-4">
-            How this works
+            how this works
           </h4>
           <ul className="text-forest-700 text-lg font-light space-y-3">
-            <li>• Notifications work best on Android and desktop</li>
-            <li>• On iPhone, keep Safari running in the background for best results</li>
-            <li>• You can change your notification time anytime</li>
-            <li>• Messages are gentle reminders, never pushy</li>
+            <li>• works best on android and desktop</li>
+            <li>• on iphone, safari has to stay open in the background</li>
+            <li>• the time can be changed whenever</li>
+            <li>• the messages are short and don't ask anything of you</li>
           </ul>
         </div>
 
@@ -280,14 +280,14 @@ export default function NotificationSettings() {
         {notificationsEnabled && permission === 'granted' && (
           <div className="bg-clay-50/50 border border-clay-200 rounded-xl p-8">
             <h4 className="text-2xl font-light text-forest-900 mb-4">
-              Not seeing notifications?
+              not seeing them?
             </h4>
             <ul className="text-forest-700 text-lg font-light space-y-3">
-              <li>• <strong>Mac:</strong> Check System Settings → Notifications → Chrome/Safari</li>
-              <li>• <strong>Windows:</strong> Check Settings → System → Notifications → Chrome</li>
-              <li>• <strong>Do Not Disturb:</strong> Disable DND/Focus mode temporarily</li>
-              <li>• <strong>Notification Center:</strong> Check your system notification center (top-right on Mac, bottom-right on Windows)</li>
-              <li>• Try closing and reopening your browser</li>
+              <li>• <strong>mac:</strong> system settings → notifications → chrome or safari</li>
+              <li>• <strong>windows:</strong> settings → system → notifications → chrome</li>
+              <li>• <strong>do not disturb:</strong> focus modes can hide them, so try switching it off for a bit</li>
+              <li>• <strong>notification centre:</strong> top right on a mac, bottom right on windows</li>
+              <li>• closing and reopening the browser sometimes helps</li>
             </ul>
           </div>
         )}

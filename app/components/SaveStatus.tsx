@@ -130,7 +130,7 @@ export default function SaveStatus() {
     const { written } = restoreBackup(pending.backup, mode);
     setView('done');
     if (written === 0) {
-      setMessage('nothing to add — this browser already has all of it.');
+      setMessage('nothing to add, this browser already has all of it.');
       return;
     }
     setMessage(`brought back ${written} saved items. reloading…`);
@@ -161,8 +161,7 @@ export default function SaveStatus() {
         onClick={openSheet}
         aria-label={label}
         title={label}
-        className="sg-osbtn sg-savebtn relative flex items-center justify-center px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem]"
-        style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
+        className="sg-osbtn sg-navbtn sg-savebtn relative flex items-center justify-center px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem]"
       >
         <span>{flash ? 'saved' : 'save'}</span>
         {(state.due || flash) && (

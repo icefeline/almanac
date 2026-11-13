@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { TarotCard as TarotCardType } from '@/lib/types/tarot';
 import { getActiveMeaning, getActiveKeywords } from '@/lib/utils/card-utils';
+import { cardArchetypes } from '@/lib/data/card-archetypes';
+import { cardAbout } from '@/lib/data/card-about';
 import {
-  CardName, Distill, Keywords, Meaning, Module, Plate, Readout, StateLine,
+  CardName, DistillScene, Journey, KeywordRing, MeaningScene, Module, Plate, Readout, Scene, AboutScene, StateLine,
   styles, type MarginRow,
 } from './card-page';
 import { clockTime, formatOrb, lifetimeDraws, noteShares } from '@/lib/utils/card-readout';
@@ -26,6 +28,11 @@ interface TarotCardProps {
    * card rather than a card back that flips over afterwards.
    */
   artVisibleEarly?: boolean;
+  /**
+   * Show the sealed card scene while the leaf is being pulled. It fades in behind the
+   * tear-off page as a pull begins and goes again if the pull lets go.
+   */
+  peek?: boolean;
   userName?: string;
   cardDate?: string; // YYYY-MM-DD of when the card was drawn; defaults to today
   /**
@@ -155,7 +162,7 @@ function convertToTransitData(transit: ActiveTransit): TransitData {
   };
 }
 
-export default function TarotCard({ card, isReversed, isRevealed, animateReveal, artVisibleEarly, userName, cardDate, footer, surface = 'page' }: TarotCardProps) {
+export default function TarotCard({ card, isReversed, isRevealed, animateReveal, artVisibleEarly, peek = false, userName, cardDate, footer, surface = 'page' }: TarotCardProps) {
   const activeMeaning = getActiveMeaning(card, isReversed);
   const activeKeywords = getActiveKeywords(card, isReversed);
 
@@ -503,115 +510,163 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
     return rows;
   };
 
-  // Sealed card: the tear-off page owns this state, and none of the reading
-  // below exists yet, so the plate stands alone without its margins.
+  // Sealed: the card scene is already there, exactly where it will be, and the tear-off leaf
+  // (TearSheet) covers the whole screen over it. Its words are held invisible — they arrive
+  // when the leaf comes away — but they take their space, so nothing moves at the tear.
   if (!isRevealed) {
+    const sealedRows = buildMarginRows();
     return (
-      <div className="w-full mx-auto">
-        <div data-card-image className="aspect-[2/3] w-72 md:w-96 mx-auto rounded-2xl overflow-visible relative">
-          {artVisibleEarly ? (
-            <div className={`relative w-full h-full rounded-2xl overflow-hidden transform-gpu ${
-              isReversed ? 'rotate-180' : ''
-            }`}>
-              <img
-                src={`/cards/${getCardFilename(card.id, card.name)}.png`}
-                alt={card.name}
-                className="w-full h-full object-cover shadow-xl"
-                onError={(e) => { e.currentTarget.src = card.imagePath; }}
-              />
-            </div>
-          ) : (
-            <div className="w-full h-full rounded-2xl overflow-hidden shadow-xl">
-              <img src="/card-back.png" alt="Card back" className="w-full h-full object-cover" />
-            </div>
-          )}
-        </div>
+      <div className={styles.shell}>
+        <main className={`${styles.page} ${styles.sheet} ${styles.sealed} ${peek ? styles.peek : ''}`}>
+          <Journey>
+            <Scene hero name="the card">
+              <CardName name={card.name} />
+              <Plate
+                left={sealedRows}
+                shares={[]}
+                ring={<KeywordRing near={activeKeywords} far={isReversed ? card.uprightKeywords : card.reversedKeywords} />}
+              >
+                <div data-card-image className="aspect-[2/3] w-72 md:w-96 mx-auto overflow-visible relative">
+                  {artVisibleEarly ? (
+                    <div className={`relative w-full h-full overflow-hidden transform-gpu ${isReversed ? 'rotate-180' : ''}`}>
+                      <img
+                        src={`/cards/${getCardFilename(card.id, card.name)}.png`}
+                        alt={card.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.src = card.imagePath; }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full overflow-hidden">
+                      <img src="/card-back.png" alt="Card back" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+              </Plate>
+              <StateLine suite={card.suite} isReversed={isReversed} />
+              <Readout rows={sealedRows} />
+            </Scene>
+          </Journey>
+        </main>
       </div>
     );
   }
 
   const marginRows = buildMarginRows();
 
+  // the card's own words: they seed the key phrase's stagger and get picked out in the text
+  const seed = `${card.id}-${readingDate}`;
+  const farKeywords = isReversed ? card.uprightKeywords : card.reversedKeywords;
+
+  // What the card is about, in words that are about its meaning and not its picture: the deck's own
+  // art is its own, so a description of the traditional figure would contradict the card in front
+  // of the reader. The archetype's phrases say what it means, the way up it came.
+  const archetype = cardArchetypes[card.id];
+  const aboutPhrases = archetype ? (isReversed ? archetype.reversed : archetype.upright).naturalPhrases : [];
+  // the traditional reading of the card (not this reading, not the invitation): what it has long stood for
+  const aboutText = cardAbout[card.id] ?? '';
+
   return (
     /* The reading measures itself against this, not against the browser, so it
        lays out the same whether it fills the screen or sits in a 420px window
        on the year view. See .shell in card-page.module.css. */
     <div className={`${styles.shell} ${surface === 'window' ? styles.shellWindow : ''}`}>
-    <main className={styles.page}>
-      <div className={styles.col}>
-        <CardName name={card.name} />
+    <main className={`${styles.page} ${styles.sheet}`}>
+      {/* The reading is a journey: the card, then a scene for each category. On the page
+          it runs sideways; in a year-view window it is just a vertical stack. */}
+      <Journey>
+        <Scene hero name="the card">
+          <CardName name={card.name} />
 
-        <Plate left={marginRows} shares={noteShares(card.id, noteCount)}>
-          {/* The app's own card element, carried over untouched — the plate
-              holds it, it doesn't re-implement it.
+          <Plate
+            left={marginRows}
+            // the six percentages live with the scent notes
+            shares={[]}
+            ring={<KeywordRing near={activeKeywords} far={farKeywords} />}
+          >
+        {/* The app's own card element, carried over untouched — the plate
+            holds it, it doesn't re-implement it.
 
-              Sized to match the sealed card above rather than to the spec's
-              214/268px plate: the reveal is a tear, not a cut, and the card
-              changing size at the moment it opens breaks that. */}
-          <div data-card-image className="aspect-[2/3] w-72 md:w-96 mx-auto overflow-visible relative">
-          <div className={`relative w-full h-full overflow-hidden transform-gpu ${
-            isReversed ? 'rotate-180' : ''
-          }`}>
-            <img
-              src={`/cards/${getCardFilename(card.id, card.name)}.png`}
-              alt={card.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = card.imagePath;
-              }}
-            />
-          </div>
-
-          {/* Slot reel overlay — renders on top while animating */}
-          {showSlot && (
-            <CardSlotReveal
-              selectedCardSrc={`/cards/${getCardFilename(card.id, card.name)}.png`}
-              isReversed={isReversed}
-              onComplete={handleSlotComplete}
-            />
-          )}
-          </div>
-        </Plate>
-
-        <StateLine suite={card.suite} isReversed={isReversed} />
-
-        {/* The same figures as the left margin, 2-up. Mobile only. */}
-        <Readout rows={marginRows} />
-
-        {/* 06–08. One column on a phone; at 880px the spine splits it. */}
-        <div className={styles.body}>
-          <div className={styles.left}>
-            <Keywords keywords={activeKeywords} />
-            <Meaning lede={activeMeaning} sub={card.description} />
-          </div>
-
-          <div className={styles.spine} />
-
-          <div className={styles.right}>
-            <Distill cardId={card.id} isReversed={isReversed} />
-          </div>
+            Sized to match the sealed card above rather than to the spec's
+            214/268px plate: the reveal is a tear, not a cut, and the card
+            changing size at the moment it opens breaks that. */}
+        <div data-card-image className="aspect-[2/3] w-72 md:w-96 mx-auto overflow-visible relative">
+        <div className={`relative w-full h-full overflow-hidden transform-gpu ${
+          isReversed ? 'rotate-180' : ''
+        }`}>
+          <img
+            src={`/cards/${getCardFilename(card.id, card.name)}.png`}
+            alt={card.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = card.imagePath;
+            }}
+          />
         </div>
-      </div>
 
-      {/* 09. Omitted entirely when the reader opted out, so the card and its
-          traditional meaning stand on their own. */}
-      {personalisationOn() && (
-        <Module
-          keyPhrase={generatedInsight?.keyPhrase || ''}
-          insight={generatedInsight?.insight || ''}
-          action={generatedInsight?.action}
-          transitExplanation={generatedInsight?.transitExplanation}
-          exact={generatedInsight?.readout?.exact}
-          patterns={generatedInsight?.patterns}
-          isLoading={isGenerating}
-          isRateLimited={isRateLimited}
-          hasError={!!insightError}
-          onRetry={() => setInsightError(null)}
-          onContinue={continuePastQuotaAsk}
-        />
-      )}
+        {/* Slot reel overlay — renders on top while animating */}
+        {showSlot && (
+          <CardSlotReveal
+            selectedCardSrc={`/cards/${getCardFilename(card.id, card.name)}.png`}
+            isReversed={isReversed}
+            onComplete={handleSlotComplete}
+          />
+        )}
+        </div>
+          </Plate>
 
-      {footer}
+          <StateLine suite={card.suite} isReversed={isReversed} />
+
+          {/* The sky's figures, as small captions under the card. */}
+          <Readout rows={marginRows} />
+        </Scene>
+
+        {/* 09. Omitted entirely when the reader opted out, so the card and its
+            traditional meaning stand on their own. */}
+        {personalisationOn() && (
+          <Scene name="for you">
+            <Module
+              keyPhrase={generatedInsight?.keyPhrase || ''}
+              insight={generatedInsight?.insight || ''}
+              action={generatedInsight?.action}
+              transitExplanation={generatedInsight?.transitExplanation}
+              exact={generatedInsight?.readout?.exact}
+              patterns={generatedInsight?.patterns}
+              isLoading={isGenerating}
+              isRateLimited={isRateLimited}
+              hasError={!!insightError}
+              onRetry={() => setInsightError(null)}
+              onContinue={continuePastQuotaAsk}
+              seed={seed}
+              terms={activeKeywords}
+            />
+          </Scene>
+        )}
+
+        {/* The meaning, set big as a poem. A year-view window keeps the plain block. */}
+        <Scene name="meaning">
+          <MeaningScene lede={activeMeaning} terms={activeKeywords} seed={seed} />
+        </Scene>
+
+        {aboutText && (
+          <Scene name="about this card">
+            <AboutScene text={aboutText} terms={activeKeywords} />
+          </Scene>
+        )}
+
+        <Scene name="distill" hint="touch a note to read what it gives">
+          <DistillScene
+            cardId={card.id}
+            cardName={card.name}
+            keywords={activeKeywords}
+            isReversed={isReversed}
+            shares={noteShares(card.id, noteCount)}
+          />
+        </Scene>
+
+        {/* nothing to show when nothing was written (a past day with no reflection) */}
+        {footer && <Scene name="your thoughts">{footer}</Scene>}
+      </Journey>
     </main>
     </div>
   );

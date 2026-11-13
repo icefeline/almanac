@@ -1,4 +1,5 @@
 import styles from './card-page.module.css';
+import { emphasise } from './emphasise';
 
 /**
  * SPEC §07. The traditional meaning: a lede addressed to the reader, then a
@@ -13,12 +14,17 @@ import styles from './card-page.module.css';
  * than a continuation of the lede's own voice — the aside no longer needs
  * parentheses to say so.
  */
-export function Meaning({ lede, sub }: { lede: string; sub?: string }) {
+export function Meaning({ lede, sub, terms = [] }: { lede: string; sub?: string; terms?: string[] }) {
   return (
     <section className={styles.meaning}>
       <div className={styles.prompt}>&gt; MEANING</div>
-      <p className={styles.lede}>{lede}</p>
-      {sub && <p className={styles.sub}>{sub}</p>}
+      <p className={styles.lede}>{emphasise(lede, terms)}</p>
+      {sub && (
+        <details className={styles.more}>
+          <summary className={styles.fold}>about this card</summary>
+          <p className={styles.sub}>{sub}</p>
+        </details>
+      )}
     </section>
   );
 }

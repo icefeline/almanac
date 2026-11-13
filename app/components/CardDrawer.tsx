@@ -124,16 +124,16 @@ export default function CardDrawer({
 
           {/* Meaning */}
           <div className="mb-6">
-            <h4 className="text-2xl font-light text-forest-900 mb-3">Meaning</h4>
+            <h4 className="text-2xl font-light text-forest-900 mb-3">meaning</h4>
             <p className="text-forest-700 leading-relaxed text-lg font-light">{activeMeaning}</p>
           </div>
 
           {/* Reflection */}
           <div>
-            <h4 className="text-2xl font-light text-forest-900 mb-3">Reflection</h4>
+            <h4 className="text-2xl font-light text-forest-900 mb-3">reflection</h4>
             <textarea
               className="w-full h-32 bg-cream-100 text-forest-800 border border-forest-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-forest-500 resize-none font-light text-base leading-relaxed"
-              placeholder="Write your thoughts here..."
+              placeholder="write whatever is here..."
               onChange={(e) => onReflectionChange(e.target.value)}
               defaultValue={reflection || ''}
             />

@@ -7,8 +7,9 @@ import ScrollVeil from './components/ScrollVeil';
 import AboutMount from './components/AboutMount';
 import YearView from './components/YearView';
 import Onboarding from './components/Onboarding';
-import TearOffPage from './components/TearOffPage';
-import GroundTexture from './components/GroundTexture';
+import TearSheet from './components/TearSheet';
+import SkyBackground from './components/SkyBackground';
+import Vellum from './components/Vellum';
 import AsciiFlower from './components/AsciiFlower';
 import CardSelector from './components/CardSelector';
 import ShareModal from './components/ShareModal';
@@ -196,6 +197,7 @@ export default function Home() {
   const convergeTarget = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const cardAnchorRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const veilRef = useRef<HTMLDivElement>(null);
   // a very faint blur behind the top buttons once the page has scrolled, so the text passing under them stays quiet
   const [scrolled, setScrolled] = useState(false);
   // phones: today / year / save fold into one square button at the corner, so the top of the page stays quiet
@@ -209,7 +211,12 @@ export default function Home() {
     return () => document.removeEventListener('pointerdown', away);
   }, [navOpen]);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8);
+      // the top blur grows with the scroll, over the first ~260px, on a smooth curve
+      const t = Math.max(0, Math.min(1, window.scrollY / 260));
+      veilRef.current?.style.setProperty('--veil', String(t * t * (3 - 2 * t)));
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -309,6 +316,7 @@ export default function Home() {
         // Commit to localStorage immediately so it's stable for the rest of the day
         localStorage.setItem(`card-${today}`, todayCard.id);
         localStorage.setItem(`reversed-${today}`, todayReversed.toString());
+        window.dispatchEvent(new Event('sg:drew')); // the sky garden plants it
       }
 
       setCard(todayCard);
@@ -485,7 +493,14 @@ export default function Home() {
    * Reveal after the tear. No slot-reel here — the tear was the reveal gesture,
    * and running the reel on top of it would be two reveal animations competing.
    */
-  const handleTearReveal = () => revealCard({ animate: false });
+  // true while the tear-off leaf is being pulled: the card scene shows behind it
+  const [peeking, setPeeking] = useState(false);
+  // the leaf is still falling after the tear commits, so the sheet outlives the reveal
+  const [falling, setFalling] = useState(false);
+  const handleTearReveal = () => {
+    setFalling(true);
+    revealCard({ animate: false });
+  };
 
   const handleRevealCard = () => revealCard({ animate: true });
 
@@ -571,7 +586,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setShareOpen(true)}
-          className={cardPage.share}
+          className={`${cardPage.share} sg-retro sg-primary`}
         >
           &gt; SHARE THIS CARD
         </button>
@@ -693,6 +708,7 @@ export default function Home() {
 
       localStorage.setItem(`card-${dateString}`, randomCard.id);
       localStorage.setItem(`reversed-${dateString}`, isReversed.toString());
+      window.dispatchEvent(new Event('sg:drew'));
     });
 
     loadJournalEntries();
@@ -721,8 +737,12 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#172211] text-[#C9F24E]" style={{ minHeight: '100dvh' }}>
-        <AsciiFlower label="loading slow garden" />
+      <div className="min-h-screen flex items-center justify-center" style={{ minHeight: '100dvh', color: 'var(--accent-c, #2B35D6)' }}>
+        {/* the live sky is the ground; the flower takes the sky's own accent so it reads at every hour */}
+        <SkyBackground />
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <AsciiFlower label="loading slow garden" weight={500} />
+        </div>
       </div>
     );
   }
@@ -732,8 +752,9 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen flex flex-col bg-[#172211]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <GroundTexture />
+    <main data-sealed={!isRevealed && currentView === 'card' ? 'true' : undefined} className="relative min-h-screen flex flex-col bg-[#172211]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <SkyBackground />
+      <Vellum on={(isRevealed || peeking) && currentView === 'card'} />
       <AboutMount home flow={isRevealed && currentView === 'card'} />
 
       {/*
@@ -741,10 +762,13 @@ export default function Home() {
         the save icon, floating over the page. The height is still measured below (--nav-h) so the content
         starts under them wherever they end up.
       */}
+      {/* the top blur sits above the page but beneath the app icons, the view tabs and the pinned year (z-20) */}
+      <div ref={veilRef} aria-hidden="true" className="fixed top-0 left-0 right-0 z-[15] pointer-events-none" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <ScrollVeil />
+      </div>
       <div ref={navRef} className="fixed top-0 left-0 right-0 z-40 pointer-events-none" style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}>
-        <ScrollVeil show={scrolled} />
         {/* Keeps the nav's measured height where the old row had it; the buttons themselves stack at the right and
             hang below it, so the page content is not pushed down by the stack. */}
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4" style={{ minHeight: 'clamp(46px, 7vw, 72px)' }}>
@@ -771,7 +795,7 @@ export default function Home() {
                 )}
               </svg>
             </button>
-            <div className={`${navOpen ? 'flex' : 'hidden'} md:flex flex-col items-end gap-2`} onClick={() => setNavOpen(false)}>
+            <div className={`${navOpen ? 'flex' : 'hidden'} md:flex flex-col items-end sg-navstack`} onClick={() => setNavOpen(false)}>
             <button
               onClick={() => {
                 setViewingPastCard(false);
@@ -780,8 +804,8 @@ export default function Home() {
               }}
               aria-pressed={currentView === 'card'}
               aria-label="View today's card"
-              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
-              style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
+              className="sg-osbtn sg-navbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
+             
             >
               today
             </button>
@@ -789,8 +813,8 @@ export default function Home() {
               onClick={() => setCurrentView('year')}
               aria-pressed={currentView === 'year'}
               aria-label="View year history"
-              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
-              style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
+              className="sg-osbtn sg-navbtn px-3 md:px-5 py-1.5 md:py-2 w-[4.6rem] md:w-[5.4rem] text-center"
+             
             >
               year
             </button>
@@ -802,7 +826,7 @@ export default function Home() {
               <div className="hidden md:flex gap-3">
                 <button
                   onClick={handleReset}
-                  className="px-3 py-1.5 rounded-full text-sm bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all"
+                  className="sg-osbtn px-3 py-1.5 text-sm"
                   title="Reset today's card"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -810,7 +834,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={generateRandomCards}
-                  className="px-3 py-1.5 rounded-full text-xs bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all"
+                  className="sg-osbtn px-3 py-1.5 text-xs"
                   title="Generate 60 random cards"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -818,7 +842,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={handleFullReset}
-                  className="px-3 py-1.5 rounded-full text-sm bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all"
+                  className="sg-osbtn px-3 py-1.5 text-sm"
                   title="Full reset (including onboarding)"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -827,7 +851,7 @@ export default function Home() {
                 <button
                   onClick={() => runScatterAnimation(() => {})}
                   disabled={isAnimating}
-                  className="px-3 py-1.5 rounded-full text-xs bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60 transition-all disabled:opacity-40"
+                  className="sg-osbtn px-3 py-1.5 text-xs disabled:opacity-40"
                   title="Preview scatter animation"
                   style={{ fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
                 >
@@ -854,7 +878,7 @@ export default function Home() {
              tear-off — see the invisible CardName below — so a difference here
              would move the card at the moment of opening, which is the one
              moment it has to be still. */
-          <div className={isRevealed ? 'pt-3 pb-6 md:pt-5 md:pb-10' : 'max-w-4xl mx-auto px-4 md:px-8 pt-3 pb-6 md:pt-5 md:pb-10'}>
+          <div className="pt-3 pb-6 md:pt-5 md:pb-10">
             {/* Once revealed, the reading page governs its own measure
                 (1080px), so the wrapper steps out of the way. Sealed, the
                 tear-off still wants the narrow column. */}
@@ -891,54 +915,11 @@ export default function Home() {
               </p>
             </div>
 
-            {/*
-              The card name's space, held open before the tear.
-
-              Once revealed the reading page puts the name above the card, which
-              used to push the card down the screen at the moment of opening —
-              the one moment it should be still. Rendering the real name here,
-              invisible, reserves exactly its height for this card at this width,
-              so the card sits where it will sit and the tear develops the page
-              around it rather than moving it.
-
-              It goes above the anchor, not inside: TearOffPage is absolute
-              inset-0 within the anchor and centres itself there, so anything
-              added inside would drag the calendar off the card.
-
-              The shell, and its width, are both load-bearing.
-
-              The reading measures itself against the shell — that element is
-              the query container — and the real one is a child of the page,
-              the full width of the window. This copy is inside the centred
-              max-w-4xl column, which is 832px on a desktop where the reading
-              gets 1397. Left alone it therefore asked a narrower container the
-              same question and got the phone's answer: a 52px name reserving
-              about 70px too little, a calendar sitting that much too high, and
-              the card dropping to its real place the instant it was torn —
-              exactly what this block exists to prevent.
-
-              So the shell here is pinned to the viewport, which is what the
-              real one resolves to. The overflow is hidden on the wrapper
-              because a 100vw child of a padded, centred column hangs off the
-              right of it; only the height of this thing is ever used.
-            */}
-            {!isRevealed && (
-              <div aria-hidden="true" className="pointer-events-none overflow-hidden" style={{ visibility: 'hidden' }}>
-                <div className={cardPage.shell} style={{ width: '100vw' }}>
-                  <div className={cardPage.page}>
-                    <div className={cardPage.col}>
-                      <CardName name={card.name} />
-                    </div>
-                  </div>
-                </div>
-                {/* the plate's own margin above the card */}
-                <div className="h-[18px] md:h-[26px]" />
-              </div>
-            )}
-
             {/* Card Display — ref wraps TarotCard so getBoundingClientRect gives exact card position.
                 While unrevealed, the tear-off page covers the card; tearing it is the reveal. */}
             <div ref={cardAnchorRef} className="relative">
+              {/* while the leaf is on or falling, the page behind shows only as much of itself as the leaf has been drawn down */}
+              <div style={!isRevealed || falling ? { opacity: 'var(--tear-p, 0)' } : undefined}>
               <TarotCard
                 card={card}
                 isReversed={isReversed}
@@ -947,12 +928,19 @@ export default function Home() {
                 // the tear page is covering the card, so put the real art
                 // underneath it — tearing then uncovers the card itself
                 artVisibleEarly={!isRevealed}
+                peek={peeking}
                 userName={localStorage.getItem('userName') || undefined}
                 cardDate={dateString}
                 footer={isRevealed ? renderInputBlock() : undefined}
               />
-              {!isRevealed && (
-                <TearOffPage onTear={handleTearReveal} disabled={isAnimating} />
+              </div>
+              {(!isRevealed || falling) && (
+                <TearSheet
+                  onTear={handleTearReveal}
+                  onDone={() => setFalling(false)}
+                  onPeek={setPeeking}
+                  disabled={isAnimating}
+                />
               )}
             </div>
 

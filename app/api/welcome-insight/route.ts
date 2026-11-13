@@ -169,10 +169,33 @@ export async function POST(request: Request) {
 
     const anthropic = new Anthropic({ apiKey });
 
+    // Variety levers: left alone, every welcome opens on the same few phrases and
+    // closes on the same gesture. Each call draws a different mix.
+    const OPENERS = [
+      "there's", 'something in', 'a lot of what', 'for someone', 'in people with', 'what shows up',
+      'the pattern', 'most of what', 'some of', 'this kind of', 'an old habit of', 'the part that',
+      'it tends to be', 'underneath the', 'a certain', 'whatever it is that',
+    ];
+    const CLOSERS = [
+      'a plain, almost offhand nod to the card waiting',
+      'a small practical remark about starting now',
+      'a short observation about the day itself, with the card implied',
+      'something about how little needs to happen next',
+      'an open-ended half-sentence feel, finishing on the card',
+    ];
+    const IMAGE_POOLS = [
+      'rooms and thresholds', 'weather and light', 'kitchens and food', 'water and tides',
+      'cloth and mending', 'gardens and soil', 'streets and travel', 'no imagery, only plain statement',
+    ];
+    const pickMany = <T,>(xs: T[], n: number): T[] => [...xs].sort(() => Math.random() - 0.5).slice(0, n);
+    const openerHint = pickMany(OPENERS, 4).map(o => `"${o}"`).join(', ');
+    const closerHint = CLOSERS[Math.floor(Math.random() * CLOSERS.length)];
+    const imageHint = IMAGE_POOLS[Math.floor(Math.random() * IMAGE_POOLS.length)];
+
     const prompt = `You write the welcome message for Slow Garden, a tarot app grounded in Vedic astrology (Jyotish). Someone has just entered their birth details for the first time. This is what they read first — a brief, personal reflection that shows their chart has actually been considered, and opens toward their first card draw.
 
 This app uses Jyotish, not Western astrology. That means:
-- The janma nakshatra (birth lunar mansion) is the most personal and distinctive marker — lean into it heavily
+- The janma nakshatra (birth lunar mansion) is the most personal and distinctive marker — let it carry most of the message
 - The janma rashi (moon sign in Jyotish) is the primary identity marker — more important than the sun sign
 - Do NOT write about sun sign energy as the main thing — the nakshatra and moon rashi say more
 - The ruling planet of the nakshatra colours what the soul is being asked to work with
@@ -183,11 +206,12 @@ Voice (non-negotiable):
 - Perceptive friend who just looked at the chart — warm and specific, not practitioner-speak
 - Begin with this greeting (choose the one that best fits the nakshatra energy): ${greetingHint}
 - After the greeting: 3 sentences only. Each must open with a different word. No sentence after the greeting may start with "you"
-- Use varied openers: "there's", "something in", "a lot of what", "for someone", "in people with", "what shows up", "the pattern", "most of what", "some of", "this kind of"
+- For this one, choose your sentence openers from these, and do not reuse any: ${openerHint}
 - Be specific to the actual placements — not generic. The nakshatra quality is the anchor
-- Final sentence: 5-8 words, quietly gestures towards the card draw
+- Final sentence: 5-8 words. Its job is ${closerHint}, said plainly, never as an instruction
+- If you use any image at all, take it from this pool and use only one: ${imageHint}
 - No nakshatra name, no rashi name, no planet name — describe the quality, embody the concept
-- No: "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour", "karma", "dharma", "resonate"
+- No: "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour", "karma", "dharma", "resonate", "lean into", "hold space", "sit with", "invite", "nudge", "something in you", "a part of you", "gentle", "gently", "quietly" (the word, not the mood), "soft", "space" as a noun for feelings
 - No questions
 
 Do not write like a language model. These are the tells:

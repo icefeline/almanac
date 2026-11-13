@@ -25,788 +25,754 @@ export const insightStructureTemplates: InsightStructureTemplate[] = [
 ];
 
 export const natalPlanetMeanings: Record<string, string[]> = {
-  sun: ['your core identity', 'your life force', 'your sense of self', 'your ego and vitality'],
-  moon: ['your emotional world', 'your inner life', 'your instincts', 'how you process feelings'],
-  mercury: ['your mind', 'how you think', 'your voice', 'the way your brain works'],
-  venus: ['what you love', 'how you relate', 'your relationship patterns', 'what you value'],
-  mars: ['your drive', 'your will', 'how you go after what you want', 'your anger and passion'],
-  jupiter: ['your optimism', 'where you seek meaning', 'your faith', 'how you see possibility']
+  sun: ['your sense of who you are', 'the part of you that wants to be seen', 'your steady centre', 'your vitality'],
+  moon: ['your inner weather', 'how you feel things before you can say them', 'your instincts', 'the way you soothe yourself'],
+  mercury: ['how your mind turns things over', 'your voice', 'the way you put things into words', 'your habits of thought'],
+  venus: ['what you\'re drawn to', 'how you love', 'what you find beautiful', 'what you value'],
+  mars: ['your drive', 'how you go after what you want', 'your temper and your nerve', 'your appetite for a fight'],
+  jupiter: ['where you look for meaning', 'your sense of possibility', 'your faith in how things might turn out', 'your generosity']
 };
 
 export const transitingPlanetActions: Record<string, string[]> = {
-  saturn: ['bringing structure and testing what\'s real', 'asking you to build something that lasts', 'showing you where the foundation needs work', 'demanding maturity'],
-  jupiter: ['opening doors', 'asking you to grow beyond your current limits', 'bringing opportunity', 'showing you what\'s possible'],
-  uranus: ['breaking patterns', 'bringing sudden insight', 'disrupting what felt stable', 'pushing you towards authenticity'],
-  neptune: ['dissolving boundaries and illusions', 'asking what\'s real beyond the story', 'bringing spiritual sensitivity', 'blurring what felt certain'],
-  pluto: ['transforming at the root', 'bringing what\'s hidden to the surface', 'demanding you face what\'s been avoided', 'breaking down to rebuild'],
-  mars: ['activating your will', 'bringing energy and urgency', 'pushing you to act', 'stirring up conflict or courage']
+  saturn: ['pressing on what is load-bearing', 'testing which foundations are real', 'slowing things down until they show their weight', 'asking for a more honest structure'],
+  jupiter: ['widening the frame', 'making more room than usual', 'bringing in a bit of luck or generosity', 'stretching what feels possible'],
+  uranus: ['loosening a habit that felt permanent', 'sending an unexpected jolt of insight', 'unsettling what had gone stale', 'nudging toward something truer'],
+  neptune: ['softening edges that were too sharp', 'making what was certain a little blurry', 'raising the volume on intuition', 'asking what lies behind the story'],
+  pluto: ['working at the roots', 'bringing what was buried closer to the surface', 'stirring something you\'d put away', 'wearing away what can\'t continue']
+  ,mars: ['raising the heat', 'adding urgency', 'stirring courage or irritation', 'pushing for movement']
 };
 
 export const aspectDescriptions: Record<string, string[]> = {
-  square: ['squaring', 'creating friction with', 'challenging'],
-  opposition: ['opposing', 'pulling against', 'in tension with'],
-  conjunction: ['conjunct with', 'merging with', 'sitting right on top of'],
-  trine: ['trining', 'flowing with', 'supporting'],
-  sextile: ['opening pathways with', 'offering opportunity to', 'connecting with']
+  square: ['squaring', 'rubbing against', 'pressing on'],
+  opposition: ['facing', 'pulling against', 'standing across from'],
+  conjunction: ['sitting on', 'merging with', 'lying right alongside'],
+  trine: ['trining', 'moving easily with', 'warming'],
+  sextile: ['opening a side door to', 'offering a modest opening to', 'leaning toward']
 };
 
 export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; action: string }> = {
 
-  // ── MAJOR ARCANA ──────────────────────────────────────────────────────────
+  // ── MAJOR ARCANA ────────────────────────────────────────
 
   'major-0': {
     synthesis: [
-      'You don\'t have all the information. {transiting_planet} on {natal_planet} in {house_theme} - jump anyway. The Fool never had it either',
-      'Safety isn\'t coming. The plan won\'t get clearer. {house_theme} is where {transiting_planet} and your {natal_planet} meet at the cliff edge',
-      'Start before you\'re ready or don\'t start. {transiting_planet} hitting your {natal_planet} around {house_theme} is the nudge off the edge'
+      'there may be a start you keep rehearsing instead of making. {transiting_planet} is touching your {natal_planet} around {house_theme}, and the fool\'s habit of stepping before the map is finished sits close to the surface',
+      'no plan around {house_theme} has become complete enough to feel safe, and it may not. {transiting_planet} on your {natal_planet} brings the edge into view, and part of you already seems to be looking over it',
+      'a light-footed curiosity is hovering near {house_theme}. {transiting_planet} meets your {natal_planet} there, and the pull is toward the unplanned version of things'
     ],
-    action: 'pick the two-minute version of the thing you keep waiting to feel ready for. do that much today, nothing more'
+    action: 'pay attention to the moment you start tidying a plan that is already good enough. let your eyes rest on something far away for a few seconds and see whether the urge to begin changes'
   },
 
   'major-1': {
     synthesis: [
-      'Stop circling. {transiting_planet} working your {natal_planet} in {house_theme} - the tools are already in your hands. You\'ve been treating this like a waiting room',
-      'That missing piece you keep searching for in {house_theme}? It\'s not missing. {transiting_planet} and your {natal_planet} already gave you everything you need',
-      'You keep asking for permission. {transiting_planet} hitting your {natal_planet} around {house_theme} - you\'re already authorized'
+      'what you need for {house_theme} may already be on the table. {transiting_planet} works on your {natal_planet}, and the skill you have stopped counting is the one doing the quiet work',
+      'around {house_theme}, there is a gap between what you can do and what you give yourself credit for. {transiting_planet} lights your {natal_planet} and the gap becomes easier to see',
+      'you are more equipped than the story you tell about {house_theme}. {transiting_planet} against your {natal_planet} puts the tools back in view'
     ],
-    action: 'write down three tools, skills or people you already have access to. pick one and use it before the day ends'
+    action: 'watch for the sentence where you say you lack something. press your thumb into your open palm and name, silently, one thing in reach that you already use well'
   },
 
   'major-2': {
     synthesis: [
-      'Logic fails here. {transiting_planet} on your {natal_planet} in {house_theme} is waking something that doesn\'t speak in words and won\'t be argued with',
-      'You already sense it. {transiting_planet} meeting your {natal_planet} in {house_theme} - trust the knowing that came before the thinking',
-      'Something beneath {house_theme} is moving. {transiting_planet} lighting up your {natal_planet} - stop asking people who weren\'t in the room'
+      'a knowing is gathering around {house_theme} without much language. {transiting_planet} brushes your {natal_planet} and the quieter signals get a little louder',
+      'part of you has already noticed what {house_theme} is about. {transiting_planet} meets your {natal_planet}, and what it knows may arrive as a feeling in the body before it turns into a sentence',
+      'a truth is being held back, maybe by you, near {house_theme}. {transiting_planet} on your {natal_planet} makes the silence around it easier to hear'
     ],
-    action: 'set a timer for ten minutes. put the phone in another room. sit still and let whatever comes up come up, don\'t reach for it'
+    action: 'catch the moment you explain a feeling away. stay in your body for one slow breath before the explanation finishes'
   },
 
   'major-3': {
     synthesis: [
-      'Abundance wants to grow in {house_theme} but you keep forcing the timeline. {transiting_planet} on your {natal_planet} - receive, don\'t push',
-      'Stop straining. {transiting_planet} nurturing your {natal_planet} around {house_theme} - things that need to grow won\'t be rushed',
-      'What wants to be born in {house_theme} is already in motion. {transiting_planet} meeting your {natal_planet} - your job is to not strangle it'
+      'a slow crop near {house_theme} is growing at its own speed. {transiting_planet} warms your {natal_planet}, and the pace it keeps may not match the pace you\'ve been demanding',
+      'there is a soft abundance close to {house_theme}, easier to miss when you\'re counting what\'s undone. {transiting_planet} on your {natal_planet} makes it more tangible',
+      'care has been flowing outward around {house_theme}. {transiting_planet} meets your {natal_planet} and turns some of it back toward you, if you let it'
     ],
-    action: 'pick one thing today that only nourishes you, food, rest, touch, a walk. do it slowly enough to actually notice it happening'
+    action: 'notice where you check on something that only needs time. rest a hand on your belly or your chest for a few breaths and register what it is like to be tended'
   },
 
   'major-4': {
     synthesis: [
-      '{transiting_planet} on your {natal_planet} in {house_theme} is asking who\'s actually in charge. If the answer is nobody, that\'s your answer',
-      'The drift in {house_theme} isn\'t circumstance. {transiting_planet} activating your {natal_planet} - someone decided not to decide, and it\'s been costing you',
-      'You\'ve been waiting for permission in {house_theme}. {transiting_planet} meeting your {natal_planet} - it\'s not coming from anywhere external'
+      'a boundary around {house_theme} is asking to be named. {transiting_planet} presses on your {natal_planet}, and the structure you have been holding up without applause is the one doing the work',
+      'the question of who is in charge shows up near {house_theme}. {transiting_planet} against your {natal_planet} makes the answer more visible, whether it is steady or tight',
+      'order in {house_theme} may feel either like shelter or like bracing. {transiting_planet} and your {natal_planet} sit in the room, and both readings might be true'
     ],
-    action: 'pick one part of your day that keeps sliding. write one if-then rule for it: "if it\'s 9am, then i do x." use it today'
+    action: 'catch the clench of a rule you are enforcing, on yourself or another person. plant both feet and check whether your shoulders can drop an inch'
   },
 
   'major-5': {
     synthesis: [
-      'Are you following the rules in {house_theme} because they work or because you\'re afraid to question them? {transiting_planet} on your {natal_planet} is asking',
-      'Not every tradition earns its place. {transiting_planet} activating your {natal_planet} in {house_theme} - wisdom and habit aren\'t the same thing',
-      'Somewhere in {house_theme} you\'re doing things the way they\'re "supposed to be done" without knowing why. {transiting_planet} hitting your {natal_planet} - worth examining'
+      'an inherited way of doing things shows up near {house_theme}. {transiting_planet} on your {natal_planet} brings it forward, and some of it may still fit while some may only be familiar',
+      'there is a voice from the past in how you handle {house_theme}. {transiting_planet} meets your {natal_planet} and the voice gets harder to mistake for your own',
+      'a custom or a teacher is worth looking at where {house_theme} is concerned. {transiting_planet} touches your {natal_planet}, and the difference between loyalty and habit may show'
     ],
-    action: 'pick one habit you follow without thinking. write down who taught you to do it that way, and whether you\'d still choose it now'
+    action: 'watch for a should that arrives sounding like someone else. let it finish, then say quietly whose voice it is'
   },
 
   'major-6': {
     synthesis: [
-      'This choice in {house_theme} matters more than you\'ve admitted. {transiting_planet} and your {natal_planet} - you can\'t have both and you know it',
-      'What you actually want versus what you should want. {transiting_planet} hitting your {natal_planet} in {house_theme} - stop pretending those are the same thing',
-      'Which path is actually yours? {transiting_planet} working your {natal_planet} around {house_theme} makes it unavoidable'
+      'a choice about what you value is sitting close to {house_theme}. {transiting_planet} meets your {natal_planet}, and whichever way you lean has less to do with attraction than with who you want to be there',
+      'around {house_theme}, closeness and self-respect may be pulling at different ends of the same rope. {transiting_planet} tugs your {natal_planet} and both ends become visible',
+      'there may be a yes in {house_theme} that doesn\'t match what you\'ve been saying. {transiting_planet} on your {natal_planet} makes the mismatch easier to feel'
     ],
-    action: 'write the choice you\'ve been avoiding as two columns, what you want and what you think you should want. circle the one that\'s actually true'
+    action: 'catch the moment you soften a truth to keep the peace. press your feet into the floor and feel whether the sentence you were about to say is still true'
   },
 
   'major-7': {
     synthesis: [
-      '{transiting_planet} pressing on your {natal_planet} in {house_theme} is what\'s creating the split. The contradiction isn\'t the problem - your refusal to move through it is',
-      'You\'re waiting for the internal conflict around {house_theme} to resolve before you act. {transiting_planet} on your {natal_planet} says: move while it\'s unresolved',
-      'The tension in {house_theme} under {transiting_planet} isn\'t a sign to wait. It\'s the condition you\'re working in. Navigate anyway'
+      'there is momentum around {house_theme}, and it needs a direction more than a boost. {transiting_planet} drives your {natal_planet} and the two opposing pulls in you may be wanting the same road',
+      'effort near {house_theme} may be going in two directions at once. {transiting_planet} on your {natal_planet} brings the strain into focus before it brings the speed',
+      'your will is available where {house_theme} is concerned. {transiting_planet} meets your {natal_planet}, and what it needs from you is a single, clear line'
     ],
-    action: 'pick one direction and set a start time for it today. the adjusting happens after you\'ve moved, not before'
+    action: 'catch the second you reach for a different task halfway through one. hold the original task in your hands, literally, for one slow breath before deciding'
   },
 
   'major-8': {
     synthesis: [
-      '{transiting_planet} is creating pressure around {house_theme} and you\'re matching it with more pressure. {natal_planet} - something else is being asked for here',
-      'The resistance in {house_theme} intensifies when you push. {transiting_planet} on your {natal_planet} - notice what changes when you stop trying to overpower it',
-      'You\'ve been treating {house_theme} like something to conquer. {transiting_planet} meeting your {natal_planet} - the thing you\'re fighting has been waiting for you to get quiet'
+      'a wild feeling near {house_theme} may respond better to company than to handling. {transiting_planet} touches your {natal_planet} and the milder approach seems to be the stronger one',
+      'there\'s a kind of courage around {house_theme} that doesn\'t look like courage from outside. {transiting_planet} meets your {natal_planet}, and patience carries most of it',
+      'a loud feeling in {house_theme} is roaring and may only want to be heard. {transiting_planet} on your {natal_planet} softens the way you might approach it'
     ],
-    action: 'next time you catch yourself pushing, stop and do one long exhale through the mouth, twice as long as the breath in. then try again, slower'
+    action: 'watch for the instant you tighten up against a feeling. open your hands on your lap, palms up, and let the feeling be there for a few breaths'
   },
 
   'major-9': {
     synthesis: [
-      'Other people\'s voices are drowning out your own in {house_theme}. {transiting_planet} on your {natal_planet} - the answer isn\'t in the group chat. Go alone',
-      'You\'re not depressed, you\'re recalibrating. {transiting_planet} working your {natal_planet} around {house_theme} needs the door closed and the lights off',
-      'The answer lives inside and you can\'t hear it while performing. {transiting_planet} hitting your {natal_planet} in {house_theme} - what do you actually think?'
+      'quiet is calling around {house_theme}. {transiting_planet} meets your {natal_planet}, and the answer you\'ve wanted may be on the far side of less noise',
+      'there is a lamp lit near {house_theme} that lights only the next few steps. {transiting_planet} on your {natal_planet} is enough for tonight',
+      '{house_theme} may be easier to see from a distance. {transiting_planet} touches your {natal_planet} and the pull toward solitude reads as information, not avoidance'
     ],
-    action: 'put your phone in another room for twenty minutes. no podcast, no scroll, no background noise. just sit. that\'s the whole task'
+    action: 'notice the first place you reach for noise: a screen, a podcast, a message. put the thing down for a minute and listen to what the room sounds like'
   },
 
   'major-10': {
     synthesis: [
-      '{transiting_planet} moving through your {natal_planet} in {house_theme} isn\'t coincidence - it\'s timing. The moment is handing you something. Receive it or miss it',
-      'The shift in {house_theme} was in motion long before today. {transiting_planet} on your {natal_planet} is just the point where it becomes undeniable',
-      'You\'ve been trying to predict {house_theme}. {transiting_planet} meeting your {natal_planet} says this turn wasn\'t in your model - which means your model needs updating'
+      'a tide around {house_theme} is turning and not asking permission. {transiting_planet} on your {natal_planet} marks the turn, and some of it is luck instead of your doing',
+      'a pattern near {house_theme} may be repeating, or finishing. {transiting_planet} meets your {natal_planet}, and the shape of the cycle is easier to trace',
+      '{house_theme} may feel like it\'s moving without you. {transiting_planet} against your {natal_planet} suggests it is a larger rhythm, not a verdict'
     ],
-    action: 'pick one thing you\'ve been trying to control today and deliberately don\'t manage it. notice what happens when you leave it alone'
+    action: 'catch the moment you ask when this will be over. watch something that moves, a cloud or a curtain, for ten seconds and let that be the pace'
   },
 
   'major-11': {
     synthesis: [
-      'The scales in {house_theme} are unbalanced and you already know which side. {transiting_planet} on your {natal_planet} - Justice doesn\'t negotiate',
-      'What you owe and what\'s owed to you. {transiting_planet} hitting your {natal_planet} in {house_theme} - no excuses, just what\'s actually true',
-      'The consequence in {house_theme} is fair, even if uncomfortable. {transiting_planet} activating your {natal_planet} - Justice doesn\'t apologize'
+      'a truth is getting weighed near {house_theme}. {transiting_planet} meets your {natal_planet}, and fairness in this one has to include you',
+      'around {house_theme}, the honest thing and the easy thing may be one inch apart. {transiting_planet} on your {natal_planet} makes the inch visible',
+      'a consequence from earlier is arriving at {house_theme}. {transiting_planet} touches your {natal_planet} and the account looks clearer than it did'
     ],
-    action: 'write one sentence naming where you haven\'t been fair, to yourself or someone else. then write the fair version underneath it'
+    action: 'watch for the moment you tell the story so that you come out fairly. say the plainer version once, silently, and feel what it does to your jaw'
   },
 
   'major-12': {
     synthesis: [
-      'Struggling makes it worse. {transiting_planet} on your {natal_planet} in {house_theme} - stop thrashing. Surrender and the view changes',
-      'What if you saw {house_theme} from the other angle? {transiting_planet} working your {natal_planet} - the suspension is the lesson, not the obstacle to it',
-      'You\'re not stuck, you\'re paused for a reason. {transiting_planet} meeting your {natal_planet} around {house_theme} - something shifts when you stop forcing your way out'
+      'a pause near {house_theme} is doing more than it looks like. {transiting_planet} meets your {natal_planet}, and the view from this odd angle might be the useful one',
+      'waiting around {house_theme} is not nothing. {transiting_planet} on your {natal_planet} slows what you\'d like to hurry, and something shows up because of it',
+      'you may be suspended near {house_theme} by choice, or by habit. {transiting_planet} touches your {natal_planet}, and the difference starts to show'
     ],
-    action: 'stop working the thing you\'ve been forcing for the rest of today. set a specific time tomorrow to come back to it, and mean it'
+    action: 'catch the moment you try to fill a pause. let it stay empty for one full exhale and see what it holds'
   },
 
   'major-13': {
     synthesis: [
-      '{transiting_planet} has been building pressure in {house_theme} for a while. Your {natal_planet} finally got the message. The timing was the transit\'s doing - not yours',
-      'Whatever {transiting_planet} has been dismantling around your {natal_planet} in {house_theme} - you\'ve been feeling it coming. The card confirms it\'s not in your head',
-      'The loss in {house_theme} and {transiting_planet} on your {natal_planet} arriving at the same time isn\'t coincidence. This was always the mechanism. Now you work with what\'s cleared'
+      'a chapter near {house_theme} has finished, or nearly. {transiting_planet} meets your {natal_planet}, and holding it up may be costing more than letting it fall',
+      'an old version of how you handle {house_theme} is wearing thin. {transiting_planet} on your {natal_planet} loosens the stitching',
+      'there is grief and room together around {house_theme}. {transiting_planet} touches your {natal_planet}, and they tend to arrive in the same hour'
     ],
-    action: 'say out loud, alone, the thing you need to stop holding onto. one sentence, said clearly, not just thought'
+    action: 'notice what you\'re propping up out of habit. unclench your hands and see which part of you feels relief and which part feels afraid'
   },
 
   'major-14': {
     synthesis: [
-      'The two things that seem incompatible in {house_theme} aren\'t. {transiting_planet} on your {natal_planet} - pour them together slowly',
-      'Not one extreme or the other. {transiting_planet} activating your {natal_planet} around {house_theme} - the middle path holds both truths without collapsing',
-      'Patience is doing the work. {transiting_planet} meeting your {natal_planet} in {house_theme} - the alchemy takes the time it takes'
+      'two parts of you near {house_theme} are trying to find a mix. {transiting_planet} meets your {natal_planet}, and haste is the only thing getting in the way',
+      'around {house_theme}, the right proportion may be smaller than you\'ve been aiming for. {transiting_planet} on your {natal_planet} favours the slow pour',
+      'you may be swinging, near {house_theme}, between too much and not enough. {transiting_planet} touches your {natal_planet} and the middle is available'
     ],
-    action: 'write the two extremes you\'ve been choosing between. then write one sentence that holds both partly true'
+    action: 'catch the lurch toward all or nothing. take one slow sip of water and see what a measured amount of anything feels like'
   },
 
   'major-15': {
     synthesis: [
-      'Chained by choice, not force. {transiting_planet} on your {natal_planet} in {house_theme} - the chains are loose. You could leave. Why don\'t you?',
-      'What are you getting from staying stuck in {house_theme}? {transiting_planet} revealing this through your {natal_planet} - there\'s always a payoff for staying',
-      'The door in {house_theme} was never locked. {transiting_planet} meeting your {natal_planet} - the Devil doesn\'t trap, it tempts. You\'re here because some part of you chose it'
+      'a habit near {house_theme} feels more fixed than it is. {transiting_planet} meets your {natal_planet}, and the chain is looser than the story about it',
+      'a habit pays you in comfort around {house_theme}. {transiting_planet} on your {natal_planet} makes the payment visible',
+      'there\'s a pull in {house_theme} you might not want to look at. {transiting_planet} touches your {natal_planet}, and looking at it is not the same as obeying it'
     ],
-    action: 'write down what you\'re getting from the thing you say you want to leave. be specific. name the actual payoff, not the excuse'
+    action: 'watch for the pull a moment before you act on it. keep your hands still and notice where in your body it lives'
   },
 
   'major-16': {
     synthesis: [
-      'The crack was always there in {house_theme}. {transiting_planet} hitting your {natal_planet} just found it - the Tower reveals the weakness, doesn\'t create it',
-      'Whatever collapsed - it couldn\'t hold. {transiting_planet} meeting your {natal_planet} in {house_theme} - the Tower doesn\'t renovate, it levels',
-      'That 2am realization it was never going to work? {transiting_planet} on your {natal_planet} around {house_theme} - you knew. The Tower just made you stop pretending'
+      'a wall around {house_theme} is not holding, and some part of you knew. {transiting_planet} hits your {natal_planet} and the false wall goes first',
+      'the foundation near {house_theme} might be shakier than it was presented. {transiting_planet} on your {natal_planet} brings it to the surface',
+      'a truth about {house_theme} is getting louder than the story. {transiting_planet} meets your {natal_planet} and the noise may feel like loss before it feels like air'
     ],
-    action: 'before you start rebuilding, shake it out. actual full-body shaking, arms and legs, for two minutes. don\'t think about it, just do it. pick up a brick after, not before'
+    action: 'notice where you rush to repair something that is better left to clear, like silt. feel the floor under you for a moment, and register that it is still there'
   },
 
   'major-17': {
     synthesis: [
-      'After the break in {house_theme}, something small and real remains. {transiting_planet} flowing through your {natal_planet} - the Star sees what survived, not what didn\'t',
-      'This isn\'t naive optimism. {transiting_planet} helping your {natal_planet} rebuild trust around {house_theme} - the Star knows what was lost and hopes anyway, with eyes open',
-      'Healing in {house_theme} looks like this: quiet, slow, undramatic. {transiting_planet} meeting your {natal_planet} - the Star doesn\'t announce itself'
+      'there is a thin, steady light near {house_theme}. {transiting_planet} meets your {natal_planet} and a light that was dimmed after a rough stretch is returning',
+      'healing around {house_theme} is slow and quiet. {transiting_planet} touches your {natal_planet}, and it may only show as a little more room',
+      'you might be a few degrees more hopeful about {house_theme} than you\'ve admitted. {transiting_planet} on your {natal_planet} lets it show'
     ],
-    action: 'find one specific thing today that\'s still okay. describe it out loud or in writing, in detail, for thirty seconds'
+    action: 'catch the moment you dismiss a small good feeling as naive. let it stay for a few slow breaths, hand on your chest'
   },
 
   'major-18': {
     synthesis: [
-      'Things aren\'t what they appear in {house_theme}. {transiting_planet} on your {natal_planet} - what you\'re afraid of and what\'s actually there aren\'t the same',
-      'Your instincts are activated and your logic is confused. {transiting_planet} working your {natal_planet} around {house_theme} - trust the body, not the story you\'re spinning',
-      'Something in {house_theme} is hidden even from you. {transiting_planet} meeting your {natal_planet} - what are you not letting yourself see?'
+      'near {house_theme}, the light is poor and imagination is running loud. {transiting_planet} on your {natal_planet} makes fears and intuitions sound alike',
+      'the picture around {house_theme} isn\'t clear yet, and doesn\'t have to be. {transiting_planet} meets your {natal_planet}, and the fog is part of the information',
+      'the worry in {house_theme} may be older than its current reason. {transiting_planet} touches your {natal_planet} and the older layer surfaces'
     ],
-    action: 'set a timer for eight minutes. write only what you\'re afraid of. no punctuation, no crossing out, don\'t lift the pen till it beeps'
+    action: 'watch for the story that fills a blank with the worst case. name the feeling once, silently, and notice that it is quieter once named'
   },
 
   'major-19': {
     synthesis: [
-      '{transiting_planet} lighting up your {natal_planet} in {house_theme} is removing whatever was blocking the view. You weren\'t wrong - you just couldn\'t see all the way yet',
-      'The clarity coming into {house_theme} right now isn\'t naive. {transiting_planet} on your {natal_planet} has been working toward this - the good thing is actually happening',
-      'You keep waiting for the complication in {house_theme}. {transiting_planet} meeting your {natal_planet} - sometimes there isn\'t one. This is one of those times'
+      'there is plain warmth near {house_theme}, available without a reason. {transiting_planet} meets your {natal_planet} and the light seems less guarded',
+      'one corner of {house_theme} may simply be going well. {transiting_planet} on your {natal_planet} makes it hard to talk yourself out of it',
+      'you might be allowed to be visible around {house_theme}. {transiting_planet} touches your {natal_planet}, and the dimmer switch is within reach'
     ],
-    action: 'do one thing today for no reason except that it makes you happy. don\'t explain it to anyone, including yourself'
+    action: 'catch the habit of adding a caveat to good news. turn your face toward any light in the room for a few seconds before saying the caveat, or not'
   },
 
   'major-20': {
     synthesis: [
-      'Wake up to who you actually are. {transiting_planet} on your {natal_planet} in {house_theme} - not the name you perform, the real one',
-      'What have you been avoiding facing about {house_theme}? {transiting_planet} demanding your {natal_planet} see it - Judgment doesn\'t whisper',
-      'The old version of you in {house_theme} is done. {transiting_planet} meeting your {natal_planet} - who you were always becoming, not who you\'ve been pretending to be'
+      'a call is sounding near {house_theme}, and it\'s mostly forgiveness. {transiting_planet} meets your {natal_planet}, and the old account is ready to be read kindly',
+      'a leftover from the past around {house_theme} is asking to be seen without a verdict. {transiting_planet} on your {natal_planet} opens the door a little',
+      'the harshest judge near {house_theme} may be inside. {transiting_planet} touches your {natal_planet} and the voice sounds more familiar than fair'
     ],
-    action: 'describe yourself in the third person for one paragraph, using your name instead of "i." notice which parts don\'t fit anymore'
+    action: 'notice when your inner commentary turns to verdict. say your own name silently and see if the next sentence changes tone'
   },
 
   'major-21': {
     synthesis: [
-      '{transiting_planet} completing its movement through your {natal_planet} in {house_theme} at the same time as this card - the cycle is genuinely closing. Don\'t manufacture a next chapter yet',
-      'The convergence in {house_theme}: {transiting_planet} finishing its work on your {natal_planet}, the thing that has been building finally landing. Both are saying the same thing',
-      'Something in {house_theme} has run its full arc under {transiting_planet}. Your {natal_planet} is different for it. Before you move on - know what you\'re carrying forward'
+      'a cycle around {house_theme} is closing, whether or not you\'ve marked it. {transiting_planet} meets your {natal_planet} and the edges of the thing are suddenly visible',
+      'you\'ve come further near {house_theme} than the daily view lets on. {transiting_planet} on your {natal_planet} gives you a place to see it from',
+      'a long stretch is nearly finished in {house_theme}. {transiting_planet} touches your {natal_planet}, and the remaining piece is smaller than it feels'
     ],
-    action: 'write down what\'s actually finished. read it back once. then close the notebook, don\'t add a next step yet'
+    action: 'catch the urge to move straight on to the next thing. stand still for one breath and say what the finished thing taught'
   },
 
-  // ── CUPS ──────────────────────────────────────────────────────────────────
 
-  'cups-1': {
+  // ── CUPS ────────────────────────────────────────
+
+  'cups-ace': {
     synthesis: [
-      'Something new is arriving emotionally in {house_theme}. {transiting_planet} on your {natal_planet} - this feeling is clean, hasn\'t been complicated yet. Pay attention before the mind starts editing',
-      'A fresh emotional current in {house_theme}. {transiting_planet} meeting your {natal_planet} - Ace of Cups doesn\'t repeat what came before. This is actually new',
-      'The overflowing cup in {house_theme} while {transiting_planet} hits your {natal_planet} - don\'t talk yourself out of this feeling before you\'ve fully felt it'
+      'a feeling is being offered near {house_theme}, and receiving it is the harder half. {transiting_planet} meets your {natal_planet}, and something raw is asking for room',
+      'the cup is already overflowing around {house_theme}. {transiting_planet} touches your {natal_planet}, and being filled may feel odd after a dry stretch',
+      'there may be a softening in {house_theme} you haven\'t named yet. {transiting_planet} on your {natal_planet} brings it up'
     ],
-    action: 'when the feeling comes up, don\'t name it yet. just notice where it sits in your body for one full minute before you try to explain it'
+    action: 'catch the small flinch when kindness or warmth comes toward you. let a sip of something warm be exactly that for ten seconds, without a task attached'
   },
 
   'cups-2': {
     synthesis: [
-      'Someone in {house_theme} actually sees you. {transiting_planet} on your {natal_planet} - it goes both ways. This isn\'t you giving more',
-      'Mutual. Not you bending down or reaching up. {transiting_planet} hitting your {natal_planet} around {house_theme} - the rare thing: level',
-      'Partnership forming where {transiting_planet} meets your {natal_planet} in {house_theme}. Two people actually looking at each other'
+      'someone near {house_theme} is turning toward you, or you toward them. {transiting_planet} meets your {natal_planet}, and the exchange is the kind that runs both ways',
+      'around {house_theme}, reciprocity is easier to feel than to explain. {transiting_planet} on your {natal_planet} shows who\'s meeting whom',
+      'a pairing in {house_theme} is asking to be seen as it is. {transiting_planet} touches your {natal_planet}, and evenness matters more than intensity'
     ],
-    action: 'text or tell one person directly what they mean to you today. say it plainly, no jokes to soften it'
+    action: 'watch who you give more to and who gives more to you. rest your hands on a warm mug or your own forearms and register what balanced feels like'
   },
 
   'cups-3': {
     synthesis: [
-      'Call your friends. {transiting_planet} working your {natal_planet} in {house_theme} - this joy doesn\'t work alone',
-      'The group text that actually makes you laugh, the dinner that runs late - {transiting_planet} on your {natal_planet} around {house_theme}, community doing its actual job',
-      'Abundance in {house_theme} multiplies when shared. {transiting_planet} meeting your {natal_planet} - stop celebrating alone'
+      'there\'s company worth sitting in around {house_theme}. {transiting_planet} meets your {natal_planet}, and shared gladness might go down better than private gladness',
+      'a table is set near {house_theme}, and you might be on the guest list. {transiting_planet} on your {natal_planet} turns your head toward the room',
+      'joy around {house_theme} seems to be a group thing today. {transiting_planet} touches your {natal_planet}, and being seen as happy is part of it'
     ],
-    action: 'message one person you actually like and set an actual date and time to see them. not "we should," a real plan'
+    action: 'notice who you think of when something good happens. keep that face in mind for a breath and see what your shoulders do'
   },
 
   'cups-4': {
     synthesis: [
-      'You\'re sulking in {house_theme}. {transiting_planet} on your {natal_planet} - crossed arms, the gift being offered that you\'re ignoring because it\'s not the one you wanted',
-      'So fixated on what\'s missing in {house_theme} that you can\'t see what\'s right there. {transiting_planet} hitting your {natal_planet} - look up from your own disappointment',
-      'Someone is extending something in {house_theme} and you\'re not seeing it. {transiting_planet} meeting your {natal_planet} - what are you refusing to receive?'
+      'an offer is open near {house_theme} and attention is turned inward. {transiting_planet} meets your {natal_planet}, and the flatness may be hiding an appetite',
+      'around {house_theme}, boredom might be more like a closed door than an empty room. {transiting_planet} on your {natal_planet} knocks on it',
+      'you may be declining something in {house_theme} before it has finished arriving. {transiting_planet} touches your {natal_planet}, and a second look is possible'
     ],
-    action: 'find one small thing that\'s been offered to you that you\'ve brushed off. say yes to it today, out loud'
+    action: 'catch the shrug that says nothing here is interesting. lift your eyes to the farthest point in the room and see if anything has changed in your appetite'
   },
 
   'cups-5': {
     synthesis: [
-      'Three cups spilled, two still standing. {transiting_planet} on your {natal_planet} in {house_theme} - staring at the loss and not turning to see what remains',
-      'The grief in {house_theme} is real. {transiting_planet} working your {natal_planet} - Five of Cups doesn\'t ask you to stop mourning, it asks you to eventually turn around',
-      'What you lost in {house_theme} matters. So does what survived. {transiting_planet} hitting your {natal_planet} - you\'re not left with nothing'
+      'a loss near {house_theme} has your full attention, and it has earned it. {transiting_planet} meets your {natal_planet}, and what still stands waits patiently behind you',
+      'grief around {house_theme} is being honest about its size. {transiting_planet} on your {natal_planet} doesn\'t hurry it',
+      'you might be looking at what spilled in {house_theme}. {transiting_planet} touches your {natal_planet}, and two cups remain upright just out of view'
     ],
-    action: 'fold a paper in half. one side, write what you lost. other side, write what\'s still standing. read only the second side back'
+    action: 'notice where the sadness sits in your body and put a hand there. stay for a minute, and let the hand be the only plan'
   },
 
   'cups-6': {
     synthesis: [
-      'Why you texted them at 1am, why that song wrecked you - {transiting_planet} hitting your {natal_planet} in {house_theme}, pulled back not because the past was better but because you were more yourself',
-      'The nostalgia in {house_theme} isn\'t about circumstances. {transiting_planet} working your {natal_planet} - about innocence, the version of you that didn\'t know yet what disappointment tastes like',
-      'Comparing now to then while {transiting_planet} meets your {natal_planet} around {house_theme} - do you want to go back or do you just miss feeling that way?'
+      'an old memory surfaces near {house_theme}, soft and specific. {transiting_planet} meets your {natal_planet}, and a younger version of you has something to say',
+      'around {house_theme}, a memory is doing quiet work. {transiting_planet} on your {natal_planet} warms it',
+      'an early kindness is coming back around in {house_theme}. {transiting_planet} touches your {natal_planet} and the old sweetness has a use now'
     ],
-    action: 'do one thing today that you used to enjoy as a kid, exactly the way you did it then, no adult improvements'
+    action: 'catch the memory that arrives uninvited. let it play out, then look at one thing in the room as it is today'
   },
 
   'cups-7': {
     synthesis: [
-      'Seven options, none of them fully real yet. {transiting_planet} on your {natal_planet} in {house_theme} - you\'re not choosing because you\'re not ready to lose the other possibilities',
-      'The dream in {house_theme} is seductive while {transiting_planet} clouds your {natal_planet}. Which one would you actually choose if the magic wore off?',
-      'Too many visions, not enough commitment. {transiting_planet} hitting your {natal_planet} around {house_theme} - pick one and find out if it\'s real'
+      'options are floating near {house_theme}, each lit differently. {transiting_planet} meets your {natal_planet}, and the daydreams are most generous at a distance',
+      'around {house_theme}, imagining is easier than choosing. {transiting_planet} on your {natal_planet} makes both visible',
+      'several versions of {house_theme} are on offer. {transiting_planet} touches your {natal_planet} and one of them might be tugging harder than the rest'
     ],
-    action: 'pick one option and take one real step on it today, not a mental commitment, an actual action. notice if the fog clears after, not before'
+    action: 'catch the moment you add one more possibility to the pile. pick up any real object near you and notice what it\'s like to have only one thing in your hand'
   },
 
   'cups-8': {
     synthesis: [
-      'Walking away from something that still exists in {house_theme}. {transiting_planet} on your {natal_planet} - leaving because staying would be a lie',
-      'It wasn\'t a failure. {transiting_planet} working your {natal_planet} around {house_theme} - the honest exit, the moment you admit this isn\'t what you need anymore',
-      'The eight cups are full and you\'re leaving them. {transiting_planet} meeting your {natal_planet} in {house_theme} - why? That\'s the question worth sitting with'
+      'a setup near {house_theme} still looks fine and has stopped feeding you. {transiting_planet} meets your {natal_planet}, and the walking-away part of you is already awake',
+      'around {house_theme}, there may be a quiet leaving going on in you. {transiting_planet} on your {natal_planet} makes it audible',
+      'you might have outgrown a corner of {house_theme}. {transiting_planet} touches your {natal_planet}, and the outgrowing is not a failure'
     ],
-    action: 'write one sentence answering: am i staying somewhere i\'ve already left emotionally. don\'t soften the answer'
+    action: 'notice the small relief you feel imagining a different arrangement. keep your breathing slow and let that relief tell you something before the argument starts'
   },
 
   'cups-9': {
     synthesis: [
-      'You got what you wanted in {house_theme}. {transiting_planet} on your {natal_planet} - let it land. Actually enjoy this instead of already scanning for the next thing',
-      'Satisfaction is available right now. {transiting_planet} activating your {natal_planet} in {house_theme} - the wish fulfilled. You\'re allowed to feel it',
-      'Stop moving the goalpost. {transiting_planet} meeting your {natal_planet} around {house_theme} - contentment is available if you let yourself be content'
+      'a result near {house_theme} has turned out well, and you moved past it quickly. {transiting_planet} meets your {natal_planet} and slows the clock',
+      'satisfaction around {house_theme} is allowed to be plain. {transiting_planet} on your {natal_planet} gives it a seat',
+      'a wish touching {house_theme} may already be partly met. {transiting_planet} touches your {natal_planet}, and savouring is part of receiving'
     ],
-    action: 'pick one good thing you already have and spend two full minutes with it, no phone, before you let yourself think about what\'s next'
+    action: 'catch the glance toward the next thing. stay with one good detail from today for three slow breaths'
   },
 
   'cups-10': {
     synthesis: [
-      'The emotional life you\'ve been building in {house_theme} - this is what it looks like. {transiting_planet} on your {natal_planet} - the life that actually works',
-      'The rainbow after the storms. {transiting_planet} activating your {natal_planet} around {house_theme} - the love that holds, the whole picture',
-      'Fulfilment, not perfection. {transiting_planet} meeting your {natal_planet} in {house_theme} - the good life and you\'re standing in it'
+      'belonging around {house_theme} is built from small repeated things. {transiting_planet} meets your {natal_planet}, and the ordinary parts of it are easier to see',
+      'a sense of home is near {house_theme}, imperfect and real. {transiting_planet} on your {natal_planet} warms it',
+      'there may be people in {house_theme} who make the room softer. {transiting_planet} touches your {natal_planet}, and being held counts'
     ],
-    action: 'call, don\'t text, the person who makes you feel most at home. today, not this week'
+    action: 'notice one ordinary kindness that keeps a place feeling like yours. let your attention rest on it while a slow breath goes out'
   },
 
   'cups-page': {
     synthesis: [
-      'A feeling arriving that you haven\'t felt before. {transiting_planet} on your {natal_planet} in {house_theme} - new, raw, unfiltered. Don\'t file it away yet',
-      'Emotional openness without knowing what to do with it. {transiting_planet} working your {natal_planet} around {house_theme} - the message that surprises you. Read it',
-      'Something is making itself known in {house_theme} through feeling. {transiting_planet} hitting your {natal_planet} - be curious about it, not clinical'
+      'a small, slightly odd impulse is surfacing near {house_theme}. {transiting_planet} meets your {natal_planet}, and curiosity may do better than analysis',
+      'around {house_theme}, a feeling has turned up in a playful costume. {transiting_planet} on your {natal_planet} lets it say hello',
+      'something bruised in {house_theme} wants to be taken seriously and not solemnly. {transiting_planet} touches your {natal_planet} and the tone of it is light'
     ],
-    action: 'when something moves you today, sit with it for one minute before you try to figure out what it means'
+    action: 'catch the moment you wave off an idea as silly. give it ten seconds of real attention, like you would a child\'s question'
   },
 
   'cups-knight': {
     synthesis: [
-      'Chasing the feeling in {house_theme}. {transiting_planet} on your {natal_planet} - romantic, idealistic, pursuing what moves you. Are you chasing the feeling or the person?',
-      'The invitation in {house_theme} while {transiting_planet} meets your {natal_planet} - the gesture, the poetry, the grand declaration. Is there substance underneath?',
-      'Following emotion into {house_theme} while {transiting_planet} activates your {natal_planet} - gorgeous and impractical. Useful for starting things'
+      'a romantic pull is moving near {house_theme}. {transiting_planet} meets your {natal_planet}, and it\'s the feeling rather than the logic that is leading',
+      'around {house_theme}, you may be following a beauty you can\'t yet justify. {transiting_planet} on your {natal_planet} offers a slow, sincere ride',
+      'there\'s a devotion forming in {house_theme}. {transiting_planet} touches your {natal_planet}, and it might be for a person, a craft or an idea'
     ],
-    action: 'make the gesture you\'ve been overthinking within the next hour, while the feeling\'s still live. don\'t wait for the perfect version'
+    action: 'notice where the pull is strongest and whether it\'s drawn to the real thing or the picture of it. press a palm flat on a surface and feel what\'s solid'
   },
 
   'cups-queen': {
     synthesis: [
-      'You already know what\'s happening in {house_theme}. {transiting_planet} on your {natal_planet} - reads the room before anyone speaks. Trust your read',
-      'The empathy you\'re extending in {house_theme} while {transiting_planet} works your {natal_planet} - feels what others feel. Set a boundary before you absorb it all',
-      'Emotional intelligence in {house_theme}. {transiting_planet} meeting your {natal_planet} - she knows. She just knows. And acts from that, not from logic'
+      'you carry more of other people\'s weather than usual near {house_theme}. {transiting_planet} meets your {natal_planet}, and your own is the one to check',
+      'a steady, perceptive presence is available around {house_theme}. {transiting_planet} on your {natal_planet} deepens it, and it extends to you',
+      'feeling a lot near {house_theme} may be a skill instead of a flaw. {transiting_planet} touches your {natal_planet}, and boundaries keep it clean'
     ],
-    action: 'name, out loud or in writing, what you think someone is actually feeling right now. then check it with them directly'
+    action: 'catch the moment you absorb someone else\'s mood. press a cool object to your wrist and ask in silence whose feeling this is'
   },
 
   'cups-king': {
     synthesis: [
-      'Hold steady in {house_theme}. {transiting_planet} on your {natal_planet} - calm in the storm. Emotional mastery means feeling everything without letting it run you',
-      'Someone in {house_theme} needs your steadiness. {transiting_planet} working your {natal_planet} - leads from the heart without losing the head',
-      'The feelings in {house_theme} are big. {transiting_planet} meeting your {natal_planet} - you can hold all of it without being swept away'
+      'a calm that has been earned sits near {house_theme}. {transiting_planet} meets your {natal_planet}, and feeling the wave doesn\'t need to mean obeying it',
+      'around {house_theme}, there is a way to feel everything and keep your head. {transiting_planet} on your {natal_planet} makes that stance more reachable',
+      'emotion and judgement may be sharing the same room in {house_theme}. {transiting_planet} touches your {natal_planet}, and neither needs to leave'
     ],
-    action: 'when you feel something big today, name it silently to yourself in one word before you respond to anyone'
+    action: 'notice the beat between a strong feeling and the reply. let that beat be a full exhale long'
   },
 
-  // ── SWORDS ────────────────────────────────────────────────────────────────
 
-  'swords-1': {
+  // ── SWORDS ────────────────────────────────────────
+
+  'swords-ace': {
     synthesis: [
-      'Clarity breaking through in {house_theme}. {transiting_planet} on your {natal_planet} - the truth arriving all at once, cutting through everything that was obscuring it',
-      'New mental clarity in {house_theme}. {transiting_planet} hitting your {natal_planet} - the breakthrough thought, the thing that suddenly makes everything make sense',
-      'The truth in {house_theme} cuts clean. {transiting_planet} meeting your {natal_planet} - sharp, not cruel. Use it'
+      'a fact has gone clear near {house_theme}. {transiting_planet} meets your {natal_planet}, and a fact you can\'t unsee has come into focus',
+      'around {house_theme}, a sentence you\'ve been circling is almost sayable. {transiting_planet} on your {natal_planet} sharpens it',
+      'a clean cut of understanding is arriving in {house_theme}. {transiting_planet} touches your {natal_planet}, and it may feel like relief and a bruise at once'
     ],
-    action: 'write the truth you just realised in exactly one sentence. no qualifiers, no "but"'
+    action: 'catch the moment before you say the true thing sharply. unclench your jaw and let one slow exhale go before you speak'
   },
 
   'swords-2': {
     synthesis: [
-      'Blindfold on, arms crossed. {transiting_planet} pressures your {natal_planet} in {house_theme} - you know both options. You just won\'t look',
-      'Neither choice feels safe so you made the standoff. {transiting_planet} on your {natal_planet} around {house_theme} - the pause costs more than choosing',
-      'How long can you hold this? {transiting_planet} hitting your {natal_planet} in {house_theme} - making no decision is also a decision'
+      'a decision near {house_theme} is being held at arm\'s length. {transiting_planet} meets your {natal_planet}, and keeping both options open has its own price',
+      'around {house_theme}, the blindfold may be mostly habit. {transiting_planet} on your {natal_planet} loosens a corner',
+      'you might already know what you\'d choose in {house_theme}. {transiting_planet} touches your {natal_planet}, and the not-looking is the part that takes energy'
     ],
-    action: 'give yourself until 6pm today to make the choice you\'ve been stalling on. set an alarm for it if you have to'
+    action: 'notice the topic your thoughts skate over. close your mouth, breathe out slowly, and look at it for three seconds'
   },
 
   'swords-3': {
     synthesis: [
-      'That sentence they said. You keep replaying it in {house_theme} while {transiting_planet} hits your {natal_planet} - the specific wound, not the vague ache',
-      'Why you flinch at that tone, why you can\'t stop checking their profile. {transiting_planet} on your {natal_planet} around {house_theme} - the moment trust cracked and the sound it made',
-      'Grief in {house_theme} that lives in the chest, not the head. {transiting_planet} meeting your {natal_planet} - it doesn\'t respond to logic. It just has to be felt'
+      'a hurt near {house_theme} is allowed its own size. {transiting_planet} meets your {natal_planet}, and the sore spot is more honest than the explanations around it',
+      'a hurt went in deep around {house_theme}. {transiting_planet} on your {natal_planet} lets it be felt without needing to repair it today',
+      'grief and truth are in the same sentence near {house_theme}. {transiting_planet} touches your {natal_planet}, and the sentence doesn\'t need an ending'
     ],
-    action: 'stop explaining why it shouldn\'t hurt. set a timer for five minutes and let yourself feel it without arguing back'
+    action: 'notice where the hurt lives physically. rest a hand on that spot and breathe out slowly twice'
   },
 
   'swords-4': {
     synthesis: [
-      'Stop. {transiting_planet} on your {natal_planet} in {house_theme} - forced rest, mental recovery after too much fighting. Lay down',
-      'You can\'t think your way through this today. {transiting_planet} working your {natal_planet} around {house_theme} - recuperation is part of the process',
-      'The mind needs to stop in {house_theme}. {transiting_planet} hitting your {natal_planet} - you don\'t have to figure this out right now. That\'s not avoidance, that\'s wisdom'
+      'rest is overdue near {house_theme}. {transiting_planet} meets your {natal_planet}, and the stillness is part of the work',
+      'after a fight, around {house_theme}, comes the quiet nobody films. {transiting_planet} on your {natal_planet} offers it',
+      'you might be exhausted in {house_theme} more than you\'ve admitted. {transiting_planet} touches your {natal_planet}, and a pause is not a retreat'
     ],
-    action: 'pick a specific two-hour block today with no problem-solving allowed in it. write it down like an appointment'
+    action: 'catch the voice that says keep going. let your shoulders drop and rest your eyes on one still point for a full breath'
   },
 
   'swords-5': {
     synthesis: [
-      'You won but look at what it cost. {transiting_planet} on your {natal_planet} in {house_theme} - the hollow victory, the argument you technically won and emotionally lost',
-      'Is being right in {house_theme} worth more than the relationship? {transiting_planet} working your {natal_planet} - count the bodies after the battle',
-      'The conflict in {house_theme} has a winner and it might be you. {transiting_planet} meeting your {natal_planet} - at what cost?'
+      'a fight near {house_theme} may be won and still feel empty. {transiting_planet} meets your {natal_planet}, and the cost of winning is getting clearer',
+      'around {house_theme}, being right and being close pull apart. {transiting_planet} on your {natal_planet} brings that into the open',
+      'an argument in {house_theme} has left a sour air. {transiting_planet} touches your {natal_planet}, and pride is guarding a bruise'
     ],
-    action: 'write down what winning this fight actually costs you. read it before you say anything else in it'
+    action: 'notice the moment you reach for the last word. exhale through your mouth and see whether you still want it'
   },
 
   'swords-6': {
     synthesis: [
-      'Moving away from troubled waters in {house_theme}. {transiting_planet} on your {natal_planet} - not escape, transition. Calmer ground',
-      'You\'re not running from {house_theme}. {transiting_planet} working your {natal_planet} - deliberate departure. Taking what you need, leaving what you don\'t',
-      'Grief and relief happening at the same time in {house_theme}. {transiting_planet} meeting your {natal_planet} - both are okay'
+      'you may be leaving rough water near {house_theme}. {transiting_planet} meets your {natal_planet}, and the crossing is quiet more than thrilling',
+      'a load is being left on the near shore around {house_theme}. {transiting_planet} on your {natal_planet} steadies the boat',
+      'a calmer stretch is possible in {house_theme}. {transiting_planet} touches your {natal_planet}, and distance may be part of the healing'
     ],
-    action: 'write two lists: what you\'re bringing forward, what you\'re leaving here. keep the first list somewhere you\'ll see it'
+    action: 'notice what you\'re still carrying across with you. set one thing down mentally and feel your hands lighten'
   },
 
   'swords-7': {
     synthesis: [
-      'Are you being honest in {house_theme}? {transiting_planet} on your {natal_planet} - knows the shortcuts you\'re taking and who\'s not watching',
-      'That loophole, that half-truth, that thing you\'re getting away with in {house_theme}. {transiting_planet} working your {natal_planet} - works until it doesn\'t',
-      'Strategy or deception? {transiting_planet} hitting your {natal_planet} around {house_theme} - which one and could you defend it out loud?'
+      'a bit of cleverness is at work near {house_theme}. {transiting_planet} meets your {natal_planet}, and the question is whether it is strategy or avoidance',
+      'around {house_theme}, a shortcut might be tempting. {transiting_planet} on your {natal_planet} puts a light on it',
+      'an unsaid sentence in {house_theme} is making you tiptoe. {transiting_planet} touches your {natal_planet}, and the plain version might be lighter'
     ],
-    action: 'write down the one thing you\'ve been less than honest about, in a single sentence, as if someone else would read it'
+    action: 'catch the glance over your shoulder. plant both feet and say the unedited sentence silently, just to hear it'
   },
 
   'swords-8': {
     synthesis: [
-      'You built this cage in {house_theme}. {transiting_planet} on your {natal_planet} - blindfolded in restraints that are barely tied. You could move. Why aren\'t you?',
-      'The prison in {house_theme} is mental. {transiting_planet} working your {natal_planet} - the belief that you\'re stuck is doing more work than any actual obstacle',
-      'What\'s the story you tell yourself about why you can\'t change {house_theme}? {transiting_planet} hitting your {natal_planet} - test it'
+      'the cage near {house_theme} has slack in the ropes. {transiting_planet} meets your {natal_planet}, and the story of no way out has been told many times',
+      'around {house_theme}, the blindfold is partly a thought. {transiting_planet} on your {natal_planet} lifts one edge',
+      'a limit in {house_theme} feels solid. {transiting_planet} touches your {natal_planet}, and some of it is more flexible than it looks'
     ],
-    action: 'pick one thing you believe you can\'t do. do the smallest possible test of it today and see what actually happens'
+    action: 'notice the sentence that begins with I can\'t. say it again as I haven\'t, silently, and feel the difference'
   },
 
   'swords-9': {
     synthesis: [
-      '3am and the mind won\'t stop. {transiting_planet} on your {natal_planet} in {house_theme} - catastrophizing, worst case on repeat, anxiety that\'s outrun any actual evidence',
-      'Write the fear down. {transiting_planet} working your {natal_planet} around {house_theme} - none of those scenarios are happening right now',
-      'The suffering in {house_theme} is real but the story generating it isn\'t. {transiting_planet} hitting your {natal_planet} - is this actually happening?'
+      'the mind runs its worst films around {house_theme} after dark. {transiting_planet} meets your {natal_planet}, and the loop is louder than the facts',
+      'worry near {house_theme} grows at night and thins at dawn. {transiting_planet} on your {natal_planet} is part of why it\'s hard to switch off',
+      'a fear in {house_theme} has been on repeat. {transiting_planet} touches your {natal_planet}, and saying it aloud to someone may loosen it'
     ],
-    action: 'write your worst-case fear down. then next to it write only what\'s true right now, not what might be true later'
+    action: 'catch the loop when it starts. put both feet on the floor and name five things you can see before going back to the thought'
   },
 
   'swords-10': {
     synthesis: [
-      'Rock bottom in {house_theme}. {transiting_planet} on your {natal_planet} - the most dramatic ending possible. And it\'s over. The only direction from here is up',
-      'Total collapse in {house_theme} while {transiting_planet} meets your {natal_planet} - don\'t add more swords. This is already the end',
-      'The darkest moment in {house_theme} is also the clearest. {transiting_planet} hitting your {natal_planet} - this particular story is done. Let it be'
+      'a long thing has ended near {house_theme}, and it was hard. {transiting_planet} meets your {natal_planet}, and there is a thin dawn at the edge',
+      'around {house_theme}, the worst is behind. {transiting_planet} on your {natal_planet} makes that feel believable and not merely announced',
+      'a final thing is over in {house_theme}. {transiting_planet} touches your {natal_planet}, and nothing worse sits underneath it'
     ],
-    action: 'write one sentence that starts with "it\'s over now." then close the notebook. don\'t reopen the story today'
+    action: 'notice where you\'re still holding the ending up. lie flat or lean back for a minute and let the floor take the weight'
   },
 
   'swords-page': {
     synthesis: [
-      'A new idea cutting through in {house_theme}. {transiting_planet} on your {natal_planet} - sharp, curious, asking questions that make people uncomfortable',
-      'Mental alertness in {house_theme} while {transiting_planet} works your {natal_planet} - watching carefully, testing the edges of things',
-      'Ask the question nobody\'s asking in {house_theme}. {transiting_planet} hitting your {natal_planet} - say what everyone else was thinking'
+      'a sharp little question is forming near {house_theme}. {transiting_planet} meets your {natal_planet}, and eagerness to say it is running ahead of understanding',
+      'around {house_theme}, curiosity and cleverness are mixing. {transiting_planet} on your {natal_planet} wakes the watchful part of you',
+      'you may be gathering information in {house_theme} faster than you digest it. {transiting_planet} touches your {natal_planet} and slows the pace'
     ],
-    action: 'ask the uncomfortable question out loud to the person it\'s about, today, before you talk yourself out of it'
+    action: 'catch the sentence that is ready before the thought. hold it behind your teeth for one breath and check if it is kind as well as quick'
   },
 
   'swords-knight': {
     synthesis: [
-      'Moving fast and cutting straight in {house_theme}. {transiting_planet} on your {natal_planet} - no diplomacy, no waiting for permission',
-      'Directness in {house_theme} while {transiting_planet} meets your {natal_planet} - says what needs to be said and moves before doubt catches up',
-      'Charge. {transiting_planet} hitting your {natal_planet} around {house_theme} - decisive action, sometimes reckless. Know where you\'re pointing'
+      'your thinking is running at full gallop near {house_theme}. {transiting_planet} meets your {natal_planet}, and it\'s useful until it isn\'t',
+      'around {house_theme}, directness has a place. {transiting_planet} on your {natal_planet} accelerates, and speed may flatten something that deserved a slower look',
+      'certainty is arriving fast near {house_theme}. {transiting_planet} touches your {natal_planet}, and part of it is borrowed from impatience'
     ],
-    action: 'say the direct thing in one sentence, no cushioning words in front of it. say it today'
+    action: 'notice the pace of your speech or your typing. slow down by one beat and feel the ground under your seat'
   },
 
   'swords-queen': {
     synthesis: [
-      'You see exactly what\'s happening in {house_theme}. {transiting_planet} on your {natal_planet} - cuts through the story, the politeness, the performance. Names what\'s actually there',
-      'Perceptive and unsentimental. {transiting_planet} working your {natal_planet} around {house_theme} - pain made her precise, not soft',
-      'Name it. {transiting_planet} meeting your {natal_planet} in {house_theme} - what do you actually see here, without the comfortable gloss?'
+      'you see through something near {house_theme} and it isn\'t unkind. {transiting_planet} meets your {natal_planet}, and the clear view comes without much fuss',
+      'around {house_theme}, an honest assessment is available. {transiting_planet} on your {natal_planet} cools the edges',
+      'candour and warmth may be able to share a sentence in {house_theme}. {transiting_planet} touches your {natal_planet}, and neither has to give way'
     ],
-    action: 'write down what happened using only facts a camera would have recorded. no adjectives, no motives'
+    action: 'catch the moment you\'re about to cut. breathe out, soften your voice a little and see if the sentence is still as sharp'
   },
 
   'swords-king': {
     synthesis: [
-      'The decision needs to be made in {house_theme}. {transiting_planet} on your {natal_planet} - clarity, not cruelty. You\'ve been circling long enough',
-      'Intellectual authority in {house_theme}. {transiting_planet} working your {natal_planet} - sees the full picture, makes the call, lives with it',
-      'Lead with the mind, not the mood. {transiting_planet} hitting your {natal_planet} around {house_theme} - what do you actually know to be true?'
+      'a judgement near {house_theme} is better made slowly. {transiting_planet} meets your {natal_planet}, and fairness is the standard that holds',
+      'around {house_theme}, reason is asked to carry some mercy. {transiting_planet} on your {natal_planet} sets the weights on the scale',
+      'a decision in {house_theme} may need the evidence laid out before the verdict. {transiting_planet} touches your {natal_planet}, and you can see who it touches'
     ],
-    action: 'make the decision today and write down the date. tell yourself you\'re not allowed to reopen it for two weeks'
+    action: 'notice the urge to wrap it up quickly. sit straight, one slow breath, and picture everyone the decision touches'
   },
 
-  // ── WANDS ─────────────────────────────────────────────────────────────────
 
-  'wands-1': {
+  // ── WANDS ────────────────────────────────────────
+
+  'wands-ace': {
     synthesis: [
-      'A new spark in {house_theme}. {transiting_planet} on your {natal_planet} - raw creative impulse before anyone\'s had a chance to complicate it. It won\'t feel this clear for long',
-      'Creative beginning in {house_theme} while {transiting_planet} hits your {natal_planet} - the yes before the how. Start',
-      'Something is igniting in {house_theme}. {transiting_planet} meeting your {natal_planet} - all fire, no plan yet. That\'s appropriate'
+      'a match is catching near {house_theme}, before any plan exists. {transiting_planet} meets your {natal_planet}, and the pulse that jumps is information',
+      'around {house_theme}, there is an itch to begin. {transiting_planet} on your {natal_planet} warms it',
+      'a first move is itching in {house_theme}. {transiting_planet} touches your {natal_planet}, and the waiting for permission is the only thing in the way'
     ],
-    action: 'set a timer for ten minutes and start the creative thing. stop when it goes off, even if you want to keep going'
+    action: 'notice where your pulse jumps when you think of starting. press your feet into the floor and let that heat stay for a few breaths'
   },
 
   'wands-2': {
     synthesis: [
-      'You see it but haven\'t moved yet. {transiting_planet} showing your {natal_planet} the bigger picture in {house_theme} - the map spread out before the journey begins',
-      'Vision needs action eventually. Two of Wands in {house_theme} while {transiting_planet} works your {natal_planet} - the plan is half-formed, the commitment not made. How long before you ship?',
-      '{transiting_planet} on your {natal_planet} around {house_theme} - standing at the crossroads with the world in your hands. What are you waiting for?'
+      'the plan near {house_theme} is drawn and you\'re still on the battlements. {transiting_planet} meets your {natal_planet}, and the view is wide',
+      'around {house_theme}, looking ahead has been taking up the time that going would. {transiting_planet} on your {natal_planet} turns your attention to the gate',
+      'you may be weighing a leap in {house_theme}. {transiting_planet} touches your {natal_planet}, and the vision has got specific enough to try'
     ],
-    action: 'spend ten minutes writing the plan, however rough. don\'t edit it, just get it down'
+    action: 'catch the moment you open one more tab or note about it. stand up, roll your shoulders back, and look at the horizon through a window'
   },
 
   'wands-3': {
     synthesis: [
-      'The ships you sent out are coming in. {transiting_planet} on your {natal_planet} in {house_theme} - waiting after the doing, watching the horizon for return',
-      'You already made the move in {house_theme}. {transiting_planet} working your {natal_planet} - the expansion phase, the thing you set in motion arriving',
-      'Already thinking about the next thing while the first thing succeeds. {transiting_planet} hitting your {natal_planet} around {house_theme} - check on what you started'
+      'a venture you launched near {house_theme} is on its way out. {transiting_planet} meets your {natal_planet}, and tides are not yours to steer',
+      'around {house_theme}, the groundwork was yours and the weather isn\'t. {transiting_planet} on your {natal_planet} stretches the wait',
+      'ships are crossing near {house_theme}. {transiting_planet} touches your {natal_planet}, and doubt is part of the crossing, not a forecast'
     ],
-    action: 'send one follow-up message today about something you already put out there. don\'t wait for the perfect update'
+    action: 'notice the tug to check for results. press your heel into the floor and rest your eyes on something far away for a few seconds'
   },
 
   'wands-4': {
     synthesis: [
-      'Celebration is earned in {house_theme}. {transiting_planet} on your {natal_planet} - homecoming, the completion worth marking. Acknowledge it',
-      'The foundation is built in {house_theme}. {transiting_planet} activating your {natal_planet} - stability after striving, the threshold crossed',
-      'Stop rushing past the win in {house_theme}. {transiting_planet} meeting your {natal_planet} - pause and recognize what you\'ve actually created'
+      'there\'s a win near {house_theme} worth celebrating. {transiting_planet} meets your {natal_planet}, and the milestone is real even if the road isn\'t finished',
+      'around {house_theme}, a place feels lived-in. {transiting_planet} on your {natal_planet} offers a garland',
+      'you might be allowed to pause in {house_theme}. {transiting_planet} touches your {natal_planet}, and someone you\'d like beside you is in the picture'
     ],
-    action: 'tell one person what you built today, out loud, in detail, without downplaying it'
+    action: 'catch the moment you move past what went well. raise your shoulders, then drop them, and name one thing that finished'
   },
 
   'wands-5': {
     synthesis: [
-      'Chaos and competition in {house_theme}. {transiting_planet} on your {natal_planet} - everyone going in different directions, the messy energy before clarity',
-      'The conflict in {house_theme} while {transiting_planet} works your {natal_planet} - are you actually fighting or is this just friction that precedes something coalescing?',
-      'Too many cooks in {house_theme}. {transiting_planet} hitting your {natal_planet} - the struggle, the testing, the friction that reveals what\'s actually strong'
+      'friction near {house_theme} is noisy, and not all of it is harmful. {transiting_planet} meets your {natal_planet}, and some clashes sharpen things',
+      'around {house_theme}, five opinions are talking over each other. {transiting_planet} on your {natal_planet} turns up the volume',
+      'a rivalry in {house_theme} is more play than war. {transiting_planet} touches your {natal_planet}, and it matters whether anyone\'s getting hurt'
     ],
-    action: 'write one sentence deciding: worth fighting for, or not. act on whichever you wrote, today'
+    action: 'notice what your body does when someone disagrees. unclench your fists and your jaw before you answer'
   },
 
   'wands-6': {
     synthesis: [
-      'Recognition in {house_theme}. {transiting_planet} on your {natal_planet} - the public win, the acknowledgment you earned. The moment people see what you\'ve done',
-      'Let yourself receive it. {transiting_planet} activating your {natal_planet} in {house_theme} - shrinking it doesn\'t make you humble, it makes you dishonest',
-      'You won in {house_theme}. {transiting_planet} meeting your {natal_planet} - the crowd is watching. Lead'
+      'work you did near {house_theme} is being seen. {transiting_planet} meets your {natal_planet}, and taking the thanks in is part of the work',
+      'around {house_theme}, a nod from someone who matters is on the way. {transiting_planet} on your {natal_planet} lifts your chin',
+      'a good day in {house_theme} may be asking to be taken in. {transiting_planet} touches your {natal_planet}, and deflecting is a habit worth catching'
     ],
-    action: 'next time someone compliments what you did today, say only "thank you." no deflecting, no "it was nothing"'
+    action: 'catch the deflection when someone praises you. let the words sit in your chest for one slow breath before replying'
   },
 
   'wands-7': {
     synthesis: [
-      'Holding your ground in {house_theme}. {transiting_planet} on your {natal_planet} - outnumbered but not outmatched. What are you actually defending?',
-      'Everyone has an opinion about {house_theme}. {transiting_planet} working your {natal_planet} - the position you won\'t abandon, the hill you\'ve chosen. Make sure it\'s worth it',
-      'You got here, you can defend it. {transiting_planet} hitting your {natal_planet} in {house_theme} - but pick your battles'
+      'a position near {house_theme} is being tested. {transiting_planet} meets your {natal_planet}, and holding the ground is worth it only if it matters',
+      'around {house_theme}, you\'re defending something. {transiting_planet} on your {natal_planet} reveals what it is',
+      'there\'s a high point in {house_theme} you\'ve climbed to. {transiting_planet} touches your {natal_planet}, and some of the pressure is old'
     ],
-    action: 'write one sentence naming what you\'re actually defending. if the honest answer is ego, let this one go today'
+    action: 'notice what you\'re protecting right now. drop your shoulders and check if the thing needs the guard'
   },
 
   'wands-8': {
     synthesis: [
-      'Messages flying, things moving faster than expected. {transiting_planet} on your {natal_planet} in {house_theme} - catch up',
-      'The pace just changed overnight. {transiting_planet} hitting your {natal_planet} - Eight of Wands is rapid-fire movement. Things that were slow are now immediate',
-      'Momentum in {house_theme} you can\'t slow down. {transiting_planet} meeting your {natal_planet} - keep up or get left behind'
+      'things are moving quickly near {house_theme}. {transiting_planet} meets your {natal_planet}, and speed can feel both good and dizzy',
+      'around {house_theme}, messages and news are travelling. {transiting_planet} on your {natal_planet} clears the sky',
+      'after a still stretch, a flurry arrives in {house_theme}. {transiting_planet} touches your {natal_planet}, and a part of you wants your feet on the ground while it passes'
     ],
-    action: 'reply to the message or task that\'s been sitting, in the next hour, before the urgency fades'
+    action: 'catch the sense of being carried. press your feet into the floor and breathe out before you answer the next message'
   },
 
   'wands-9': {
     synthesis: [
-      'Nearly there and completely exhausted in {house_theme}. {transiting_planet} on your {natal_planet} - battle-worn but still holding the staff. Too far to stop',
-      'Waiting for the next hit because there\'s always been a next hit. {transiting_planet} working your {natal_planet} - resilience that\'s become hypervigilance. Rest between battles',
-      'The wounds are showing and the stance is still held in {house_theme}. {transiting_planet} hitting your {natal_planet} - you don\'t have to be fine. Just continue'
+      'you\'re tired and still on your feet near {house_theme}. {transiting_planet} meets your {natal_planet}, and the last stretch is shorter than it feels',
+      'around {house_theme}, watchfulness has outlasted the danger. {transiting_planet} on your {natal_planet} shows how braced you are',
+      'you have been through something in {house_theme} and are guarding the rest. {transiting_planet} touches your {natal_planet}, and rest is available'
     ],
-    action: 'sit down for ten full minutes before you do anything else today. then write one line: how far you\'ve actually come'
+    action: 'notice the braced muscles, usually jaw or shoulders. unclench them deliberately for one full breath'
   },
 
   'wands-10': {
     synthesis: [
-      'Carrying too much in {house_theme}. {transiting_planet} on your {natal_planet} - hunched under an impossible load, still trying to carry it all alone',
-      'What can you put down? {transiting_planet} working your {natal_planet} in {house_theme} - you took on everything because you could, not because you should',
-      'The exhaustion in {house_theme} is self-imposed. {transiting_planet} hitting your {natal_planet} - you don\'t get a prize for suffering through things you could delegate or drop'
+      'you\'re carrying a lot near {house_theme}, nearly home. {transiting_planet} meets your {natal_planet}, and much of the load was picked up without discussion',
+      'around {house_theme}, some of the bundle belongs to others. {transiting_planet} on your {natal_planet} makes the weight specific',
+      'strength is real in {house_theme} and so is the weight. {transiting_planet} touches your {natal_planet}, and someone could take an end'
     ],
-    action: 'pick one thing you\'re carrying and either hand it to someone else or cancel it outright today, don\'t just plan to'
+    action: 'catch the moment you say I\'ll just do it. set your bag, mug or phone down and feel what your arms do without it'
   },
 
   'wands-page': {
     synthesis: [
-      'The spark of something new in {house_theme}. {transiting_planet} on your {natal_planet} - pure enthusiasm before doubt arrives. Protect this',
-      'Curiosity and fire in {house_theme}. {transiting_planet} working your {natal_planet} - the idea, the vision, the impractical impossible thing that might become real',
-      'Something is exciting you in {house_theme}. {transiting_planet} hitting your {natal_planet} - explore it before you explain it'
+      'a new interest is catching your curiosity near {house_theme}. {transiting_planet} meets your {natal_planet}, and being bad at it first is fine',
+      'around {house_theme}, a beginner\'s fire is lit. {transiting_planet} on your {natal_planet} brings it close',
+      'there\'s an idea in {house_theme} that wants to be tried before it\'s perfect. {transiting_planet} touches your {natal_planet}, and eagerness is the best credential'
     ],
-    action: 'tell the idea to one specific person who gets excited about things, today, before you tell anyone who\'ll poke holes in it'
+    action: 'notice the flicker of excitement before the inner critic arrives. stay with the flicker for three breaths, hands open'
   },
 
   'wands-knight': {
     synthesis: [
-      'Charging in {house_theme} before the plan is finished. {transiting_planet} on your {natal_planet} - the energy that starts things and sometimes burns them down. Channel it',
-      'The urgency in {house_theme} while {transiting_planet} works your {natal_planet} - moves before thinking. Useful fire. Know where you\'re pointing it',
-      'Action without strategy in {house_theme}. {transiting_planet} hitting your {natal_planet} - the leap is thrilling. Make sure there\'s somewhere to land'
+      'you\'re moving at full tilt near {house_theme}. {transiting_planet} meets your {natal_planet}, and the heat could be wanting or it could be restlessness',
+      'around {house_theme}, the horse is rearing. {transiting_planet} on your {natal_planet} makes everything feel urgent',
+      'a chase is on in {house_theme}. {transiting_planet} touches your {natal_planet}, and it matters what you\'re running toward'
     ],
-    action: 'pick one specific task and put today\'s restless energy into only that, for twenty-five minutes, nothing else'
+    action: 'catch the lurch forward. plant both feet and take one full breath before the next move'
   },
 
   'wands-queen': {
     synthesis: [
-      'Confidence and warmth in {house_theme}. {transiting_planet} on your {natal_planet} - walks in and the room shifts. Doesn\'t ask permission to take up space',
-      'What are you genuinely excited about in {house_theme}? {transiting_planet} working your {natal_planet} - builds from passion, not obligation',
-      'Do the thing you\'re on fire about in {house_theme}, not the thing that looks responsible. {transiting_planet} meeting your {natal_planet} - the warmth is the authority'
+      'warmth and nerve share the same body near {house_theme}. {transiting_planet} meets your {natal_planet}, and presence is doing most of the work',
+      'around {house_theme}, being seen fully is on offer. {transiting_planet} on your {natal_planet} turns the light up',
+      'you might be dimming yourself in {house_theme} for others\' comfort. {transiting_planet} touches your {natal_planet}, and the dimming is noticeable'
     ],
-    action: 'say yes out loud to the thing you\'re genuinely excited about today, before you talk yourself into the responsible option'
+    action: 'notice the small way you make yourself less. straighten your spine, open your chest slightly, and breathe into it'
   },
 
   'wands-king': {
     synthesis: [
-      'The bold call in {house_theme}. {transiting_planet} on your {natal_planet} - the visionary who makes the decision before the consensus forms',
-      'Leadership through vision in {house_theme}. {transiting_planet} working your {natal_planet} - doesn\'t manage the fire, directs it. Already knows where this is going',
-      'The moment to lead in {house_theme}. {transiting_planet} hitting your {natal_planet} - decisive, charismatic, five steps ahead. Make the call'
+      'a vision near {house_theme} is able to carry other people. {transiting_planet} meets your {natal_planet}, and conviction does more than command',
+      'around {house_theme}, leadership might be showing as steadiness. {transiting_planet} on your {natal_planet} gives it a spine',
+      'a belief is shaping {house_theme}. {transiting_planet} touches your {natal_planet}, and your authority is quieter than you expect'
     ],
-    action: 'make the call today without asking anyone else first. write it down so you can\'t quietly wait for agreement instead'
+    action: 'catch the urge to push others along. straighten your back, loosen your grip and let your voice drop half a tone'
   },
 
-  // ── PENTACLES ─────────────────────────────────────────────────────────────
 
-  'pentacles-1': {
+  // ── PENTACLES ────────────────────────────────────────
+
+  'pentacles-ace': {
     synthesis: [
-      'Something material is beginning in {house_theme}. {transiting_planet} on your {natal_planet} - the seed, the offer, the first real money, the tangible foundation',
-      'A new practical beginning in {house_theme}. {transiting_planet} hitting your {natal_planet} - opportunity in the physical world. Plant it',
-      'The tangible thing is available in {house_theme}. {transiting_planet} meeting your {natal_planet} - take the first step, the physical one, not just the mental one'
+      'a solid footing is being offered near {house_theme}. {transiting_planet} meets your {natal_planet}, and it\'s a seed, not a harvest',
+      'around {house_theme}, a practical opening has appeared. {transiting_planet} on your {natal_planet} puts it within reach',
+      'a small, real chance is available in {house_theme}. {transiting_planet} touches your {natal_planet}, and small may be the right size'
     ],
-    action: 'take one financial or practical step today that produces something you can physically see, a transfer, a form filed, a thing bought or sold'
+    action: 'notice the offer you wave off for being modest. press one palm flat on a table and feel how much it can hold'
   },
 
   'pentacles-2': {
     synthesis: [
-      'Not juggling well, just moving fast enough that nothing has dropped yet. {transiting_planet} disrupting your {natal_planet} in {house_theme} - the pretense of balance',
-      'Maintaining six things but mastering none. You keep saying you\'ll stabilize once X is done. There\'s always another X. {transiting_planet} on your {natal_planet} around {house_theme} - the juggling IS the problem',
-      'Saying yes to everything in {house_theme} because you\'re afraid to admit you can\'t hold it all. {transiting_planet} hitting your {natal_planet} - something drops or you choose what to put down'
+      'you\'re juggling near {house_theme} and keeping it moving. {transiting_planet} meets your {natal_planet}, and balance here is a rhythm',
+      'around {house_theme}, demands are competing. {transiting_planet} on your {natal_planet} shifts the swell',
+      'a ball or two is wobbling in {house_theme}. {transiting_planet} touches your {natal_planet}, and a simpler week is possible'
     ],
-    action: 'write down everything you\'re juggling on paper. cross out two items that would survive without you'
+    action: 'catch the yes that comes out before you\'ve checked your capacity. feel your feet and breathe out before the next reply'
   },
 
   'pentacles-3': {
     synthesis: [
-      'Your skill meets other people\'s skill in {house_theme}. {transiting_planet} on your {natal_planet} - the work needs all of you, not just you',
-      'Can\'t build this alone. {transiting_planet} bringing your {natal_planet} into collaboration around {house_theme} - not a weakness, the design',
-      'Expertise recognized and used in {house_theme}. {transiting_planet} meeting your {natal_planet} - what you know meets what they know and the thing actually gets built'
+      'a project near {house_theme} would be better built by more hands. {transiting_planet} meets your {natal_planet}, and a second opinion is a form of respect',
+      'around {house_theme}, craft meets design. {transiting_planet} on your {natal_planet} brings someone\'s skill into the room',
+      'you may have a skill in {house_theme} that somebody else needs. {transiting_planet} touches your {natal_planet}, and offering it is part of the work'
     ],
-    action: 'message one specific person today asking for the exact help you\'re missing. name the task, not just "can you help"'
+    action: 'notice where you\'re doing alone what a few hands would lighten. rest your palms on a table and think of one person who could take a corner'
   },
 
   'pentacles-4': {
     synthesis: [
-      'Holding on too tight in {house_theme}. {transiting_planet} on your {natal_planet} - the grip that comes from fear of loss, not actual abundance',
-      'Security through control. {transiting_planet} working your {natal_planet} in {house_theme} - what are you really afraid will happen if you loosen your grip?',
-      'Hoarding in {house_theme}. {transiting_planet} hitting your {natal_planet} - the miser sitting on the gold. The protection is real. So is the prison'
+      'holding on tightly near {house_theme} keeps things safe and close. {transiting_planet} meets your {natal_planet}, and the grip is its own cost',
+      'around {house_theme}, fear of loss is steering. {transiting_planet} on your {natal_planet} makes the fear audible',
+      'you might be guarding something in {house_theme} out of habit. {transiting_planet} touches your {natal_planet}, and the guard has a price'
     ],
-    action: 'pick one small thing you\'re gripping, money, a plan, a person, and loosen it by one notch today. spend a bit, cancel a rule, let one thing go'
+    action: 'catch your hands closing around something. open them slowly and feel what the air does'
   },
 
   'pentacles-5': {
     synthesis: [
-      'Left out in the cold in {house_theme}. {transiting_planet} on your {natal_planet} - the hardship, the shortage, the warm light through the window that isn\'t for you',
-      'Financial or material struggle in {house_theme}. {transiting_planet} working your {natal_planet} - the help exists. The question is whether you\'ll ask for it',
-      'The lack in {house_theme} while {transiting_planet} hits your {natal_planet} - struggling alone when there is a door. Find it'
+      'a lean patch near {house_theme} narrows the view. {transiting_planet} meets your {natal_planet}, and a lit window is closer than it seems',
+      'around {house_theme}, you may feel left out in the cold. {transiting_planet} on your {natal_planet} makes the cold louder and the door more visible',
+      'hardship in {house_theme} has made asking for help feel heavy. {transiting_planet} touches your {natal_planet}, and someone nearby would probably say yes'
     ],
-    action: 'name one specific person who can actually help and ask them directly today, not a general post, a direct ask'
+    action: 'notice the person or place you\'ve stopped looking toward. lift your eyes and name one possible door'
   },
 
   'pentacles-6': {
     synthesis: [
-      'The give and take in {house_theme}. {transiting_planet} on your {natal_planet} - the flow of resources, the balance of generosity and receiving',
-      'Are you giving or receiving in {house_theme} right now? {transiting_planet} working your {natal_planet} - is the exchange fair and are you playing your actual role?',
-      'Resources flowing in {house_theme}. {transiting_planet} meeting your {natal_planet} - generosity and gratitude in balance. Where\'s the flow blocked?'
+      'giving and receiving are both in the room near {house_theme}. {transiting_planet} meets your {natal_planet}, and fairness runs both ways',
+      'around {house_theme}, a favour is being counted. {transiting_planet} on your {natal_planet} makes the ledger visible',
+      'generosity near {house_theme} may come with a string. {transiting_planet} touches your {natal_planet}, and the string is worth noticing'
     ],
-    action: 'either give one thing away freely today with no expectation of return, or ask for what you need in a single clear sentence, no apology attached'
+    action: 'catch the tally in your head. hold out a hand, palm up, and notice which feels harder, giving or receiving'
   },
 
   'pentacles-7': {
     synthesis: [
-      'Waiting for the harvest in {house_theme}. {transiting_planet} on your {natal_planet} - patient assessment mid-growth. Is this still worth the investment?',
-      'Building in {house_theme} and {transiting_planet} working your {natal_planet} says step back and honestly assess. Not everything worth planting is worth finishing',
-      'Progress slower than expected in {house_theme}. {transiting_planet} hitting your {natal_planet} - the long game. Are you still in?'
+      'you\'ve done the work near {house_theme} and it\'s ripening slowly. {transiting_planet} meets your {natal_planet}, and waiting is a skill',
+      'around {house_theme}, there is a field you\'ve tended. {transiting_planet} on your {natal_planet} asks for patience and an honest look',
+      'a long investment in {house_theme} isn\'t paying off yet. {transiting_planet} touches your {natal_planet}, and stopping would be as honest as continuing'
     ],
-    action: 'write one honest paragraph on what you\'ve built so far. end it with a yes-or-no: still worth the work'
+    action: 'notice the urge to dig up a seed to check it. keep your hands still and watch something grow, a plant or a candle flame'
   },
 
   'pentacles-8': {
     synthesis: [
-      'Redoing it for the fifth time because it\'s not right yet. {transiting_planet} meeting your {natal_planet} in {house_theme} - the repetition nobody sees, the revision that makes the difference',
-      'The boring middle part of {house_theme}. {transiting_planet} activating your {natal_planet} - practice, refinement, the draft you throw out. This is where skill actually forms',
-      'Stop trying to skip steps in {house_theme}. {transiting_planet} hitting your {natal_planet} - the mastery you want lives in the repetition you keep resisting'
+      'the work near {house_theme} is repetitive and real. {transiting_planet} meets your {natal_planet}, and skill arrives through the doing',
+      'around {house_theme}, practice is changing you by degrees. {transiting_planet} on your {natal_planet} sharpens the hands',
+      'devotion to a craft shows up in {house_theme}. {transiting_planet} touches your {natal_planet}, and nobody is watching, which suits it'
     ],
-    action: 'spend twenty-five uninterrupted minutes on the unglamorous part of the thing you\'re avoiding. phone away, one task only'
+    action: 'catch the moment of going through the motions. slow your hands for one task and feel the material'
   },
 
   'pentacles-9': {
     synthesis: [
-      'You built this. {transiting_planet} on your {natal_planet} in {house_theme} - self-sufficiency earned, the garden tended, the independence that came from doing the work',
-      'Abundance in {house_theme} from your own effort. {transiting_planet} activating your {natal_planet} - you don\'t need to justify enjoying what you created',
-      'The independence in {house_theme} while {transiting_planet} meets your {natal_planet} - luxury that\'s yours because you made it. Receive it'
+      'you\'ve made something that\'s yours near {house_theme}. {transiting_planet} meets your {natal_planet}, and enjoying it alone isn\'t lonely when it\'s chosen',
+      'around {house_theme}, ease has been earned. {transiting_planet} on your {natal_planet} lets you sit in it',
+      'a garden of your own is in view in {house_theme}. {transiting_planet} touches your {natal_planet}, and polish and comfort are both permitted'
     ],
-    action: 'spend a small amount of money on yourself today, on purpose, and notice the moment of buying it without immediately justifying it'
+    action: 'notice what you built that you rarely look at. touch something you made, or chose, and let it be enough for a minute'
   },
 
   'pentacles-10': {
     synthesis: [
-      'Legacy and long-term thinking in {house_theme}. {transiting_planet} on your {natal_planet} - what you\'re building that outlasts you',
-      'The whole picture in {house_theme}. {transiting_planet} working your {natal_planet} - family, wealth, tradition, the foundation that holds across generations',
-      'Security that goes beyond just you in {house_theme}. {transiting_planet} hitting your {natal_planet} - what are you building that your future self will benefit from?'
+      'what\'s being built near {house_theme} may outlast you. {transiting_planet} meets your {natal_planet}, and belonging is made of small repeated things',
+      'around {house_theme}, there\'s a long view of home. {transiting_planet} on your {natal_planet} widens it',
+      'a legacy is accruing in {house_theme}. {transiting_planet} touches your {natal_planet}, and traditions and money are both part of it'
     ],
-    action: 'write down one decision you could make today. finish the sentence "future me will thank me because..." then do it'
+    action: 'catch the habit of counting only what\'s new. look at one old thing that has held up and feel its weight in your hand'
   },
 
   'pentacles-page': {
     synthesis: [
-      'Learning how things actually work in {house_theme}. {transiting_planet} on your {natal_planet} - the student, the apprentice, building skills one careful step at a time',
-      'New practical knowledge in {house_theme}. {transiting_planet} working your {natal_planet} - methodical, curious, turning the coin over to understand it fully',
-      'Beginning of a material skill in {house_theme}. {transiting_planet} hitting your {natal_planet} - don\'t rush. Study it properly'
+      'a practical beginning is available near {house_theme}. {transiting_planet} meets your {natal_planet}, and being a beginner takes more patience than glory',
+      'around {house_theme}, a little lesson is waiting. {transiting_planet} on your {natal_planet} puts a book on the desk',
+      'you may be about to learn something in {house_theme}. {transiting_planet} touches your {natal_planet}, and the first hour counts'
     ],
-    action: 'spend twenty minutes today actually practising the skill hands-on, not reading about it, not watching a video of someone else doing it'
+    action: 'notice the plan that never becomes the first hour. put your palm flat on whatever work is nearest and stay there for three breaths'
   },
 
   'pentacles-knight': {
     synthesis: [
-      'Slow, steady, reliable. {transiting_planet} on your {natal_planet} in {house_theme} - shows up every day, finishes things. The methodical one',
-      'The necessary but unglamorous work in {house_theme}. {transiting_planet} working your {natal_planet} - not the exciting choice but the effective one',
-      'Head down, keeps going in {house_theme}. {transiting_planet} meeting your {natal_planet} - someone needs to be the one who finishes. That\'s the job right now'
+      'slow and steady is the pace near {house_theme}. {transiting_planet} meets your {natal_planet}, and results are not in sight yet',
+      'around {house_theme}, reliability is doing most of the work. {transiting_planet} on your {natal_planet} sets a plodding pace',
+      'a long haul in {house_theme} might look dull from the inside. {transiting_planet} touches your {natal_planet}, and dull is sometimes what lasts'
     ],
-    action: 'do the boring necessary task you\'ve been avoiding, start to finish, today, even though nobody will notice'
+    action: 'catch the voice that says nothing is changing. feel your feet steady on the ground and count three things that stayed constant'
   },
 
   'pentacles-queen': {
     synthesis: [
-      'Practical abundance in {house_theme}. {transiting_planet} on your {natal_planet} - tends what she has, nurtures what grows, makes the material world beautiful through care',
-      'The home, the body, the resources. {transiting_planet} working your {natal_planet} around {house_theme} - practical magic: things flourish when you pay attention',
-      'Grounded generosity in {house_theme}. {transiting_planet} meeting your {natal_planet} - feeds everyone and keeps the books balanced. Take care of your physical reality'
+      'practical warmth is available near {house_theme}. {transiting_planet} meets your {natal_planet}, and a room, a meal or a body wants attention',
+      'around {house_theme}, care has been going outward. {transiting_planet} on your {natal_planet} turns some of it toward you',
+      'a sanctuary could be built in {house_theme}. {transiting_planet} touches your {natal_planet}, and the details matter'
     ],
-    action: 'pick one physical thing to tend today, clean a space, cook a real meal, stretch for ten minutes. do the whole thing, not the quick version'
+    action: 'notice what in your physical space has been neglected. touch a surface near you and register whether it feels cared for'
   },
 
   'pentacles-king': {
     synthesis: [
-      'Material authority in {house_theme}. {transiting_planet} on your {natal_planet} - built something solid, manages it wisely, knows the difference between wealth and success',
-      'The financial decision in {house_theme} while {transiting_planet} works your {natal_planet} - make it from strength, not fear. What do you actually know to be true?',
-      'Long-term thinking in {house_theme}. {transiting_planet} hitting your {natal_planet} - built slowly, kept what worked, let go of what didn\'t. One decision toward that today'
+      'a structure near {house_theme} has been built to last. {transiting_planet} meets your {natal_planet}, and stewardship matters more than accumulation',
+      'around {house_theme}, resources are on your side. {transiting_planet} on your {natal_planet} asks how you\'d use them well',
+      'solid ground is under {house_theme}. {transiting_planet} touches your {natal_planet}, and you might hold it lightly'
     ],
-    action: 'open the account, the spreadsheet, or the contract you\'ve been avoiding today and make one actual decision in it, not just look at it'
-  },
-
-  // ── SUIT FALLBACKS ────────────────────────────────────────────────────────
-
-  swords: {
-    synthesis: [
-      '{transiting_planet} hitting your {natal_planet} in {house_theme} - the conversation you rehearse in the shower. You already know what needs to be said. You\'re just negotiating with yourself about when',
-      'Whatever {transiting_planet} is doing to your {natal_planet} around {house_theme} - cut the story. Not the one about why it\'s complicated, the actual facts. Write them down',
-      '{transiting_planet} meeting your {natal_planet} in {house_theme} - overthinking this to paralysis. Clarity comes from cutting, not more analysis. Decide'
-    ],
-    action: 'write the hard truth in one sentence. underneath it, write the one thing you\'ll do about it today'
-  },
-
-  cups: {
-    synthesis: [
-      '{transiting_planet} working on your {natal_planet} in {house_theme} - chest getting tight, throat closing, suddenly needing to leave the room. The feeling came first. The reason comes later',
-      'Whatever {transiting_planet} is doing to your {natal_planet} around {house_theme} - trying to logic through something that lives in your ribcage. You can explain why you should feel differently. You don\'t. That\'s the information',
-      '{transiting_planet} meeting your {natal_planet} in {house_theme} - the friend whose text you answer first, the person whose opinion matters more than it should. You already know what this means'
-    ],
-    action: 'set a timer for five minutes. don\'t explain the feeling to yourself, just let it move through your body until the timer ends'
-  },
-
-  wands: {
-    synthesis: [
-      '{transiting_planet} hitting your {natal_planet} in {house_theme} - can\'t stop talking about this idea. Whether you act or not, the vision is forming',
-      'Whatever {transiting_planet} is doing to your {natal_planet} around {house_theme} - that project file you keep opening. Send the email. Make the call. Start',
-      '{transiting_planet} meeting your {natal_planet} in {house_theme} - doesn\'t wait for perfect conditions. The creative urge is burning. Move while it\'s alive'
-    ],
-    action: 'set a timer for ten minutes and start the thing you keep saying you\'ll do when you have more time. stop when the timer ends, that\'s enough for today'
-  },
-
-  pentacles: {
-    synthesis: [
-      '{transiting_planet} working on your {natal_planet} in {house_theme} - what\'s actually in your account, not what you wish was there. Check the numbers',
-      'Whatever {transiting_planet} is activating in your {natal_planet} around {house_theme} - the thing you can hold. Finish the draft. Build the thing. Make it real',
-      '{transiting_planet} meeting your {natal_planet} in {house_theme} - is there something physical to show for all this effort? Do the tangible thing'
-    ],
-    action: 'do one physical, tangible version of the thing today, not the plan for it, not the list. the actual thing, even a small piece of it'
+    action: 'catch the urge to clutch. open your hand and feel what it\'s like to hold something without gripping'
   }
 };
 
 export const keyPhraseTemplates = {
-  challenging: ['the hard truth', 'what needed to break', 'clarity through breakdown', 'truth over comfort', 'the necessary ending'],
-  neutral: ['the pause before motion', 'stillness teaches', 'between what was and what\'s next', 'listening in the quiet'],
-  expansive: ['the door opening', 'hope based on truth', 'trust what\'s emerging', 'the moment opening', 'momentum building']
+  challenging: ['the part that won\'t hold', 'what the pressure shows', 'a truth with edges', 'friction with a message', 'the old thing giving way', 'what you\'d rather not look at', 'the crack that lets light in', 'a plain sore spot'],
+  neutral: ['between two weathers', 'a pause with a pulse', 'the held breath', 'listening sideways', 'a slow turning', 'the quiet middle', 'something silting down', 'the day\'s own pace'],
+  expansive: ['a door left ajar', 'room to move', 'light at the edge', 'the unforced yes', 'ease arriving', 'warmth on the wall', 'a window opening', 'more space than expected']
 };
 
 /**
@@ -911,33 +877,33 @@ export const cardPlanetAffinity: Record<string, { planets: string[]; aspects: st
  */
 export const transitActionModifiers: Record<string, { challenging: string; neutral: string; expansive: string }> = {
   saturn: {
-    challenging: 'write it down and put a date on it. saturn wants the commitment real',
-    neutral:     'make it concrete. one step you can actually do today',
-    expansive:   'build the structure around this so it lasts'
+    challenging: 'notice what feels heavy and see which part of it has a name and a date attached',
+    neutral: 'see which part of this is concrete enough to hold in one hand',
+    expansive: 'watch how steady the ground feels under what you\'ve already built'
   },
   jupiter: {
-    challenging: 'check where you\'re overextending. generosity without limits isn\'t generosity',
-    neutral:     'say yes to the bigger version of this',
-    expansive:   'act on the expansion. the opening is genuine'
+    challenging: 'check where you\'re stretching further than your energy goes',
+    neutral: 'notice the larger version of this and how it sits in your chest',
+    expansive: 'pay attention to where there\'s genuine room and let your breath fill it'
   },
   uranus: {
-    challenging: 'break the pattern deliberately. do it differently than you normally would',
-    neutral:     'try something you wouldn\'t normally do here',
-    expansive:   'follow the unexpected impulse. that disruption is the message'
+    challenging: 'catch the habitual route and feel how it would be to take the side door',
+    neutral: 'notice the small unexpected impulse and just let it be there',
+    expansive: 'follow with your eyes whatever surprised you today'
   },
   neptune: {
-    challenging: 'check what\'s real vs what you\'re projecting before you act',
-    neutral:     'spend time near water or in quiet. let the answer surface',
-    expansive:   'trust the intuition completely. logic won\'t get you there'
+    challenging: 'see what you might be projecting, and what is plainly in front of you',
+    neutral: 'sit near a window, water or open air and watch what surfaces',
+    expansive: 'stay with the hunch for a moment before the logic arrives'
   },
   pluto: {
-    challenging: 'go to the root, not the surface. the real thing is underneath',
-    neutral:     'go one layer deeper than you\'d normally let yourself',
-    expansive:   'let the transformation happen instead of managing it'
+    challenging: 'notice what sits one layer under the obvious feeling',
+    neutral: 'go one layer deeper than you usually let yourself, just in noticing',
+    expansive: 'feel what changes when you stop managing it'
   },
   mars: {
-    challenging: 'channel it into one clear action instead of scattering the energy',
-    neutral:     'move your body first. the clarity will follow',
-    expansive:   'act while the energy is live. it won\'t wait'
+    challenging: 'feel where the heat collects in your body before it goes anywhere',
+    neutral: 'move your body for a minute, even only your shoulders, and see what clears',
+    expansive: 'notice how much energy is actually there right now'
   }
 };

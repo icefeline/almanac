@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import { staggerLines } from '@/lib/utils/stagger';
+import { emphasise, withLead } from './emphasise';
 import styles from './card-page.module.css';
 import { PatternStamps } from './PatternStamp';
 import type { DetectedPattern } from '@/lib/utils/pattern-detector';
@@ -63,6 +65,10 @@ interface ModuleProps {
   onContinue?: () => void;
   /** Every pattern worth naming today, if the recent draws or the live sky turned any up. */
   patterns?: DetectedPattern[];
+  /** Seeds where the key phrase's lines start, so the same reading always sets the same way. */
+  seed?: string;
+  /** The card's own words, so the read can pick them out wherever it echoes them. */
+  terms?: string[];
 }
 
 /**
@@ -91,6 +97,8 @@ export function Module({
   onRetry,
   onContinue,
   patterns,
+  seed,
+  terms = [],
 }: ModuleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -160,15 +168,37 @@ export function Module({
 
       {!isLoading && transitLine && <div className={styles.log}>{transitLine}</div>}
 
+      {/* while the read is on its way the page is not empty: the phrase's place holds the
+          machine's own words, with its cursor */}
+      {(isLoading || !bodyShown) && (
+        <h2 className={styles.phrase} aria-hidden="true">
+          <span className={styles.line} style={{ '--o': '0%' } as CSSProperties}>
+            reading
+          </span>
+          <span className={styles.line} style={{ '--o': '14%' } as CSSProperties}>
+            the chart<span className={styles.cursor}>_</span>
+          </span>
+        </h2>
+      )}
+
       {isLoading || !bodyShown ? null : hasError ? (
+        <>
+        <h2 className={styles.phrase}>
+          {staggerLines('no connection to the reading', seed ?? 'offline').map((line, i) => (
+            <span key={i} className={styles.line} style={{ '--o': line.offset } as CSSProperties}>
+              {line.text}
+            </span>
+          ))}
+        </h2>
         <div style={{ marginTop: 12 }}>
           <p className={styles.moduleQuiet}>&gt; NO CONNECTION TO THE READING.</p>
           {onRetry && (
-            <button type="button" className={styles.moduleRetry} onClick={onRetry}>
+            <button type="button" className={`${styles.moduleRetry} sg-retro`} onClick={onRetry}>
               retry
             </button>
           )}
         </div>
+        </>
       ) : isRateLimited && !insight ? (
         <>
           <h2>thank you for using slow garden</h2>
@@ -210,15 +240,23 @@ export function Module({
         </>
       ) : (
         <>
-          <h2>{keyPhrase || 'what this could mean for you'}</h2>
-          <p>{insight}</p>
+          <h2 className={styles.phrase}>
+            {staggerLines(keyPhrase || 'what this could mean for you', seed ?? keyPhrase).map((line, i) => (
+              <span key={i} className={styles.line} style={{ '--o': line.offset } as CSSProperties}>
+                {line.text}
+              </span>
+            ))}
+          </h2>
+          <p className={styles.insight}>{withLead(insight, [keyPhrase, ...terms])}</p>
 
           {patternShown && patterns && patterns.length > 0 && <PatternStamps patterns={patterns} />}
 
           {action && (
             <div className={styles.try}>
-              <div className={styles.tryLabel}>try this</div>
-              <p>{action}</p>
+              <div className={styles.tryLabel}>
+                <span className={styles.mark}>&gt; try this</span>
+              </div>
+              <p className={styles.pull}>{emphasise(action, [keyPhrase, ...terms])}</p>
             </div>
           )}
 
@@ -226,7 +264,7 @@ export function Module({
             <div className={styles.explain}>
               <button
                 type="button"
-                className={styles.moduleRetry}
+                className={`${styles.moduleRetry} sg-retro`}
                 style={{ marginTop: 0 }}
                 onClick={() => setIsExpanded(!isExpanded)}
                 aria-expanded={isExpanded}

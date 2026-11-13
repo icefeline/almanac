@@ -15,11 +15,14 @@ const DESKTOP_SCALE = 909 / 748;
 const WELCOME_PX = 26;
 import AsciiFlower from './AsciiFlower';
 import Wordmark from './Wordmark';
+import AlmanacSplash from './AlmanacSplash';
+import SkyBackground from './SkyBackground';
 import {
   ObBack, ObHead, ObFields, ObTag, ObHint, ObToggle, ObPermission, ObCta,
-  fieldStyle, obValue, obPx, LIME, BONE,
+  fieldStyle, obValue, obPx, LIME, BONE, bodyOf,
   COBALT, INK,
 } from './onboarding-ui';
+import type { Tone } from './onboarding-ui';
 import { clearHere, getHere, hasHere } from '@/lib/utils/here';
 
 /** The reader's answer to "use my location", kept next to the personalise flag. */
@@ -190,6 +193,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   /** Design canvas is 356 wide; scale it to whatever the phone actually is. */
   const [mobileScale, setMobileScale] = useState(1);
+  // the sky sets data-night on the page once the sun is down; the step screens follow it
+  const [night, setNight] = useState(false);
+  useEffect(() => {
+    const el = document.documentElement;
+    const read = () => setNight(el.hasAttribute('data-night'));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(el, { attributes: true, attributeFilter: ['data-night'] });
+    return () => mo.disconnect();
+  }, []);
 
   // Location geocode feedback
   const [locationResolved, setLocationResolved] = useState<string | null>(null);
@@ -236,7 +249,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       if (base && w === base.w && h < base.h) return; // keyboard, not a new viewport
       baseViewportRef.current = { w, h };
       setIsMobile(w < 768);
-      setMobileScale(Math.min(w / 356, h / 748));
+      setMobileScale(Math.min(w / 356, h / 748, w >= 768 ? 1.3 : Infinity));
       setBaseHeight(h);
     };
     check();
@@ -538,9 +551,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       const date = new Date(year, month - 1, day);
       const today = new Date();
       if (date.getMonth() + 1 !== month || date.getDate() !== day || date.getFullYear() !== year) {
-        setDateError('please enter a valid date');
+        setDateError('that date isn’t quite right. try dd/mm/yyyy.');
       } else if (date > today) {
-        setDateError('birthdate cannot be in the future');
+        setDateError('that date hasn’t happened yet. check the year?');
       } else { setDateError(''); }
     } else { setDateError(''); }
   };
@@ -554,7 +567,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (digitsOnly.length === 4) {
       const hours = parseInt(digitsOnly.slice(0, 2));
       const minutes = parseInt(digitsOnly.slice(2, 4));
-      if (hours > 23 || minutes > 59) { setTimeError('please enter a valid time (00:00-23:59)'); }
+      if (hours > 23 || minutes > 59) { setTimeError('that time isn’t quite right. use 24-hour time, like 14:30.'); }
       else { setTimeError(''); }
     } else { setTimeError(''); }
   };
@@ -567,11 +580,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (value.length === 0) { setLocationError(''); return; }
     if (value.includes(',')) {
       const parts = value.split(',').map(p => p.trim());
-      if (parts[1] && parts[1].length > 0 && parts[1].length < 2) { setLocationError('please enter a valid location'); return; }
-      if (parts[0].length < 2) { setLocationError('please enter a valid location'); return; }
+      if (parts[1] && parts[1].length > 0 && parts[1].length < 2) { setLocationError('try a city and a country.'); return; }
+      if (parts[0].length < 2) { setLocationError('try a city and a country.'); return; }
       setLocationError('');
     } else {
-      if (value.trim().length < 2) { setLocationError('please enter a valid location'); return; }
+      if (value.trim().length < 2) { setLocationError('try a city and a country.'); return; }
       setLocationError('');
     }
 
@@ -633,145 +646,64 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   const sunInsights: { [key: string]: string } = {
-    aries: "you carry more under the surface than people tend to see. there's a lot more going on than you tend to show, and that's what makes this interesting.",
-    taurus: "you hold things together in ways others only notice when you stop. there's something in you that needs far more than it asks for.",
-    gemini: "you think fast and feel deeply, and most people only catch one of those things. the cards tend to find both.",
-    cancer: "you absorb more than you let on — other people's heaviness, old patterns, things that were never even yours. it shows up.",
-    leo: "there's more tenderness in you than the confidence suggests. it's often the softer version that people actually need.",
-    virgo: "you notice everything, including the things that would be easier to miss. the cards like working with that kind of attention.",
-    libra: "you carry a lot for the people around you and make it look effortless. the cards are good at finding what that costs.",
-    scorpio: "you already sense more than you're saying — about the situation, about people, about yourself. the cards just confirm it.",
-    sagittarius: "you keep looking forward because standing still feels uncomfortable. there's usually something worth pausing for.",
-    capricorn: "you hold everything together and almost never let anyone see the effort. the cards notice what you've stopped noticing about yourself.",
-    aquarius: "you observe more than you participate. the cards tend to ask what you're watching from that distance.",
-    pisces: "everything you feel lands twice as hard because you feel it for yourself and for everyone else. sorting that out is the real work.",
+    aries: "you tend to start before you're sure. the sureness usually turns up on the way, and sometimes a day late.",
+    taurus: "you're the one who stays put when things get loud. it looks like calm from the outside, and takes more holding than anyone sees.",
+    gemini: "your mind runs two or three threads at once, and your feelings follow the quieter one. people mostly hear the quick one.",
+    cancer: "you remember how a room felt long after you've left it. what you carry for other people is rarely on any list.",
+    leo: "you light up a room easily. what's harder is being looked at on the days you'd rather be soft and unlit.",
+    virgo: "you notice the loose thread before anyone else does, and then you notice yourself noticing it. both are tiring.",
+    libra: "you smooth things over so well that nobody asks what it costs. you'd probably like to be asked.",
+    scorpio: "you usually know what's going on before anyone says it. what you do with the knowing is slower, and private.",
+    sagittarius: "you keep one eye on the next place. staying put can feel like a small emergency, even when nothing's wrong.",
+    capricorn: "you carry a lot and make it look like nothing. the weight is real, even on days nobody checks.",
+    aquarius: "you watch from a step back and see more because of it. the distance is part of how you care.",
+    pisces: "you pick up the mood in a room before you've decided to. it can be hard to tell whose feeling you're holding.",
   };
 
   // Short mobile-only insights (1 sentence each)
-  const sunInsightsMobile: { [key: string]: string } = {
-    aries: "you carry more under the surface than people know.",
-    taurus: "steadiness that costs more than it looks.",
-    gemini: "quick on the outside, much deeper underneath.",
-    cancer: "you absorb so much that isn't yours to carry.",
-    leo: "more tender than the confidence suggests.",
-    virgo: "you notice everything. even the things you'd rather not.",
-    libra: "holding a lot together for everyone.",
-    scorpio: "you already know. you're just waiting to be sure.",
-    sagittarius: "always moving so you don't have to stop.",
-    capricorn: "composure that takes effort they can't see.",
-    aquarius: "observing from a distance, feeling it all anyway.",
-    pisces: "everything lands twice as hard when you feel it for everyone.",
-  };
-
-  const moonInsightsMobile: { [key: string]: string } = {
-    aries: "you process by moving, not by sitting still with it.",
-    taurus: "you need solid ground. change shakes you more than anyone sees.",
-    gemini: "you need to talk it through to make sense of what you feel.",
-    cancer: "your emotions go back further than you — it's ancestral weight.",
-    leo: "you need to be seen when you're soft, not just when you're shining.",
-    virgo: "you try to organise feelings like problems to solve. some refuse to be fixed.",
-    libra: "you feel through the people around you until you've lost track of what's yours.",
-    scorpio: "you're all the way in or all the way shut. no in-between.",
-    sagittarius: "you need space around your feelings. when it tightens, it starts to feel like captivity.",
-    capricorn: "you keep vulnerability contained. letting it loose feels like losing control.",
-    aquarius: "you need distance to understand what you feel. raw emotion without analysis panics you.",
-    pisces: "you soak up everything around you. other people's pain becomes yours.",
-  };
-
-  const risingInsightsMobile: { [key: string]: string } = {
-    aries: "you walk in direct and braced. people mistake it for fearlessness.",
-    taurus: "you make people feel safe without trying, even when you're still finding your footing.",
-    gemini: "you shift to match whoever's in front of you, then forget which version is actually you.",
-    cancer: "you lead with softness even when you're trying to protect yourself.",
-    leo: "you take up space without trying, even when you're making yourself smaller.",
-    virgo: "you arrive looking put-together. no one sees how much overthinking it took.",
-    libra: "you make everyone comfortable. sometimes you disappear in the process.",
-    scorpio: "people feel your intensity before you've spoken. small talk is agony.",
-    sagittarius: "you show up open and light. people don't realise you're just better at moving than sitting still.",
-    capricorn: "you look composed and fine. they can't see the pressure you're holding inside.",
-    aquarius: "you show up slightly outside the frame. people either get it or they don't.",
-    pisces: "you absorb the feeling of rooms without meaning to. it takes more from you than they realise.",
-  };
-
-  const numerologyInsightsMobile: { [key: number]: string } = {
-    1: "you're here to lead, even when it's isolating.",
-    2: "you build bridges between people. but sometimes you've lost your own voice in the process.",
-    3: "expression is what you're here to do. holding it back makes it fester.",
-    4: "you're building something meant to last. the pressure of being the stable one is exhausting.",
-    5: "freedom isn't optional for you. you're figuring out how to commit without disappearing.",
-    6: "you're built to care for people. you're learning that martyrdom isn't love.",
-    7: "you're here to go deep. surface conversations make your skin itch.",
-    8: "your path is about legacy. real strength isn't the same as control.",
-    9: "you're always finishing cycles, releasing things even when it hurts.",
-    11: "you pick up on frequencies others can't hear. the sensitivity is overwhelming until you realise it's a gift.",
-    22: "you're here to build something massive. the vision is clear but bringing it to earth takes everything.",
-    33: "you carry a healing frequency people feel before you speak. the responsibility gets heavy.",
-  };
-
-  const getWelcomeMessageMobile = (): string => {
-    if (!birthDate) return '';
-    const sunSign = getSunSign(birthDate);
-    const hasBirthTime = birthTime && !noKnowBirthTime;
-    const hasLocation = birthLocation && birthLocation.trim().length >= 2;
-    if (hasBirthTime && hasLocation) {
-      const moonSign = getMoonSign(birthDate, birthTime);
-      const risingSign = getRisingSign(birthDate, birthTime);
-      return `${name}!\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\n${risingInsightsMobile[risingSign]}\nthe cards are ready — pull one!`;
-    }
-    if (hasBirthTime) {
-      const moonSign = getMoonSign(birthDate, birthTime);
-      return `${name}!\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\nthe cards are excited. pull one!`;
-    }
-    if (hasLocation) {
-      return `${name}!\n${sunInsightsMobile[sunSign]}\nthe cards are ready for you. pull one!`;
-    }
-    const lifePathNumber = getLifePathNumber(birthDate);
-    return `${name}!\n${sunInsightsMobile[sunSign]}\n${numerologyInsightsMobile[lifePathNumber]}\nthe cards are ready. pull one!`;
-  };
-
   const moonInsights: { [key: string]: string } = {
-    aries: "emotionally, you process by moving — you need to do something with it, not sit still.",
-    taurus: "your inner world needs stability. unexpected shifts rattle you harder than most people around you know.",
-    gemini: "you need to talk through what you feel to make sense of it. silence with big emotions doesn't work for you.",
-    cancer: "some of what you carry emotionally is older than you — pattern, not just feeling.",
-    leo: "you need to be seen when you're soft, not just when you're on.",
-    virgo: "you try to organise feelings like problems to solve. some of them refuse.",
-    libra: "you feel through the people around you until you've lost track of what's actually yours.",
-    scorpio: "there's no in-between emotionally — all in or all the way shut.",
-    sagittarius: "you need space around your feelings. too much closeness starts to feel like confinement.",
-    capricorn: "vulnerability feels like losing control. you're slowly learning that it isn't.",
-    aquarius: "you process feelings better from a distance. raw emotion without analysis makes things worse.",
-    pisces: "you absorb everything around you. other people's pain becomes yours before you've noticed.",
+    aries: "feelings go quickly for you, like weather you walk straight through. sitting still with one is the unfamiliar part.",
+    taurus: "your inner life wants steadiness. a sudden change can rattle it for days, even when you're calm about it out loud.",
+    gemini: "you find out what you feel by saying it. a long silence around something big can leave you guessing.",
+    cancer: "some of what you feel is older than you are. it can trace back to a kitchen you stood in as a child.",
+    leo: "you'd like to be seen when you're soft, and not only when you're doing well.",
+    virgo: "you sort feelings the way you'd sort a problem. a few won't go into any pile.",
+    libra: "you feel things through the people near you, sometimes until you can't say which feelings began with you.",
+    scorpio: "it's usually all or nothing in here. the middle is a place you rarely get to rest.",
+    sagittarius: "your feelings need room around them. close attention can start to feel like a fence.",
+    capricorn: "you keep what's tender contained. letting it out can feel like dropping something you were told to hold.",
+    aquarius: "you need a little distance to tell what you feel. when a feeling arrives without any, it's a lot.",
+    pisces: "you take on the mood around you and only later wonder whose it was.",
   };
 
   const risingInsights: { [key: string]: string } = {
-    aries: "you show up direct and ready, even when you're not — people read that as certainty.",
-    taurus: "something in your presence makes people feel settled before you've said anything.",
-    gemini: "you shift to fit whoever's in front of you, which works until you've lost track of which one is you.",
-    cancer: "you lead with care even when you're trying to protect yourself — it comes through anyway.",
-    leo: "you take up space effortlessly, even when you're actively trying not to.",
-    virgo: "you arrive looking composed and prepared. they can't see the analysis that got you there.",
-    libra: "you smooth everything over for everyone. sometimes you disappear a little in the process.",
-    scorpio: "people feel the intensity before you've spoken. small talk genuinely costs you something.",
-    sagittarius: "you come across bright and open. people don't realise you're just faster at moving than stopping.",
-    capricorn: "you carry a composed, reliable presence. the pressure behind it isn't visible.",
-    aquarius: "you arrive slightly outside the frame. people either get that or they don't.",
-    pisces: "you absorb the mood of whatever room you enter. it takes more from you than it looks.",
+    aries: "you walk in direct and a little braced, and people often read that as fearlessness.",
+    taurus: "people feel at ease near you, usually before you've found your own footing.",
+    gemini: "you shift a little to match whoever you're with, and later wonder which version was yours.",
+    cancer: "you lead with softness, even on days you're guarding something.",
+    leo: "you take up room without trying, even on the days you're making yourself smaller.",
+    virgo: "you arrive looking put together. nobody sees the overthinking that got you there.",
+    libra: "you make people comfortable, and sometimes leave yourself out of the room.",
+    scorpio: "your intensity arrives a beat before you do. small talk takes real effort.",
+    sagittarius: "you come across open and light, and a little hard to pin down.",
+    capricorn: "you look composed. the pressure stays on the inside, where nobody can see it.",
+    aquarius: "you stand slightly outside the frame. some people get it right away, and some never will.",
+    pisces: "you soak up a room without meaning to, and it costs you more than it shows.",
   };
 
   const numerologyInsights: { [key: number]: string } = {
-    1: "you're being pushed to lead, even when it feels like a solo thing.",
-    2: "you build bridges between people. sometimes you lose your own voice doing it.",
-    3: "expression is what you're here for. holding it in makes things worse.",
-    4: "you're building something solid, and carrying the weight of being the stable one.",
-    5: "freedom isn't optional for you — you're figuring out how to commit without losing yourself.",
-    6: "you're built to care for people. the line between love and self-erasure is the real work.",
-    7: "you're here to go deep. surface-level anything makes your skin itch.",
-    8: "building something real that lasts. strength and control aren't the same thing.",
-    9: "you're always releasing things that others cling to. that's the path.",
-    11: "you pick up on frequencies others miss. the sensitivity is the gift, even when it's overwhelming.",
-    22: "you're here to build something massive. bringing the vision down to earth is everything.",
-    33: "you carry something people feel before you speak. the weight of that responsibility is real.",
+    1: "you end up leading, even when it's lonely up there.",
+    2: "you build bridges between people, and now and then lose your own voice on the way across.",
+    3: "you seem made for expression, and it sours when you keep it in.",
+    4: "you build things to last. being the steady one gets tiring.",
+    5: "freedom matters a great deal to you. the harder work is committing without disappearing into it.",
+    6: "you're made to care for people. you may be learning that martyrdom isn't love.",
+    7: "you go deep, and surface chatter sets your teeth on edge.",
+    8: "legacy is the theme. real strength and control turn out to be different things.",
+    9: "you're always finishing something, letting go even when it hurts.",
+    11: "you pick up frequencies other people miss. the sensitivity overwhelms you until you find a use for it.",
+    22: "the vision is clear. bringing it down to earth takes everything you have.",
+    33: "people feel something healing in you before you've said a word, and the weight of that grows.",
   };
 
   const getWelcomeMessage = (): string => {
@@ -782,17 +714,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (hasBirthTime && hasLocation) {
       const moonSign = getMoonSign(birthDate, birthTime);
       const risingSign = getRisingSign(birthDate, birthTime);
-      return `${name}!\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\n${risingInsights[risingSign]}\n\nthe cards see all of it — let's find out what's up.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\n${risingInsights[risingSign]}\n\nthat's the whole chart. pull a card whenever you like.`;
     }
     if (hasBirthTime) {
       const moonSign = getMoonSign(birthDate, birthTime);
-      return `${name}!\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\nthe cards get it. pull one when you're ready.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\nthat's what the chart shows so far. pull a card when you feel like it.`;
     }
     if (hasLocation) {
-      return `${name}!\n\n${sunInsights[sunSign]}\n\nthe cards get it. pull one when you're ready.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\nthat's what the chart shows so far. pull a card when you feel like it.`;
     }
     const lifePathNumber = getLifePathNumber(birthDate);
-    return `${name}!\n\n${sunInsights[sunSign]}\n\n${numerologyInsights[lifePathNumber]}\n\nthe cards are ready whenever you are.`;
+    return `${name},\n\n${sunInsights[sunSign]}\n\n${numerologyInsights[lifePathNumber]}\n\nthat's a first sketch of you. pull a card when you're ready.`;
   };
 
   // Typewriter effect — waits for the API-generated welcome message
@@ -968,6 +900,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   // ── Step content (MOBILE) ──────────────────────────────────────────────────────────
   const renderStepContent = () => {
+    // the step screens sit straight on the live sky: cobalt and ink by day, lime and bone at night
+    const T: Tone = night ? 'dark' : 'light';
+    const ACC = night ? LIME : COBALT;
     switch (currentStep) {
       case 0:
         return (
@@ -977,41 +912,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                margins below centre the wordmark in the space above the button */
             style={{ paddingBottom: `${96 * mobileScale}px` }}
           >
-            {/*
-              Logo group — sized off one unit so the wordmark scales with the
-              viewport instead of being pinned to a fixed px size. The unit is
-              width-driven (42vw, the original proportion) until the screen is
-              too short for it — on a landscape phone a pure-vw wordmark grew
-              taller than the viewport and pushed the CTA off-screen — so the
-              height caps it. Every other measurement is a ratio of that unit,
-              keeping the Figma proportions intact at any size.
-              Auto margins centre it in the space above the CTA.
-            */}
-            <div style={{
-              '--wm': 'min(42vw, 34dvh)',
-              position: 'relative',
-              width: '100%',
-              height: 'calc(var(--wm) * 1.6)',
-              marginTop: 'auto',
-              marginBottom: 'auto',
-              flexShrink: 0,
-              overflow: 'visible',
-            } as React.CSSProperties}>
-              {/* Wordmark — 5a, typed out, in the same lime "glass" as before: 20% fill, 80% outline. */}
-              <Wordmark
-                animated="/slow-garden-wordmark-glass.webp"
-                still="/slow-garden-wordmark-glass-still.png"
-                alt="slow garden"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '90%',
-                  maxWidth: '520px',
-                }}
-              />
-            </div>
+            {/* The splash: "almanac" in pixels, orbit rings and sparkles over the live sky. */}
+            <AlmanacSplash tone="sky" />
 
             {/* Sits above the CTA rather than over the wordmark: the reader
                 should meet the name first, and the notice only matters at the
@@ -1019,26 +921,27 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <InAppBrowserNotice scale={mobileScale} />
 
             {/* Continue — the same CTA the rest of the onboarding uses */}
-            <ObCta scale={mobileScale} onClick={handleNext} />
+            <ObCta raise={64} tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} />
           </div>
         );
 
       case 1:
         return (
           <div className="relative w-full h-full">
-            <ObBack tone="dark" scale={mobileScale} onClick={() => setCurrentStep(0)} />
+            <ObBack tone={T} scale={mobileScale} onClick={() => setCurrentStep(0)} />
             <ObHead
-              tone="dark"
+              tone={T}
               scale={mobileScale}
               title={<>WHAT&apos;S<br />YOUR NAME?</>}
-              sub="FIRST NAME IS FINE"
+              eyebrow="▸ HELLO"
+              sub="FIRST NAME ONLY, IF YOU LIKE."
             />
             {/* Sits under the heading, at the permissions step's height, so the
                 field is still in full view once the keyboard is up — rather
                 than at the canvas's midpoint where the keyboard covers it. */}
             <ObFields scale={mobileScale} top={330}>
-              <div style={fieldStyle('dark', mobileScale, true, true)}>
-                <span style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, mobileScale), color: LIME }}>&gt;</span>
+              <div style={fieldStyle(T, mobileScale, true, true)}>
+                <span style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, mobileScale), color: ACC }}>&gt;</span>
                 <input
                   type="text"
                   value={name}
@@ -1046,28 +949,29 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   onKeyDown={(e) => { if (e.key === 'Enter' && canContinueFromName) handleNext(); }}
                   placeholder="YOUR NAME"
                   autoFocus
-                  style={{ ...obValue(mobileScale, true), color: BONE, textTransform: 'uppercase' }}
+                  style={{ ...obValue(mobileScale, true), color: bodyOf(T), textTransform: 'uppercase' }}
                 />
               </div>
-              <ObHint tone="dark" scale={mobileScale}>STORED ON YOUR DEVICE ONLY</ObHint>
+              <ObHint tone={T} scale={mobileScale}>SAVED ON THIS DEVICE. THERE IS NO ACCOUNT.</ObHint>
+              <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} disabled={!canContinueFromName} />
             </ObFields>
-            <ObCta scale={mobileScale} onClick={handleNext} disabled={!canContinueFromName} />
           </div>
         );
 
       case 2:
         return (
           <div className="relative w-full h-full">
-            <ObBack tone="dark" scale={mobileScale} onClick={() => setCurrentStep(1)} />
+            <ObBack tone={T} scale={mobileScale} onClick={() => setCurrentStep(1)} />
             <ObHead
-              tone="dark"
+              tone={T}
               scale={mobileScale}
               title={<>WHEN WERE<br />YOU BORN?</>}
-              sub="SLOW GARDEN READS A VEDIC CHART."
+              eyebrow="▸ YOUR STARS"
+              sub="ONLY THE DATE IS NEEDED. TIME AND PLACE MAKE YOUR CHART MORE EXACT."
             />
             <ObFields scale={mobileScale} stack top={330}>
               <div>
-                <div style={fieldStyle('dark', mobileScale, birthDate.length > 0)}>
+                <div style={fieldStyle(T, mobileScale, birthDate.length > 0)}>
                   <input
                     type="text"
                     placeholder="DD/MM/YYYY"
@@ -1081,15 +985,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                       }
                     }}
                     maxLength={10}
-                    style={{ ...obValue(mobileScale), color: BONE }}
+                    style={{ ...obValue(mobileScale), color: bodyOf(T) }}
                   />
-                  <ObTag tone="dark" scale={mobileScale} required />
+                  <ObTag tone={T} scale={mobileScale} required />
                 </div>
-                {dateError && <FieldError message={dateError} variant="dark" />}
+                {dateError && <FieldError message={dateError} variant={T} />}
               </div>
 
               <div>
-                <div style={fieldStyle('dark', mobileScale, birthTime.length > 0)}>
+                <div style={fieldStyle(T, mobileScale, birthTime.length > 0)}>
                   <input
                     type="text"
                     placeholder="HH:MM"
@@ -1102,72 +1006,73 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                       }
                     }}
                     maxLength={5}
-                    style={{ ...obValue(mobileScale), color: BONE }}
+                    style={{ ...obValue(mobileScale), color: bodyOf(T) }}
                   />
-                  <ObTag tone="dark" scale={mobileScale} required={false} />
+                  <ObTag tone={T} scale={mobileScale} required={false} />
                 </div>
-                {timeError && <FieldError message={timeError} variant="dark" />}
+                {timeError && <FieldError message={timeError} variant={T} />}
               </div>
 
               <div>
-                <div style={fieldStyle('dark', mobileScale, birthLocation.length > 0)}>
+                <div style={fieldStyle(T, mobileScale, birthLocation.length > 0)}>
                   <input
                     type="text"
                     placeholder="CITY, COUNTRY"
                     value={birthLocation}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    style={{ ...obValue(mobileScale), color: BONE, textTransform: 'uppercase' }}
+                    style={{ ...obValue(mobileScale), color: bodyOf(T), textTransform: 'uppercase' }}
                   />
-                  <ObTag tone="dark" scale={mobileScale} required={false} />
+                  <ObTag tone={T} scale={mobileScale} required={false} />
                 </div>
-                {locationError && <FieldError message={locationError} variant="dark" />}
+                {locationError && <FieldError message={locationError} variant={T} />}
                 {!locationError && locationChecking && (
-                  <ObHint tone="dark" scale={mobileScale}>CHECKING…</ObHint>
+                  <ObHint tone={T} scale={mobileScale}>LOOKING FOR THAT PLACE…</ObHint>
                 )}
                 {!locationError && !locationChecking && locationResolved !== null && (
-                  <ObHint tone="dark" scale={mobileScale}>
-                    {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "COULDN'T FIND THAT — TRY ANOTHER SPELLING"}
+                  <ObHint tone={T} scale={mobileScale}>
+                    {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "NO MATCH FOR THAT. TRY A CITY AND COUNTRY, LIKE LISBON, PORTUGAL."}
                   </ObHint>
                 )}
               </div>
+              <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} disabled={!canContinueFromBirthdate} />
             </ObFields>
-            <ObCta scale={mobileScale} onClick={handleNext} disabled={!canContinueFromBirthdate} />
           </div>
         );
 
       case 3:
         return (
           <div className="relative w-full h-full">
-            <ObBack tone="dark" scale={mobileScale} onClick={() => setCurrentStep(2)} />
+            <ObBack tone={T} scale={mobileScale} onClick={() => setCurrentStep(2)} />
             <ObHead
-              tone="dark"
+              tone={T}
               scale={mobileScale}
               tight
-              title={<>ENABLE<br />PERMISSIONS</>}
-              sub={<>BOTH ARE OPTIONAL, AND BOTH CAN BE<br />TURNED OFF ANY DAY.</>}
+              eyebrow="▸ LAST ONE"
+              title={<>TWO SMALL<br />CHOICES</>}
+              sub={<>BOTH ARE OPTIONAL. SAY NO TO EITHER<br />AND THE APP STILL WORKS.</>}
             />
             <ObFields scale={mobileScale} top={330}>
               <ObPermission
-                tone="dark" scale={mobileScale} label="READ MY CHART"
+                tone={T} scale={mobileScale} label="PERSONAL READINGS"
                 on={personalise} onChange={setPersonalise}
               >
-                READS YOUR CHART AGAINST TODAY'S SKY, SO THE CARD CAN OPEN OUT INTO WHAT IT MIGHT MEAN FOR YOU.
+                SENDS YOUR BIRTH DETAILS TO CLAUDE SO EACH READING IS ABOUT YOU. OFF, AND YOU GET THE CARD'S GENERAL MEANING.
               </ObPermission>
               <ObPermission
-                tone="dark" scale={mobileScale} label="USE MY LOCATION"
+                tone={T} scale={mobileScale} label="WHERE YOU ARE"
                 on={useLocation} onChange={handleLocationToggle}
               >
-                SETS YOUR SUNRISE, SUNSET AND MOON PHASE FROM WHERE YOU ACTUALLY ARE.
+                USES YOUR LOCATION FOR YOUR SUNRISE, SUNSET AND MOON PHASE. WITHOUT IT, THOSE ARE GENERIC.
               </ObPermission>
               {locationBlocked && (
-                <ObHint tone="dark" scale={mobileScale} onClick={() => handleLocationToggle(true)}>
+                <ObHint tone={T} scale={mobileScale} onClick={() => handleLocationToggle(true)}>
                   {locationRetried
-                    ? 'STILL BLOCKED — ALLOW LOCATION FROM THE LOCK ICON IN YOUR ADDRESS BAR'
-                    : 'YOUR BROWSER BLOCKED LOCATION — TAP TO ASK AGAIN'}
+                    ? 'STILL NOT ALLOWED. YOU CAN SWITCH IT ON FROM THE LOCK ICON IN YOUR ADDRESS BAR.'
+                    : 'YOUR BROWSER SAID NO TO LOCATION. TAP TO ASK AGAIN.'}
                 </ObHint>
               )}
+              <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} />
             </ObFields>
-            <ObCta scale={mobileScale} onClick={handleNext} />
           </div>
         );
 
@@ -1188,7 +1093,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           >
             {isLoadingWelcome && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <AsciiFlower color={LIME} label="reading your chart" />
+                <AsciiFlower color={ACC} label="reading your chart" />
               </div>
             )}
 
@@ -1207,7 +1112,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{
                     fontFamily: 'var(--font-vt323), monospace',
                     fontSize: obPx(readingPx * 1.5, mobileScale),
-                    lineHeight: 1, color: LIME, textShadow: '0 2px 16px rgba(0,0,0,.5)',
+                    lineHeight: 1, color: ACC, textShadow: night ? '0 2px 16px rgba(0,0,0,.5)' : undefined,
                     textTransform: 'uppercase',
                   }}
                 >
@@ -1223,8 +1128,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     style={{
                       fontFamily: 'var(--font-vt323), monospace',
                       fontSize: obPx(readingPx, mobileScale), letterSpacing: '0.01em',
-                      lineHeight: 1.2, color: BONE, textTransform: 'uppercase',
-                      textShadow: '0 2px 16px rgba(0,0,0,.5)',
+                      lineHeight: 1.2, color: bodyOf(T), textTransform: 'uppercase',
+                      textShadow: night ? '0 2px 16px rgba(0,0,0,.5)' : undefined,
                       whiteSpace: 'pre-line',
                     }}
                   >
@@ -1259,7 +1164,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <span
                 style={{
                   fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, mobileScale),
-                  color: LIME, paddingBottom: obPx(8, mobileScale),
+                  color: ACC, paddingBottom: obPx(8, mobileScale),
                 }}
               >
                 ← DRAG ME
@@ -1301,6 +1206,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   // ── Main render ───────────────────────────────────────────────────────────
   return (
     <div
+      data-onboarding=""
       className="relative min-h-screen w-full overflow-hidden"
       style={{
         // dvh, not vh: on a phone with its browser toolbars showing, 100vh is taller than what is visible, so
@@ -1311,17 +1217,12 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         transition: shouldCrumble ? 'opacity 1s ease-out, filter 1s ease-out' : 'none',
       }}
     >
-      {/* Background video */}
-      <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
-        <source src="/onboarding-bg.mp4" type="video/mp4" />
-      </video>
-
-      {/* Dark overlay so text is readable over video */}
-      <div className="absolute inset-0 bg-[#172211]/60" />
+      {/* Real-time dithered sky, same as the main app. Brings its own scrim. */}
+      <SkyBackground />
 
       {/* ── MOBILE layout — full screen, no device frame ── */}
       <div
-        className={`md:hidden relative z-10 flex flex-col
+        className={`${currentStep === 0 ? 'md:hidden' : ''} relative z-10 flex flex-col
         ${currentStep === 0 ? '' : isDesignStep ? '' : 'px-5'}
         ${currentStep === 4 ? 'overflow-hidden' : currentStep === 0 || isDesignStep ? '' : 'py-8'}`}
         /* held at the pre-keyboard height for the same reason the scale is —
@@ -1340,7 +1241,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           <div className="flex-1 flex items-center justify-center w-full">
             <div
               className="relative w-full"
-              style={{ height: 748 * mobileScale }}
+              style={{ height: 748 * mobileScale, maxWidth: isMobile ? undefined : 356 * mobileScale }}
             >
               {renderStepContent()}
             </div>
@@ -1356,343 +1257,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       </div>
 
       {/* ── DESKTOP layout — device frame, proportionally scaled to fit viewport ── */}
-      <div className="hidden md:flex relative z-10 items-center justify-center min-h-screen" style={{ minHeight: '100dvh' }}>
-        {/*
-          Outer sizing box: gives the flex container real dimensions (scaled) so
-          centering works correctly without relying on the absolutely-positioned children.
-          translateX compensates for the screen being off-center within the 801px frame
-          artwork (the frame's screen cutout sits left of canvas-center to make room for
-          the fanned deck) — without it, flex centers the artwork but the readable
-          header/fields inside the screen end up left-of-viewport-center. Using a transform
-          (not margin) so the shift is exact — margin gets half-absorbed by flex centering.
-        */}
-        <div style={{ position: 'relative', width: `${801 * deviceScale}px`, height: `${1000 * deviceScale}px`, transform: `translateX(${67.935 * deviceScale}px)` }}>
-          {/*
-            Inner natural-size container scaled via transform.
-            Both the device frame image and the content area live here at their natural
-            pixel sizes, so they always stay in exact proportion regardless of viewport.
-          */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '801px',
-              height: '1000px',
-              transformOrigin: 'top left',
-              transform: `scale(${deviceScale})`,
-            }}
-          >
-            {/* Device frame with deck fan */}
-            <img
-              src="/device-frame-deck-swirl.png"
-              alt=""
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '801px',
-                height: '1000px',
-                objectFit: 'contain',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
-            />
-
-            {/* Blue screen content area — positioned to sit exactly inside the device frame image */}
-            <div
-              className="overflow-hidden absolute z-20"
-              style={{
-                width: '647px',
-                height: '909px',
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-60.5%, -50%)',
-                background: '#F7F4E6',
-              }}
-            >
-              {/* Card-back pattern, softened — shown on all onboarding steps */}
-              <img
-                src="/card-back-swirl.png"
-                alt=""
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  opacity: 0.1,
-                  pointerEvents: 'none',
-                  zIndex: 0,
-                }}
-              />
-              {/* Desktop content uses original dark-on-light styling */}
-              <div className={`h-full overflow-y-auto ${currentStep === 0 || isDesignStep ? '' : 'px-12'}`} style={{ color: '#172211', position: 'relative', zIndex: 1 }}>
-
-                {/* Step 0 — welcome / logo */}
-                {currentStep === 0 && (
-                  <div className="flex flex-col h-full" style={{ position: 'relative' }}>
-                    {/* Content — flex column; font metrics from Figma ×1.1234 scale, spiral mobile-proportioned */}
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-                      {/* Logo group: full width, overflow visible so text bleeds edges.
-                          Centred in the space above the CTA — the button's band
-                          (62 tall, 34 from the bottom) is excluded, not divided. */}
-                      <div style={{
-                        position: 'absolute',
-                        top: `${((909 - 96 * DESKTOP_SCALE) - 435) / 2}px`,
-                        left: 0,
-                        right: 0,
-                        height: '435px',
-                        overflow: 'visible',
-                      }}>
-                        {/* Wordmark — 5a, typed out, navy with a lime shadow on the light window */}
-                        <Wordmark
-                          animated="/slow-garden-wordmark-navy.gif"
-                          still="/slow-garden-wordmark-navy-still.png"
-                          alt="slow garden"
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '92%',
-                          }}
-                        />
-                      </div>
-                      {/* Continue — the same CTA the rest of the onboarding uses */}
-                      <ObCta scale={DESKTOP_SCALE} onClick={handleNext} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Steps 1-3 — the design canvas, centred in the panel */}
-                {isDesignStep && (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <div
-                      className="relative w-full"
-                      style={{ height: 748 * DESKTOP_SCALE }}
-                    >
-                      {currentStep === 1 && (
-                        <>
-                          <ObBack tone="light" scale={DESKTOP_SCALE} onClick={() => setCurrentStep(0)} />
-                          <ObHead
-                            tone="light"
-                            scale={DESKTOP_SCALE}
-                            title={<>WHAT&apos;S<br />YOUR NAME?</>}
-                            sub="FIRST NAME IS FINE"
-                          />
-                          <ObFields scale={DESKTOP_SCALE} top={330}>
-                            <div style={fieldStyle('light', DESKTOP_SCALE, true, true)}>
-                              <span style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, DESKTOP_SCALE), color: COBALT }}>&gt;</span>
-                              <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' && canContinueFromName) handleNext(); }}
-                                placeholder="YOUR NAME"
-                                autoFocus
-                                style={{ ...obValue(DESKTOP_SCALE, true), color: INK, textTransform: 'uppercase' }}
-                              />
-                            </div>
-                            <ObHint tone="light" scale={DESKTOP_SCALE}>STORED ON YOUR DEVICE ONLY</ObHint>
-                          </ObFields>
-                          <ObCta scale={DESKTOP_SCALE} onClick={handleNext} disabled={!canContinueFromName} />
-                        </>
-                      )}
-
-                      {currentStep === 2 && (
-                        <>
-                          <ObBack tone="light" scale={DESKTOP_SCALE} onClick={() => setCurrentStep(1)} />
-                          <ObHead
-                            tone="light"
-                            scale={DESKTOP_SCALE}
-                            title={<>WHEN WERE<br />YOU BORN?</>}
-                            sub="SLOW GARDEN READS A VEDIC CHART."
-                          />
-                          <ObFields scale={DESKTOP_SCALE} stack top={330}>
-                            <div>
-                              <div style={fieldStyle('light', DESKTOP_SCALE, birthDate.length > 0)}>
-                                <input
-                                  type="text"
-                                  placeholder="DD/MM/YYYY"
-                                  value={birthDate}
-                                  onChange={(e) => handleDateChange(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && canContinueFromBirthdate) handleNext();
-                                    if (e.key === 'Backspace' && birthDate.length > 0) {
-                                      e.preventDefault();
-                                      handleDateChange(birthDate.replace(/\D/g, '').slice(0, -1));
-                                    }
-                                  }}
-                                  maxLength={10}
-                                  style={{ ...obValue(DESKTOP_SCALE), color: INK }}
-                                />
-                                <ObTag tone="light" scale={DESKTOP_SCALE} required />
-                              </div>
-                              {dateError && <FieldError message={dateError} variant="light" />}
-                            </div>
-
-                            <div>
-                              <div style={fieldStyle('light', DESKTOP_SCALE, birthTime.length > 0)}>
-                                <input
-                                  type="text"
-                                  placeholder="HH:MM"
-                                  value={birthTime}
-                                  onChange={(e) => handleTimeChange(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Backspace' && birthTime.length > 0) {
-                                      e.preventDefault();
-                                      handleTimeChange(birthTime.replace(/\D/g, '').slice(0, -1));
-                                    }
-                                  }}
-                                  maxLength={5}
-                                  style={{ ...obValue(DESKTOP_SCALE), color: INK }}
-                                />
-                                <ObTag tone="light" scale={DESKTOP_SCALE} required={false} />
-                              </div>
-                              {timeError && <FieldError message={timeError} variant="light" />}
-                            </div>
-
-                            <div>
-                              <div style={fieldStyle('light', DESKTOP_SCALE, birthLocation.length > 0)}>
-                                <input
-                                  type="text"
-                                  placeholder="CITY, COUNTRY"
-                                  value={birthLocation}
-                                  onChange={(e) => handleLocationChange(e.target.value)}
-                                  style={{ ...obValue(DESKTOP_SCALE), color: INK, textTransform: 'uppercase' }}
-                                />
-                                <ObTag tone="light" scale={DESKTOP_SCALE} required={false} />
-                              </div>
-                              {locationError && <FieldError message={locationError} variant="light" />}
-                              {!locationError && locationChecking && (
-                                <ObHint tone="light" scale={DESKTOP_SCALE}>CHECKING…</ObHint>
-                              )}
-                              {!locationError && !locationChecking && locationResolved !== null && (
-                                <ObHint tone="light" scale={DESKTOP_SCALE}>
-                                  {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "COULDN'T FIND THAT — TRY ANOTHER SPELLING"}
-                                </ObHint>
-                              )}
-                            </div>
-                          </ObFields>
-                          <ObCta scale={DESKTOP_SCALE} onClick={handleNext} disabled={!canContinueFromBirthdate} />
-                        </>
-                      )}
-
-                      {currentStep === 4 && (() => {
-                        const { title: rTitle, body: rBody } = readingParts();
-                        return (
-                          <>
-                            {isLoadingWelcome && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <AsciiFlower color={COBALT} weight={500} label="reading your chart" />
-                              </div>
-                            )}
-
-                            {!isLoadingWelcome && (
-                              <div
-                                style={{
-                                  position: 'absolute', left: obPx(24, DESKTOP_SCALE), right: obPx(24, DESKTOP_SCALE),
-                                  top: obPx(80, DESKTOP_SCALE), display: 'flex', flexDirection: 'column',
-                                  gap: obPx(14, DESKTOP_SCALE),
-                                  maxHeight: obPx(500, DESKTOP_SCALE), overflowY: 'auto',
-                                }}
-                              >
-                                <div style={{
-                                  fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(WELCOME_PX, DESKTOP_SCALE),
-                                  lineHeight: 1.15, color: COBALT, textTransform: 'uppercase',
-                                }}>
-                                  {rTitle}
-                                </div>
-                                {rBody && (
-                                  <div style={{
-                                    fontFamily: 'var(--font-vt323), monospace',
-                                    fontSize: obPx(WELCOME_PX, DESKTOP_SCALE),
-                                    lineHeight: 1.15, color: COBALT, textTransform: 'uppercase',
-                                    whiteSpace: 'pre-line',
-                                  }}>
-                                    {rBody}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            <div
-                              style={{
-                                position: 'absolute', left: obPx(24, DESKTOP_SCALE), right: obPx(24, DESKTOP_SCALE),
-                                bottom: obPx(34, DESKTOP_SCALE), display: 'flex', alignItems: 'flex-end',
-                                gap: obPx(16, DESKTOP_SCALE),
-                                visibility: isTypingComplete && !isDragging ? 'visible' : 'hidden',
-                              }}
-                            >
-                              <img
-                                src="/card-back-swirl.png"
-                                alt="Card back"
-                                className="select-none"
-                                style={{
-                                  width: obPx(140, DESKTOP_SCALE), height: obPx(210, DESKTOP_SCALE),
-                                  objectFit: 'cover', cursor: 'grab',
-                                  userSelect: 'none', WebkitUserSelect: 'none',
-                                }}
-                                onMouseDown={handleMouseDown}
-                                draggable="false"
-                              />
-                              <span style={{
-                                fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, DESKTOP_SCALE),
-                                color: COBALT, paddingBottom: obPx(8, DESKTOP_SCALE),
-                              }}>
-                                ← DRAG ME
-                              </span>
-                            </div>
-                          </>
-                        );
-                      })()}
-
-                      {currentStep === 3 && (
-                        <>
-                          <ObBack tone="light" scale={DESKTOP_SCALE} onClick={() => setCurrentStep(2)} />
-                          <ObHead
-                            tone="light"
-                            scale={DESKTOP_SCALE}
-                            tight
-                            title={<>ENABLE<br />PERMISSIONS</>}
-                            sub={<>BOTH ARE OPTIONAL, AND BOTH CAN BE<br />TURNED OFF ANY DAY.</>}
-                          />
-                          <ObFields scale={DESKTOP_SCALE} top={330}>
-                            <ObPermission
-                              tone="light" scale={DESKTOP_SCALE} label="READ MY CHART"
-                              on={personalise} onChange={setPersonalise}
-                            >
-                              READS YOUR CHART AGAINST TODAY'S SKY, SO THE CARD CAN OPEN OUT INTO WHAT IT MIGHT MEAN FOR YOU.
-                            </ObPermission>
-                            <ObPermission
-                              tone="light" scale={DESKTOP_SCALE} label="USE MY LOCATION"
-                              on={useLocation} onChange={handleLocationToggle}
-                            >
-                              SETS YOUR SUNRISE, SUNSET AND MOON PHASE FROM WHERE YOU ACTUALLY ARE.
-                            </ObPermission>
-                            {locationBlocked && (
-                              <ObHint tone="light" scale={DESKTOP_SCALE} onClick={() => handleLocationToggle(true)}>
-                                {locationRetried
-                                  ? 'STILL BLOCKED — ALLOW LOCATION FROM THE LOCK ICON IN YOUR ADDRESS BAR'
-                                  : 'YOUR BROWSER BLOCKED LOCATION — CLICK TO ASK AGAIN'}
-                              </ObHint>
-                            )}
-                          </ObFields>
-                          <ObCta scale={DESKTOP_SCALE} onClick={handleNext} />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-
-              </div>
-            </div>
+      {/* ── DESKTOP splash — no window: the poster sits straight on the live sky ── */}
+      {currentStep === 0 && (
+        <div className="hidden md:block fixed inset-0 z-10">
+          <AlmanacSplash tone="sky" />
+          <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 'min(100%, 560px)', transform: 'translateX(-50%)' }}>
+            <ObCta raise={80} tone={night ? 'dark' : 'light'} scale={DESKTOP_SCALE} onClick={handleNext} />
           </div>
         </div>
-      </div>
+      )}
+
 
       {/* Cascaded cards trail */}
       {cascadedCards.map((card, index) => {
