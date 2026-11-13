@@ -2394,4 +2394,6 @@ details[open] > .fold::after { content: '\2212'; }
   color: var(--pen);
   -webkit-text-stroke: .35px currentColor;
 }
-.sheet .scene .module > .explain p strong { font-weight: inherit; }
+.sheet .scene .module > .explain { --label: #3F3F3F; }
+:global(:root[data-night]) .sheet .scene .module > .explain { --label: #C8C8C8; }
+.sheet .scene .module > .explain p strong { font-weight: inherit; color: var(--label); -webkit-text-stroke: .35px currentColor; }
