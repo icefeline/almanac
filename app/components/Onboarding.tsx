@@ -1105,6 +1105,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   gap: obPx(14, mobileScale),
                   // Fits by shrinking, so it never scrolls and never clips.
                   flex: '1 1 auto', minHeight: 0, overflow: 'hidden',
+                  // A veil of paper (ink at night) behind the words, so they read against the busy, changing sky at any hour of the day.
+                  background: night ? 'rgba(14, 20, 17, .6)' : 'rgba(247, 244, 230, .72)',
+                  backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
+                  paddingTop: obPx(16, mobileScale), paddingBottom: obPx(16, mobileScale),
                 }}
                 ref={messageRef}
               >

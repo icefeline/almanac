@@ -2397,3 +2397,11 @@ details[open] > .fold::after { content: '\2212'; }
 .sheet .scene .module > .explain { --label: #3F3F3F; }
 :global(:root[data-night]) .sheet .scene .module > .explain { --label: #C8C8C8; }
 .sheet .scene .module > .explain p strong { font-weight: inherit; color: var(--label); -webkit-text-stroke: .35px currentColor; }
+
+/* phones: scenes keep 40px under their content (the Pick Card pill is a dev tool and is not there for readers), so Share this card sits low,
+   and the distill field uses the whole screen below its heading: edge to edge, down to 24px from the foot */
+@media (max-width: 760px) {
+  .sheet .scene:not(.sceneHero) { padding-bottom: calc(var(--sab, 0px) + 40px); }
+  .sheet .scene .input { min-height: calc(100dvh - var(--sat, 0px) - 78px - var(--sab, 0px) - 40px); }
+  .sheet .scene .distillScene { inset: calc(var(--sat, 0px) + 100px) 0 24px 0; }
+}
