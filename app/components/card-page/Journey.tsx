@@ -22,8 +22,8 @@ import styles from './card-page.module.css';
 /** A square-ended arrow, pointing right and turned by `turn` degrees. */
 function CueArrow({ turn }: { turn: number }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ transform: `rotate(${turn}deg)` }}>
-      <path d="M3 12h17M13 5l7 7-7 7" stroke="currentColor" strokeWidth="3" strokeLinecap="square" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ transform: `rotate(${turn}deg)` }}>
+      <path d="M3 12h17M13 5l7 7-7 7" stroke="currentColor" strokeWidth="3.4" strokeLinecap="square" />
     </svg>
   );
 }
@@ -278,19 +278,18 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
       <div ref={ref} className={styles.journey} tabIndex={0} role="region" aria-label="The reading. Scroll sideways.">
         <div className={styles.track}>{children}</div>
       </div>
-      {cue && (more.right || more.down) && (
-        <div className={styles.cue} aria-hidden="false">
-          {more.down && (
-            <button type="button" className={styles.cueBtn} onClick={goDown} aria-label="Scroll down">
-              <CueArrow turn={90} />
-            </button>
-          )}
-          {more.right && (
-            <button type="button" className={styles.cueBtn} onClick={goRight} aria-label="Next section">
-              <CueArrow turn={0} />
-            </button>
-          )}
-        </div>
+      {/* two paper tabs in the lime of the pull tab on the leaf: one hangs off the foot of the screen when there is more of this
+          scene below, one off the right edge when there is another scene beside it */}
+      {cue && more.down && (
+        <button type="button" className={styles.tabDown} onClick={goDown} aria-label="Scroll down">
+          <span>scroll</span>
+          <CueArrow turn={90} />
+        </button>
+      )}
+      {cue && more.right && (
+        <button type="button" className={styles.tabRight} onClick={goRight} aria-label="Next section">
+          <CueArrow turn={0} />
+        </button>
       )}
     </>
   );

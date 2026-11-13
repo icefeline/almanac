@@ -159,14 +159,16 @@ function SignBlock({ sign, deg, solid }: { sign: string; deg: number; solid: boo
         background: solid ? INK : 'transparent',
         color: solid ? PAPER : INK,
         border: `1px solid ${INK}`,
-        padding: '0 0.5em',
+        padding: '0 0.4em',
         whiteSpace: 'nowrap',
+        minWidth: 0,
+        overflow: 'hidden',
         fontSize: '0.9em',
         fontWeight: 500,
         lineHeight: 1.35,
       }}
     >
-      <span aria-hidden="true">{GLYPH[sign]}{'\uFE0E'}</span> {sign} {deg}°
+      <span aria-hidden="true" style={{ fontFamily: '"Apple Symbols", "Noto Sans Symbols", "Segoe UI Symbol", var(--font-dm-mono), monospace', fontVariantEmoji: 'text' } as CSSProperties}>{GLYPH[sign]}{'\uFE0E'}</span> {sign} {deg}°
     </span>
   );
 }
@@ -406,7 +408,7 @@ export default function TearSheet({
   const sans = 'var(--font-dm-sans), sans-serif';
   const ink = INK;
   // the text of the page, set like film credits: DM Mono capitals in the page's blue. A small label, then its figure.
-  const label: CSSProperties = { gridColumn: 1, fontSize: '0.6em', letterSpacing: '.1em', textAlign: 'right', opacity: 0.9 };
+  const label: CSSProperties = { gridColumn: 1, fontSize: '0.6em', letterSpacing: '.1em', opacity: 0.9 };
   const value: CSSProperties = { gridColumn: 2, fontWeight: 500, fontSize: '1.08em' };
   const gap: CSSProperties = {};
 
@@ -456,6 +458,16 @@ export default function TearSheet({
           .tc-signs { grid-template-columns: calc(var(--s) * 4.3) 1fr 1fr; }
           .tc-strip { display: flex; gap: 2px; min-width: 0; width: 100%; }
           .tc-strip i { flex: 1 1 0; min-width: 0; }
+          .tc-label { text-align: right; white-space: nowrap; }
+          .tc-cap { text-align: left; }
+          /* a phone: the labels sit on the left edge and the figures start right after them, so nothing is wasted on the left,
+             and the two sign boxes share what is left of the width instead of running off it */
+          @container (max-width: 599px) {
+            .tc-label { text-align: left; }
+            .tc-group { grid-template-columns: calc(var(--s) * 4.1) minmax(0, 1fr); column-gap: calc(var(--s) * 0.6); }
+            .tc-signs { grid-template-columns: calc(var(--s) * 4.1) minmax(0, 1fr) minmax(0, 1fr); }
+            .tc-signs > .tc-cap { padding-left: 0.2em; }
+          }
           @container (min-width: 900px) {
             .tear-col { --s: clamp(12px, min(1.95dvh, 1.15vw), 24px); }
             .tc-top { font-size: calc(var(--s) * 1.2); }
@@ -492,7 +504,7 @@ export default function TearSheet({
           {/* what the sky is doing, set like film credits: a small label at the left, its figure beside it */}
           <div className="tc-wrap">
             <div className="tc-group">
-              <span style={label}>moon</span>
+              <span className="tc-label" style={label}>moon</span>
               <span style={{ ...value, display: 'flex', alignItems: 'center', gap: '0.5em' }}>
                 <Moon phase={sky.phase} size="1.25em" ink={INK} />
                 {sky.lit}% lit
@@ -502,26 +514,26 @@ export default function TearSheet({
             </div>
 
             <div className="tc-group tc-signs">
-              <span style={label}>sun</span>
+              <span className="tc-label" style={label}>sun</span>
               <SignBlock sign={sky.western.sun.sign} deg={sky.western.sun.deg} solid={false} />
               <SignBlock sign={sky.vedic.sun.sign} deg={sky.vedic.sun.deg} solid={false} />
-              <span style={label}>moon</span>
+              <span className="tc-label" style={label}>moon</span>
               <SignBlock sign={sky.western.moon.sign} deg={sky.western.moon.deg} solid={false} />
               <SignBlock sign={sky.vedic.moon.sign} deg={sky.vedic.moon.deg} solid={false} />
               <span />
-              <span style={{ ...label, gridColumn: 'auto', textAlign: 'left' }}>western</span>
-              <span style={{ ...label, gridColumn: 'auto', textAlign: 'left' }}>vedic</span>
+              <span className="tc-label tc-cap" style={{ ...label, gridColumn: 'auto' }}>western</span>
+              <span className="tc-label tc-cap" style={{ ...label, gridColumn: 'auto' }}>vedic</span>
             </div>
 
             <div className="tc-group">
-              <span style={label}>nakshatra</span>
+              <span className="tc-label" style={label}>nakshatra</span>
               <span style={value}>{sky.vedic.nakshatra}</span>
-              <span style={label}>lunar day</span>
+              <span className="tc-label" style={label}>lunar day</span>
               <span style={value}>{sky.vedic.special ?? `${sky.vedic.paksha} ${sky.vedic.tithi}`}</span>
             </div>
 
             <div className="tc-group">
-              <span style={label}>month</span>
+              <span className="tc-label" style={label}>month</span>
               <span style={value}>{drawn.size} drawn</span>
               <span />
               <span aria-hidden="true" className="tc-strip" style={value}>

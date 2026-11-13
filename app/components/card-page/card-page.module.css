@@ -2145,10 +2145,10 @@ details[open] > .fold::after { content: '\2212'; }
 }
 /* phones: the header clears the status bar, and the content starts below it */
 @media (max-width: 760px) {
-  .sheet .scene .sceneLabel { top: calc(env(safe-area-inset-top, 0px) + 56px); }
-  .sheet .scene .sceneHint { top: calc(env(safe-area-inset-top, 0px) + 82px); }
-  .sheet .scene:not(.sceneHero) { padding-top: calc(env(safe-area-inset-top, 0px) + 110px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); }
-  .sheet .sceneHero { padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+  .sheet .scene .sceneLabel { top: calc(var(--sat, 0px) + 56px); }
+  .sheet .scene .sceneHint { top: calc(var(--sat, 0px) + 82px); }
+  .sheet .scene:not(.sceneHero) { padding-top: calc(var(--sat, 0px) + 110px); padding-bottom: calc(var(--sab, 0px) + 90px); }
+  .sheet .sceneHero { padding-top: calc(var(--sat, 0px) + 64px); }
 }
 
 
@@ -2163,37 +2163,61 @@ details[open] > .fold::after { content: '\2212'; }
 }
 .sheet .journey.swiping { scroll-snap-type: none; }
 
-/* the cue: a lime arrow for each way there is more to see, down in this scene and right to the next. Lime like the pull tab on
-   the leaf, in the pixel face, and only there while there is somewhere to go. */
-.cue {
+/* the cue: paper tabs in the lime of the pull tab on the leaf, flush to the edge they hang from (like the tab sewn to the foot of
+   the leaf): one off the foot of the screen for more below, one off the right edge for the next scene */
+.tabDown,
+.tabRight {
   position: fixed;
-  right: 16px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
   z-index: 30;
-  display: flex;
-  gap: 6px;
-}
-.cueBtn {
-  font-family: var(--font-vt323), monospace;
-  font-size: 30px;
-  line-height: 1;
-  width: 42px;
-  height: 38px;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #171F1A;
   background: var(--lime-c, #C9F24E);
-  border: 2px solid #0b0b0b;
-  border-radius: 0;
-  box-shadow: 3px 3px 0 rgba(11, 11, 11, .35);
+  color: var(--chip-ink, #2B35D6);
+  font-family: var(--font-vt323), monospace;
+  line-height: 1;
+  border: 0;
   cursor: pointer;
 }
-.cueBtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(11, 11, 11, .35); }
-@media (prefers-reduced-motion: no-preference) {
-  .cueBtn { animation: cueNudge 1.8s ease-in-out infinite; }
+.tabDown {
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  gap: .7em;
+  padding: 6px 16px calc(8px + var(--sab, 0px));
+  border-radius: 10px 10px 0 0;
+  font-size: 20px;
+  letter-spacing: .06em;
+  white-space: nowrap;
 }
-@keyframes cueNudge { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(2px, 2px); } }
-@media (min-width: 761px) { .cue { right: auto; left: 50%; transform: translateX(-50%); bottom: 24px; } }
-:global(html[data-embed]) .cue { right: 12px; left: auto; transform: none; bottom: 18px; }
+.tabRight {
+  right: 0;
+  bottom: calc(var(--sab, 0px) + 110px);
+  width: 24px;
+  height: 46px;
+  border-radius: 10px 0 0 10px;
+}
+.tabDown:active { padding-top: 8px; }
+@media (min-width: 761px) { .tabRight { bottom: auto; top: 50%; transform: translateY(-50%); } }
+@media (prefers-reduced-motion: no-preference) {
+  .tabDown svg { animation: tabNudgeY 1.8s ease-in-out infinite; }
+  .tabRight svg { animation: tabNudgeX 1.8s ease-in-out infinite; }
+}
+@keyframes tabNudgeY { 0%, 100% { translate: 0 0; } 50% { translate: 0 3px; } }
+@keyframes tabNudgeX { 0%, 100% { translate: 0 0; } 50% { translate: 3px 0; } }
+
+/* phones: the thoughts scene is a box and its button right under it, not a button pushed to the foot of the screen */
+@media (max-width: 760px) {
+  .sheet .scene .input { height: auto; }
+  .sheet .scene .input .share { margin-top: 0; }
+}
+
+/* phones: the distill field starts below the scene's heading and hint, instead of running under them */
+@media (max-width: 760px) {
+  .distillScene { inset: calc(var(--sat, 0px) + 104px) 0 0 0; }
+}
+
+/* phones: the right-hand tab hangs over the edge, so the words in a scene stop short of it */
+@media (max-width: 760px) {
+  .sheet .scene:not(.sceneHero) { padding-right: 30px; }
+}
