@@ -2367,3 +2367,7 @@ details[open] > .fold::after { content: '\2212'; }
 /* the reading, narrower still: a tall justified column */
 .sheet .scene .module > .insight { max-width: min(100%, 14em); }
 @media (max-width: 760px) { .sheet .scene .module > .insight { max-width: min(100%, 13em); } }
+
+/* the reading, much narrower: a tall thin justified column */
+.sheet .scene .module > .insight { max-width: min(100%, 10.5em); }
+@media (max-width: 760px) { .sheet .scene .module > .insight { max-width: min(100%, 9.5em); } }
