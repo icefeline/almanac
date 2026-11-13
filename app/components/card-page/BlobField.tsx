@@ -83,12 +83,17 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
   // On a tall screen the field is cropped to the screen's own shape, so the notes fill it
   // instead of sitting small in a square. `aspect` is the field's width over its height.
   const [aspect, setAspect] = useState(1);
+  // how many drawing units one screen pixel is: the labels are sized in screen pixels times this, so they stay readable however small the field is drawn
+  const [unit, setUnit] = useState(1);
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const read = () => {
       const r = svg.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) setAspect(r.width / r.height);
+      if (r.width > 0 && r.height > 0) {
+        setAspect(r.width / r.height);
+        setUnit(H / r.height);
+      }
     };
     read();
     const ro = new ResizeObserver(read);
@@ -96,13 +101,13 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
     return () => ro.disconnect();
   }, []);
   // on a tall phone the notes sit between the heading and the floating pill, not under them
-  const mapY = (y: number) => H * (0.27 + ((y / H - 0.16) / 0.68) * 0.5);
+  const mapY = (y: number) => H * (0.07 + ((y / H - 0.16) / 0.68) * 0.72);
   const vw = aspect < 1 ? Math.round(H * aspect) : W;
   const vx = (W - vw) / 2;
   // pull the notes' homes in so they all sit inside what is visible
   const blobs = useMemo(() => {
-    const k = vw < W ? Math.min(1, (vw * 0.7) / 600) : 1;
-    const r = vw < W ? 0.42 : 1;
+    const k = vw < W ? Math.min(1, (vw * 0.82) / 600) : 1;
+    const r = vw < W ? 0.6 : 1;
     return raw.map((b) => ({ ...b, x: W / 2 + (b.x - W / 2) * k, y: vw < W ? mapY(b.y) : b.y, rad: b.rad * r }));
   }, [raw, vw]);
   const cores = useRef<(SVGPathElement | null)[]>([]);
@@ -402,6 +407,7 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
         ref={svgRef}
         className={styles.blobField}
         viewBox={`${vx} 0 ${vw} ${H}`}
+        style={{ '--u': unit } as React.CSSProperties}
         role="img"
         aria-label={`Scent notes: ${blobs.map((b) => b.note).join(', ')}`}
       >
@@ -497,16 +503,16 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
                 d={`M${x0} ${y0 + c}V${y0}H${x0 + c} M${x1 - c} ${y0}H${x1}V${y0 + c} M${x1} ${y1 - c}V${y1}H${x1 - c} M${x0 + c} ${y1}H${x0}V${y1 - c}`}
               />
               <path className={styles.trackBox} style={{ stroke: col }} d={`M${b.x - 6} ${b.y}H${b.x + 6} M${b.x} ${b.y - 6}V${b.y + 6}`} />
-              <text className={styles.tag} x={x0} y={y0 - 9}>
+              <text className={styles.tag} x={x0} y={y0 - (vw < W ? 6 * unit : 9)}>
                 {String(b.n).padStart(2, '0')} {b.note.toUpperCase()}
               </text>
-              <text className={styles.tagSub} style={{ fill: col }} x={x0} y={y1 + 18}>
+              <text className={styles.tagSub} style={{ fill: col }} x={x0} y={y1 + (vw < W ? 13 * unit : 18)}>
                 <tspan>{b.tier.toUpperCase()}</tspan>
                 <tspan dx="14">{b.share}%</tspan>
                 <tspan dx="14">{b.verb}</tspan>
               </text>
               {wrap(b.caption).map((line, k) => (
-                <text key={k} className={styles.caption} x={x0} y={y1 + 38 + k * 17}>
+                <text key={k} className={styles.caption} x={x0} y={vw < W ? y1 + 27 * unit + k * 14 * unit : y1 + 38 + k * 17}>
                   {line}
                 </text>
               ))}
