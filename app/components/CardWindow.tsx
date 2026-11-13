@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TarotCard as TarotCardType } from '@/lib/types/tarot';
 import PastCardReading from './PastCardReading';
-import { skyVars, type Sky } from '@/lib/data/skies';
+import type { Sky } from '@/lib/data/skies';
 
 export interface WindowRect { x: number; y: number; w: number; h: number }
 
@@ -96,7 +96,7 @@ export function rectForCell(cell: DOMRect | null, index: number): WindowRect {
 }
 
 export default function CardWindow({
-  date, card, isReversed, rect, z, sky, onFocus, onClose,
+  date, card, isReversed, rect, z, onFocus, onClose,
 }: CardWindowProps) {
   /**
    * Where the window is, and — while it is zoomed — where it came from, so the
@@ -177,37 +177,39 @@ export default function CardWindow({
       role="dialog"
       aria-label={`Card reading for ${new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
       onMouseDown={onFocus}
-      className="hidden md:flex fixed flex-col overflow-hidden"
+      className="sg-win hidden md:flex fixed flex-col overflow-hidden"
       style={{
-        ...skyVars(sky),
         left: r.x, top: r.y, width: r.w, height: r.h, zIndex: z,
-        /* The sky lives on the frame, not on the scroller, so it stays put
-           while the reading travels over it — a sky behind a window, rather
-           than a very tall gradient the reader scrolls down through. */
-        background: 'var(--sky-grad)',
-        border: '2px solid var(--sky-edge)',
-        boxShadow: '6px 7px 0 rgba(9,14,7,.55)',
-      }}
+        /* the live sky is the ground; the window is a sheet of paper laid on it, in the app's own ink and paper
+           (they swap at night with everything else), framed in black like the retro buttons */
+        background: 'var(--w-veil)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        border: '2px solid #000',
+        boxShadow: '5px 6px 0 rgba(9,14,7,.5)',
+        '--sky-ink': 'var(--w-ink)',
+        '--sky-body': 'var(--w-body)',
+      } as React.CSSProperties}
     >
       <div
         onMouseDown={begin('move')}
         className="flex-none h-[30px] flex items-center gap-2 px-1.5 cursor-move"
         style={{
-          background: 'var(--sky-chrome)',
-          borderBottom: '2px solid var(--sky-edge)',
-          color: 'var(--sky-chrome-ink)',
+          background: 'var(--accent-c, #2B35D6)',
+          borderBottom: '2px solid #000',
+          color: 'var(--on-accent-c, #F7F4E6)',
         }}
       >
         <button
           onMouseDown={e => { e.stopPropagation(); onClose(); }}
           aria-label={`Close ${fileName}`}
-          className="w-[15px] h-[15px] flex-none hover:!bg-[#C9F24E]"
-          style={{ background: 'var(--sky-chrome)', border: '2px solid var(--sky-edge)' }}
+          className="w-[15px] h-[15px] flex-none hover:!bg-white"
+          style={{ background: '#C0C0C0', border: '2px solid #000', boxShadow: 'inset 1px 1px 0 #fff, inset -1px -1px 0 #808080' }}
         />
         <span className="flex-1 h-[11px]" style={{ background: 'repeating-linear-gradient(currentColor 0 1px, transparent 1px 3px)' }} />
         <span
           className="whitespace-nowrap"
-          style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: 17, letterSpacing: '.1em' }}
+          style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: 20, letterSpacing: '.06em' }}
         >
           {fileName}
         </span>
@@ -215,16 +217,10 @@ export default function CardWindow({
         <button
           onMouseDown={e => { e.stopPropagation(); zoom(); }}
           aria-label={`Zoom ${fileName}`}
-          className="w-[15px] h-[15px] flex-none hover:!bg-[#C9F24E]"
-          style={{ background: 'var(--sky-chrome)', border: '2px solid var(--sky-edge)' }}
+          className="w-[15px] h-[15px] flex-none hover:!bg-white"
+          style={{ background: '#C0C0C0', border: '2px solid #000', boxShadow: 'inset 1px 1px 0 #fff, inset -1px -1px 0 #808080' }}
         />
       </div>
-
-      {/* A slice of the hour, in the sky's own accent. */}
-      <div
-        className="flex-none h-[10px]"
-        style={{ background: 'var(--sky-ink)', borderBottom: '2px solid var(--sky-edge)' }}
-      />
 
       {/*
         `overscroll-contain` is the load-bearing class here. The year view keeps
@@ -245,9 +241,9 @@ export default function CardWindow({
         aria-label="Resize"
         className="absolute right-0 bottom-0 w-[18px] h-[18px] cursor-nwse-resize"
         style={{
-          borderLeft: '2px solid var(--sky-edge)',
-          borderTop: '2px solid var(--sky-edge)',
-          background: 'repeating-linear-gradient(135deg, var(--sky-edge) 0 1px, transparent 1px 4px)',
+          borderLeft: '2px solid #000',
+          borderTop: '2px solid #000',
+          background: 'repeating-linear-gradient(135deg, #000 0 1px, transparent 1px 4px)',
         }}
       />
     </div>

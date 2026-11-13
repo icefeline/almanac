@@ -2068,3 +2068,20 @@ details[open] > .fold::after { content: '\2212'; }
     line-height: .86;
   }
 }
+
+/* the card name inside a past reading's window: the same dithered serif as the page, sized for the window */
+.shellWindow .cardname { position: relative; }
+.shellWindow .cardname[data-face='dither'] {
+  font-family: var(--font-instrument-serif), serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 56px;
+  line-height: .92;
+  letter-spacing: 0;
+  text-transform: lowercase;
+  white-space: normal;
+  text-wrap: balance;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0;
+}
