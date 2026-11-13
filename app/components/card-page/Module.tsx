@@ -9,6 +9,7 @@ import { PatternStamps } from './PatternStamp';
 /** The pattern cards are held back for now: they crowd the reading. Flip this to bring them back. */
 const SHOW_PATTERNS = false;
 import type { DetectedPattern } from '@/lib/utils/pattern-detector';
+import { explainTransit } from '@/lib/data/transit-plain';
 
 /**
  * How the module fills in.
@@ -161,7 +162,16 @@ export function Module({
 
   // "what is this transit" sits right under the transit line it explains
   const showMain = !isLoading && bodyShown && !hasError && !(isRateLimited && !insight);
-  const explainBlock = transitExplanation?.transitingPlanetMeaning ? (
+  const plain = transitExplanation
+    ? explainTransit({
+        transitingPlanet: transitExplanation.transitingPlanet,
+        natalPlanet: transitExplanation.natalPlanet,
+        aspectType: transitExplanation.aspectType,
+        exact,
+        phaseMeaning: transitExplanation.phaseMeaning,
+      })
+    : null;
+  const explainBlock = plain || transitExplanation?.transitingPlanetMeaning ? (
     <div className={styles.explain}>
       <button
         type="button"
@@ -172,7 +182,14 @@ export function Module({
       >
         {isExpanded ? 'close' : 'what is this transit'}
       </button>
-      {isExpanded && (
+      {isExpanded && plain && (
+        <>
+          <p style={{ marginTop: 10 }}><strong>what it is.</strong> {plain.whatItIs}</p>
+          <p style={{ marginTop: 6 }}><strong>{plain.whyLabel}.</strong> {plain.why}</p>
+          <p style={{ marginTop: 6 }}><strong>how long.</strong> {plain.howLong}</p>
+        </>
+      )}
+      {isExpanded && !plain && transitExplanation && (
         <p style={{ marginTop: 10 }}>
           {transitExplanation.transitingPlanet} ({transitExplanation.transitingPlanetMeaning})
           is making a {transitExplanation.aspectType} ({transitExplanation.aspectMeaning}) to
