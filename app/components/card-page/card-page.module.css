@@ -2104,7 +2104,7 @@ details[open] > .fold::after { content: '\2212'; }
 :global(html[data-embed]) .sheet .sceneHero > .sceneStack { justify-content: flex-start; }
 @media (max-width: 760px) {
   :global(html[data-embed]) .sheet .sceneHero .plateCenter,
-  :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(62vw, 40dvh); }
+  :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(54vw, 40dvh); }
   :global(html[data-embed]) .sheet .sceneHero .plate { margin-block: 3vw; }
 }
 
@@ -2150,3 +2150,50 @@ details[open] > .fold::after { content: '\2212'; }
   .sheet .scene:not(.sceneHero) { padding-top: calc(env(safe-area-inset-top, 0px) + 110px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); }
   .sheet .sceneHero { padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
 }
+
+
+/* the reading in short paragraphs, with air between them and between the lines */
+.para { display: block; margin: 0 0 .95em; }
+.para:last-child { margin-bottom: 0; }
+.sheet .scene .module > .insight { line-height: 1.45; }
+
+/* touch screens: the strip is moved by the swipe handler in Journey.tsx (one scene per swipe), so the browser keeps only the up-and-down gesture */
+@media (pointer: coarse) {
+  .sheet .journey { touch-action: pan-y; }
+}
+.sheet .journey.swiping { scroll-snap-type: none; }
+
+/* the cue: a lime arrow for each way there is more to see, down in this scene and right to the next. Lime like the pull tab on
+   the leaf, in the pixel face, and only there while there is somewhere to go. */
+.cue {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
+  z-index: 30;
+  display: flex;
+  gap: 6px;
+}
+.cueBtn {
+  font-family: var(--font-vt323), monospace;
+  font-size: 30px;
+  line-height: 1;
+  width: 42px;
+  height: 38px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #171F1A;
+  background: var(--lime-c, #C9F24E);
+  border: 2px solid #0b0b0b;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 rgba(11, 11, 11, .35);
+  cursor: pointer;
+}
+.cueBtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(11, 11, 11, .35); }
+@media (prefers-reduced-motion: no-preference) {
+  .cueBtn { animation: cueNudge 1.8s ease-in-out infinite; }
+}
+@keyframes cueNudge { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(2px, 2px); } }
+@media (min-width: 761px) { .cue { right: auto; left: 50%; transform: translateX(-50%); bottom: 24px; } }
+:global(html[data-embed]) .cue { right: 12px; left: auto; transform: none; bottom: 18px; }

@@ -518,7 +518,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
     return (
       <div className={styles.shell}>
         <main className={`${styles.page} ${styles.sheet} ${styles.sealed} ${peek ? styles.peek : ''}`}>
-          <Journey>
+          <Journey cue={false}>
             <Scene hero name="the card">
               <CardName name={card.name} />
               <Plate

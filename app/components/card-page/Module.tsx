@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { staggerLines } from '@/lib/utils/stagger';
-import { emphasise, withLead } from './emphasise';
+import { emphasise, withParagraphs } from './emphasise';
 import styles from './card-page.module.css';
 import { PatternStamps } from './PatternStamp';
 
@@ -250,7 +250,7 @@ export function Module({
               </span>
             ))}
           </h2>
-          <p className={styles.insight}>{withLead(insight, [keyPhrase, ...terms])}</p>
+          <p className={styles.insight}>{withParagraphs(insight, [keyPhrase, ...terms])}</p>
 
           {SHOW_PATTERNS && patternShown && patterns && patterns.length > 0 && <PatternStamps patterns={patterns} />}
 

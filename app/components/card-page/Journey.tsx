@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import styles from './card-page.module.css';
 
 /**
@@ -19,8 +19,61 @@ import styles from './card-page.module.css';
  * the page surface (`.sheet`); a year-view window keeps the plain vertical stack,
  * where the scenes are just blocks.
  */
-export function Journey({ children }: { children: ReactNode }) {
+/** A square-ended arrow, pointing right and turned by `turn` degrees. */
+function CueArrow({ turn }: { turn: number }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ transform: `rotate(${turn}deg)` }}>
+      <path d="M3 12h17M13 5l7 7-7 7" stroke="currentColor" strokeWidth="3" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+export function Journey({ children, cue = true }: { children: ReactNode; /** Show the arrows that say which way there is more. Off while the leaf still covers the page. */ cue?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState({ right: false, down: false });
+
+  // which ways there is more to see: the next scene to the right, and more of this scene below
+  const measure = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const scenes = Array.from(el.querySelectorAll<HTMLElement>(`.${styles.scene}`));
+    if (!scenes.length) return;
+    const right = el.scrollLeft < el.scrollWidth - el.clientWidth - 12;
+    const at = scenes.reduce((best, sc) => (Math.abs(sc.offsetLeft - el.scrollLeft) < Math.abs(best.offsetLeft - el.scrollLeft) ? sc : best), scenes[0]);
+    const down = at.scrollTop + at.clientHeight < at.scrollHeight - 12;
+    setMore((m) => (m.right === right && m.down === down ? m : { right, down }));
+  }, []);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    measure();
+    el.addEventListener('scroll', measure, { capture: true, passive: true });
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    const mo = new MutationObserver(measure);
+    mo.observe(el, { childList: true, subtree: true });
+    const t = window.setInterval(measure, 1200); // fonts, images and the reading arriving change heights without an event
+    return () => {
+      el.removeEventListener('scroll', measure, true);
+      ro.disconnect();
+      mo.disconnect();
+      clearInterval(t);
+    };
+  }, [measure]);
+  const goRight = () => {
+    const el = ref.current;
+    if (!el) return;
+    const lefts = Array.from(el.querySelectorAll<HTMLElement>(`.${styles.scene}`)).map((s) => s.offsetLeft);
+    const next = lefts.find((l) => l > el.scrollLeft + 8);
+    if (next !== undefined) el.scrollTo({ left: next, behavior: 'smooth' });
+  };
+  const goDown = () => {
+    const el = ref.current;
+    if (!el) return;
+    const scenes = Array.from(el.querySelectorAll<HTMLElement>(`.${styles.scene}`));
+    const at = scenes.reduce((best, sc) => (Math.abs(sc.offsetLeft - el.scrollLeft) < Math.abs(best.offsetLeft - el.scrollLeft) ? sc : best), scenes[0]);
+    at.scrollBy({ top: at.clientHeight * 0.8, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const el = ref.current;
@@ -140,6 +193,56 @@ export function Journey({ children }: { children: ReactNode }) {
       }
     };
 
+    // On a touch screen one swipe moves exactly one scene. The strip follows the finger while it is down; when it lifts, a
+    // flick or a drag of more than a thumb's width goes on to the next scene (or back to the last), and anything shorter
+    // settles where it was. Vertical swipes are left to the scene, which scrolls up and down on its own.
+    const touchScreen = window.matchMedia('(pointer: coarse)').matches;
+    let tx = 0;
+    let ty = 0;
+    let tl = 0;
+    let tt = 0;
+    let axis: '' | 'x' | 'y' = '';
+    let dxNow = 0;
+    const sceneLefts = () => Array.from(el.querySelectorAll<HTMLElement>(`.${styles.scene}`)).map((s) => s.offsetLeft);
+    const nearest = (lefts: number[], x: number) => lefts.reduce((best, l, i) => (Math.abs(l - x) < Math.abs(lefts[best] - x) ? i : best), 0);
+    const onTouchStart = (e: TouchEvent) => {
+      if (!touchScreen || e.touches.length !== 1) return;
+      stop();
+      tx = e.touches[0].clientX;
+      ty = e.touches[0].clientY;
+      tl = el.scrollLeft;
+      tt = performance.now();
+      axis = '';
+      dxNow = 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!touchScreen || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - tx;
+      const dy = e.touches[0].clientY - ty;
+      if (!axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+      if (axis !== 'x') return;
+      dxNow = dx;
+      el.classList.add(styles.swiping);
+      el.scrollLeft = tl - dx;
+    };
+    const onTouchEnd = () => {
+      if (!touchScreen || axis !== 'x') return;
+      axis = '';
+      const lefts = sceneLefts();
+      const from = nearest(lefts, tl);
+      const v = dxNow / Math.max(1, performance.now() - tt); // px per ms, negative = towards the next scene
+      let to = from;
+      if (dxNow < -40 || v < -0.35) to = from + 1;
+      else if (dxNow > 40 || v > 0.35) to = from - 1;
+      to = Math.max(0, Math.min(lefts.length - 1, to));
+      el.classList.remove(styles.swiping);
+      el.scrollTo({ left: lefts[to], behavior: reduced() ? 'auto' : 'smooth' });
+    };
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
     el.addEventListener('wheel', onWheel, { passive: false });
     // a finger or a click takes the strip back from the glide
     el.addEventListener('touchstart', stop, { passive: true });
@@ -156,6 +259,10 @@ export function Journey({ children }: { children: ReactNode }) {
       window.removeEventListener('resize', queueFit);
       stop();
       el.removeEventListener('touchstart', stop);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
       el.removeEventListener('pointerdown', stop);
       el.removeEventListener('wheel', onWheel);
       el.removeEventListener('pointerdown', onDown);
@@ -167,9 +274,25 @@ export function Journey({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div ref={ref} className={styles.journey} tabIndex={0} role="region" aria-label="The reading. Scroll sideways.">
-      <div className={styles.track}>{children}</div>
-    </div>
+    <>
+      <div ref={ref} className={styles.journey} tabIndex={0} role="region" aria-label="The reading. Scroll sideways.">
+        <div className={styles.track}>{children}</div>
+      </div>
+      {cue && (more.right || more.down) && (
+        <div className={styles.cue} aria-hidden="false">
+          {more.down && (
+            <button type="button" className={styles.cueBtn} onClick={goDown} aria-label="Scroll down">
+              <CueArrow turn={90} />
+            </button>
+          )}
+          {more.right && (
+            <button type="button" className={styles.cueBtn} onClick={goRight} aria-label="Next section">
+              <CueArrow turn={0} />
+            </button>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
