@@ -184,9 +184,9 @@ export function Module({
       </button>
       {isExpanded && plain && (
         <>
-          <p style={{ marginTop: 10 }}><strong>what it is.</strong> {plain.whatItIs}</p>
-          <p style={{ marginTop: 6 }}><strong>{plain.whyLabel}.</strong> {plain.why}</p>
-          <p style={{ marginTop: 6 }}><strong>how long.</strong> {plain.howLong}</p>
+          <p style={{ marginTop: 10 }}><strong>what it is ~</strong> {plain.whatItIs}</p>
+          <p style={{ marginTop: 6 }}><strong>{plain.whyLabel} ~</strong> {plain.why}</p>
+          <p style={{ marginTop: 6 }}><strong>how long ~</strong> {plain.howLong}</p>
         </>
       )}
       {isExpanded && !plain && transitExplanation && (
