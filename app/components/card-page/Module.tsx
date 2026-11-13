@@ -88,6 +88,11 @@ interface ModuleProps {
  * below the card. The explanation the ticker used to open is still here, as a
  * static toggle.
  */
+/** The phrase's size follows its longest line and its number of lines, so a long phrase and a short one both fill the space. */
+function phraseVars(lines: { len: number }[]): CSSProperties {
+  return { '--len': Math.max(...lines.map((l) => l.len), 1), '--lines': lines.length } as CSSProperties;
+}
+
 export function Module({
   keyPhrase,
   insight,
@@ -211,9 +216,9 @@ export function Module({
 
       {isLoading || !bodyShown ? null : hasError ? (
         <>
-        <h2 className={styles.phrase}>
+        <h2 className={styles.phrase} style={phraseVars(staggerLines('no connection to the reading', seed ?? 'offline'))}>
           {staggerLines('no connection to the reading', seed ?? 'offline').map((line, i) => (
-            <span key={i} className={styles.line} style={{ '--o': line.offset } as CSSProperties}>
+            <span key={i} className={styles.line} style={{ '--o': line.offset, '--n': line.len } as CSSProperties}>
               {line.text}
             </span>
           ))}
@@ -268,9 +273,9 @@ export function Module({
         </>
       ) : (
         <>
-          <h2 className={styles.phrase}>
+          <h2 className={styles.phrase} style={phraseVars(staggerLines(keyPhrase || 'what this could mean for you', seed ?? keyPhrase))}>
             {staggerLines(keyPhrase || 'what this could mean for you', seed ?? keyPhrase).map((line, i) => (
-              <span key={i} className={styles.line} style={{ '--o': line.offset } as CSSProperties}>
+              <span key={i} className={styles.line} style={{ '--o': line.offset, '--n': line.len } as CSSProperties}>
                 {line.text}
               </span>
             ))}

@@ -2241,3 +2241,31 @@ details[open] > .fold::after { content: '\2212'; }
   .sheet .scene:has(.distillScene) { padding-left: 18px; padding-right: 30px; }
   .distillScene { inset: calc(var(--sat, 0px) + 104px) 30px 0 18px; }
 }
+
+/* For you: the key phrase is set big, the way a poster sets a line: its size follows its longest line (so it fills the column) and its
+   number of lines (so it fits the height), and each line is pushed in by its own amount, held back so it never runs off the edge */
+.sheet .scene .module { container-type: inline-size; }
+.sheet .scene .phrase .line { margin-left: max(0px, min(var(--o, 0px), calc(100% - (var(--n, 8) + .4) * 1ch))); }
+@media (min-width: 761px) {
+  .sheet .scene .module > .phrase {
+    font-size: clamp(44px, min(calc(48cqw / (var(--len, 10) * .4 + .25)), calc(70dvh / (var(--lines, 4) * .84 + (var(--lines, 4) - 1) * .6)), 240px), 240px);
+    line-height: .84;
+    row-gap: .6em;
+  }
+}
+@media (max-width: 760px) {
+  .sheet .scene .module > .phrase {
+    font-size: clamp(44px, min(calc(100cqw / (var(--len, 10) * .4 + .25)), calc(46dvh / (var(--lines, 4) * .9 + (var(--lines, 4) - 1) * .5)), 112px), 112px);
+    line-height: .9;
+    row-gap: .5em;
+  }
+}
+
+/* For you on a wide screen: the try-this is set big, and the reading above it in a narrower column so its lines are short and the words stand taller */
+@media (min-width: 761px) {
+  .sheet .scene .module > .try .pull {
+    font-size: clamp(34px, min(3.8vw, 6.6dvh), 68px);
+    line-height: 1.02;
+  }
+  .sheet .scene .module > .insight { max-width: min(100%, 17em); }
+}

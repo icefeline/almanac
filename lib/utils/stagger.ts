@@ -8,7 +8,7 @@ import { rng } from './garden';
  * their order are untouched: only where each line starts changes, and the page
  * ignores the offsets entirely below the wide layout.
  */
-export function staggerLines(phrase: string, seed: string): { text: string; offset: string }[] {
+export function staggerLines(phrase: string, seed: string): { text: string; offset: string; len: number }[] {
   const words = phrase.trim().split(/\s+/).filter(Boolean);
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
@@ -18,13 +18,21 @@ export function staggerLines(phrase: string, seed: string): { text: string; offs
   const groups: string[] = [];
   for (let i = 0; i < words.length; ) {
     const left = words.length - i;
-    const take = left >= 2 && (left === 2 ? r() < 0.55 : r() < 0.7) ? 2 : 1;
+    // two words share a line only when they are short together, so no line is long and the whole phrase can be set large
+    const together = left >= 2 && words[i].length + 1 + words[i + 1].length <= 10;
+    const take = together && (left === 2 ? r() < 0.55 : r() < 0.7) ? 2 : 1;
     groups.push(words.slice(i, i + take).join(' '));
     i += take;
   }
-  // ...and step each one further across than the last, so the phrase runs down the
-  // page on a diagonal, the way it is read: a cascade, not a scatter
-  const step = groups.length > 1 ? Math.min(14, 42 / (groups.length - 1)) : 0;
-  const lines = groups.map((text, i) => ({ text, offset: `${(i * step).toFixed(1)}%` }));
-  return lines;
+  // ...and push each one in by an uneven amount, the way a poster sets a phrase: some lines flush left, one pushed well across,
+  // no two neighbours the same. (The page holds each offset back so a line never runs past the edge.)
+  const steps = [0, 12, 26, 40, 52];
+  const offs: number[] = [0];
+  for (let i = 1; i < groups.length; i++) {
+    let pick = steps[Math.floor(r() * steps.length)];
+    for (let tries = 0; pick === offs[i - 1] && tries < 6; tries++) pick = steps[Math.floor(r() * steps.length)];
+    offs.push(pick);
+  }
+  if (groups.length > 2 && Math.max(...offs) < 26) offs[Math.min(2, groups.length - 1)] = 40;
+  return groups.map((text, i) => ({ text, offset: `${offs[i]}%`, len: text.length }));
 }
