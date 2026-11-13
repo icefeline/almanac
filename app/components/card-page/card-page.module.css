@@ -2405,3 +2405,38 @@ details[open] > .fold::after { content: '\2212'; }
   .sheet .scene .input { min-height: calc(100dvh - var(--sat, 0px) - 78px - var(--sab, 0px) - 40px); }
   .sheet .scene .distillScene { inset: calc(var(--sat, 0px) + 100px) 0 24px 0; }
 }
+
+
+/* phones, distill: the labels are sized in screen pixels (times the field's units-per-pixel), so they are as readable as any other text
+   however small the field is drawn; the reading of a picked note sits just above the About link, 18px in from the left */
+@media (max-width: 760px) {
+  .distillScene .tag { font-size: calc(13px * var(--u, 1)); }
+  .distillScene .tagSub { font-size: calc(11px * var(--u, 1)); }
+  .distillScene .caption { font-size: calc(12px * var(--u, 1)); }
+  .distillScene .guideLabel { font-size: calc(9px * var(--u, 1)); }
+  .distillBody .noteCard { left: 18px; right: auto; bottom: calc(var(--sab, 0px) + 52px); width: min(calc(100vw - 36px), 320px); }
+}
+
+/* phones: the room under a scene's last line is padding on the stack inside the scrolling scene, not on the scrolling scene itself
+   (iOS Safari drops the bottom padding of a scroller, so the text ended flush against the foot) */
+@media (max-width: 760px) {
+  .sheet .scene:not(.sceneHero) { padding-bottom: 0; }
+  .sheet .scene:not(.sceneHero) > .sceneStack { padding-bottom: 0; height: 100%; min-height: 0; }
+  .sheet .scene .module { height: auto; }
+  /* the poem fills its scene: leave the 40px at the foot to the empty block after it */
+  .sheet .scene .meaningScene { height: calc(100% - var(--sab, 0px) - 40px); }
+  /* an empty block at the end of the stack: it sits after the last line however far the content overflows the stack's own box */
+  .sheet .scene:not(.sceneHero) > .sceneStack::after { content: ''; display: block; flex: none; height: calc(var(--sab, 0px) + 40px); }
+}
+
+/* phones, distill: the field starts below the hint under the heading and keeps 40px under it */
+@media (max-width: 760px) {
+  .sheet .scene .distillScene { inset: calc(var(--sat, 0px) + 124px) 0 calc(var(--sab, 0px) + 40px) 0; }
+  /* (the reading is placed inside the field, which stops 40px above the foot of the screen: 6px here is 46px from the foot, clear of About) */
+  .distillBody .noteCard { bottom: 6px; }
+}
+
+/* distill: the tracking boxes and the grid run on past the field's edges, drawn whole instead of cut off at an invisible line; they are hidden
+   whenever the scene is scrolled out of view, so they never show over a neighbouring scene */
+.distillBody[data-away] .trackOverlay,
+.distillBody[data-away] .grid { visibility: hidden; }

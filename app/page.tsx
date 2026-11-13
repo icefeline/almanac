@@ -755,7 +755,7 @@ export default function Home() {
     <main data-sealed={!isRevealed && currentView === 'card' ? 'true' : undefined} className="relative min-h-screen flex flex-col bg-[#172211]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <SkyBackground />
       <Vellum on={(isRevealed || peeking) && currentView === 'card'} />
-      <AboutMount home flow={isRevealed && currentView === 'card'} />
+      <AboutMount home />
 
       {/*
         No bar: no background or rule behind it, and no wordmark. A very faint blur fades in only while scrolled. Just the view buttons (today, year) and
@@ -773,7 +773,7 @@ export default function Home() {
             hang below it, so the page content is not pushed down by the stack. */}
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-4" style={{ minHeight: 'clamp(46px, 7vw, 72px)' }}>
           {/* View Toggle Buttons */}
-          <div className="absolute right-3 md:right-5 top-[calc(env(safe-area-inset-top,0px)+0.5rem)] md:top-[calc(env(safe-area-inset-top,0px)+1rem)] flex flex-col items-end gap-2 pointer-events-auto" role="navigation" aria-label="View switcher">
+          <div className="absolute right-3 md:right-5 top-[calc(env(safe-area-inset-top,0px)+0.875rem)] md:top-[calc(env(safe-area-inset-top,0px)+1rem)] flex flex-col items-end gap-2 pointer-events-auto" role="navigation" aria-label="View switcher">
             <button
               type="button"
               className="md:hidden sg-osbtn flex items-center justify-center"

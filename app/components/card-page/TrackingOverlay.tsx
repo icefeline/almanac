@@ -16,6 +16,8 @@ import { rng } from '@/lib/utils/garden';
  *
  * Drawn on a canvas, pointer-transparent, and one still frame under reduced motion.
  */
+// how far past the field's own edges the canvas reaches, so a box near an edge is drawn whole and runs on past it
+const BLEED = 240;
 const COUNT_WIDE = 18;
 const COUNT_NARROW = 9;
 
@@ -96,11 +98,15 @@ export function TrackingOverlay({ seed }: { seed: string }) {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       w = rect.width;
       h = rect.height;
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.width = Math.round((w + BLEED * 2) * dpr);
+      canvas.height = Math.round((h + BLEED * 2) * dpr);
+      canvas.style.inset = 'auto';
+      canvas.style.left = `${-BLEED}px`;
+      canvas.style.top = `${-BLEED}px`;
+      canvas.style.width = `${w + BLEED * 2}px`;
+      canvas.style.height = `${h + BLEED * 2}px`;
+      // drawn in the field's own coordinates, with the bleed outside them
+      ctx.setTransform(dpr, 0, 0, dpr, BLEED * dpr, BLEED * dpr);
       boxes.forEach((b) => {
         b.x = (b.tx / 1000) * w;
         b.y = (b.ty / 1000) * h;
@@ -110,13 +116,13 @@ export function TrackingOverlay({ seed }: { seed: string }) {
     const pointer = { x: -1, y: -1, on: false };
     const onMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      pointer.x = e.clientX - rect.left;
-      pointer.y = e.clientY - rect.top;
+      pointer.x = e.clientX - rect.left - BLEED;
+      pointer.y = e.clientY - rect.top - BLEED;
       pointer.on = pointer.x >= 0 && pointer.y >= 0 && pointer.x <= w && pointer.y <= h;
     };
 
     const draw = () => {
-      ctx.clearRect(0, 0, w, h);
+      ctx.clearRect(-BLEED, -BLEED, w + BLEED * 2, h + BLEED * 2);
       const line = (b: Box, c: Box, alpha: number) => {
         const x1 = b.x + b.w / 2;
         const y1 = b.y + b.h / 2;
@@ -211,8 +217,17 @@ export function TrackingOverlay({ seed }: { seed: string }) {
       draw();
     };
 
-    const observer = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting), { threshold: 0 });
-    observer.observe(canvas);
+    // Only while this scene is on screen: the boxes and the grid run well past the field's own edges, so when the scene is scrolled
+    // away they must not show over the scene that has taken its place.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (entry.isIntersecting) host.removeAttribute('data-away');
+        else host.setAttribute('data-away', '');
+      },
+      { threshold: 0 },
+    );
+    observer.observe(host);
     const resizer = new ResizeObserver(place);
     resizer.observe(host);
     window.addEventListener('pointermove', onMove);
