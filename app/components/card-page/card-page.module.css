@@ -2435,3 +2435,7 @@ details[open] > .fold::after { content: '\2212'; }
   /* (the reading is placed inside the field, which stops 40px above the foot of the screen: 6px here is 46px from the foot, clear of About) */
   .distillBody .noteCard { bottom: 6px; }
 }
+
+/* distill: the tracking boxes and the grid may run on past the field's top and bottom (they are drawn whole, not cut off at an invisible edge),
+   but are held to the screen's own width so they never spill into the next scene */
+.distillScene { clip-path: inset(-300px 0 -300px 0); }

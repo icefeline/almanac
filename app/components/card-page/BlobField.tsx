@@ -430,7 +430,7 @@ export function BlobField({ blobs: raw, tierY }: { blobs: Blob[]; tierY: Record<
         </defs>
 
         {/* the calibration grid and one guide for each stage of the scent */}
-        <rect className={styles.grid} x={vx} width={vw} height={H} fill="url(#blob-grid)" />
+        <rect className={styles.grid} x={vx - 1200} y={-1200} width={vw + 2400} height={H + 2400} fill="url(#blob-grid)" />
         {Object.entries(tierY).map(([tier, y]) => (
           <g key={tier}>
             <line className={styles.guide} x1={vx} x2={vx + vw} y1={vw < W ? mapY(y * H) : y * H} y2={vw < W ? mapY(y * H) : y * H} />
