@@ -2292,3 +2292,13 @@ details[open] > .fold::after { content: '\2212'; }
 @media (min-width: 761px) {
   .sheet .scene .module > .try .pull { font-size: clamp(46px, min(5vw, 8.4dvh), 100px); line-height: 1; }
 }
+
+/* For you on a wide screen: the big blue phrase sits in the vertical middle of the scene, not at the top. Its height is known
+   (size times lines and gaps), so it is pushed down by half of what is left. */
+@media (min-width: 761px) {
+  .sheet .scene .module > .phrase {
+    --fs: clamp(44px, min(calc(48cqw / (var(--len, 10) * .4 + .25)), calc(70dvh / (var(--lines, 4) * .84 + (var(--lines, 4) - 1) * .6)), 240px), 240px);
+    font-size: var(--fs);
+    margin-top: max(0px, calc((87dvh - var(--fs) * (var(--lines, 4) * .84 + (var(--lines, 4) - 1) * .6)) / 2));
+  }
+}
