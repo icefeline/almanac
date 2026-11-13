@@ -2338,3 +2338,19 @@ details[open] > .fold::after { content: '\2212'; }
 @media (pointer: coarse) {
   .sheet .journey { overflow-x: hidden; }
 }
+
+/* phones: the grey hint under a scene's heading (Distill's "touch a note...") stays at the top left where it was, and Share this card
+   is pinned to the foot of its scene with room beneath it (the scene keeps 90px below its content, more than 40px, which also clears the
+   Pick Card pill) */
+@media (max-width: 760px) {
+  .sheet .scene .sceneHint { top: calc(var(--sat, 0px) + 82px); left: 18px; right: auto; max-width: 30ch; text-align: left; }
+  .distillScene { inset: calc(var(--sat, 0px) + 104px) 30px 0 18px; }
+  .sheet .scene .input {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100dvh - var(--sat, 0px) - 78px - var(--sab, 0px) - 90px);
+  }
+  .sheet .scene .input .share { margin-top: auto; }
+  :global(html[data-embed]) .sheet .scene .sceneHint { top: 40px; left: 18px; right: auto; text-align: left; }
+}
