@@ -2436,6 +2436,7 @@ details[open] > .fold::after { content: '\2212'; }
   .distillBody .noteCard { bottom: 6px; }
 }
 
-/* distill: the tracking boxes and the grid may run on past the field's top and bottom (they are drawn whole, not cut off at an invisible edge),
-   but are held to the screen's own width so they never spill into the next scene */
-.distillScene { clip-path: inset(-300px 0 -300px 0); }
+/* distill: the tracking boxes and the grid run on past the field's edges, drawn whole instead of cut off at an invisible line; they are hidden
+   whenever the scene is scrolled out of view, so they never show over a neighbouring scene */
+.distillBody[data-away] .trackOverlay,
+.distillBody[data-away] .grid { visibility: hidden; }

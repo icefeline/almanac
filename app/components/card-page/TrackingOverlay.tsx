@@ -217,8 +217,17 @@ export function TrackingOverlay({ seed }: { seed: string }) {
       draw();
     };
 
-    const observer = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting), { threshold: 0 });
-    observer.observe(canvas);
+    // Only while this scene is on screen: the boxes and the grid run well past the field's own edges, so when the scene is scrolled
+    // away they must not show over the scene that has taken its place.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (entry.isIntersecting) host.removeAttribute('data-away');
+        else host.setAttribute('data-away', '');
+      },
+      { threshold: 0 },
+    );
+    observer.observe(host);
     const resizer = new ResizeObserver(place);
     resizer.observe(host);
     window.addEventListener('pointermove', onMove);
