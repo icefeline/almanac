@@ -472,7 +472,7 @@ export default function TearSheet({
             position: 'absolute',
             inset: 0,
             left: '50%',
-            width: 'min(calc(100% - 40px), 1500px)',
+            width: 'calc(100% - 40px)',
             transform: 'translateX(-50%)',
             top: 'calc(max(34px, 6.2dvh) + 1.6dvh)',
             bottom: 'calc(max(54px, 7.5dvh))',

@@ -5,6 +5,9 @@ import { staggerLines } from '@/lib/utils/stagger';
 import { emphasise, withLead } from './emphasise';
 import styles from './card-page.module.css';
 import { PatternStamps } from './PatternStamp';
+
+/** The pattern cards are held back for now: they crowd the reading. Flip this to bring them back. */
+const SHOW_PATTERNS = false;
 import type { DetectedPattern } from '@/lib/utils/pattern-detector';
 
 /**
@@ -249,7 +252,7 @@ export function Module({
           </h2>
           <p className={styles.insight}>{withLead(insight, [keyPhrase, ...terms])}</p>
 
-          {patternShown && patterns && patterns.length > 0 && <PatternStamps patterns={patterns} />}
+          {SHOW_PATTERNS && patternShown && patterns && patterns.length > 0 && <PatternStamps patterns={patterns} />}
 
           {action && (
             <div className={styles.try}>

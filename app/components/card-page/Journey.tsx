@@ -72,12 +72,12 @@ export function Journey({ children }: { children: ReactNode }) {
       if (!raf) raf = requestAnimationFrame(glide);
     };
 
-    // Every scene fits the screen: if one's contents run past the bottom, the whole scene is
-    // scaled down just enough to sit inside it. Nothing is ever scrolled to.
+    // The card scene fits the screen: if its contents run past the bottom it is scaled down just enough to sit inside it.
+    // Every other scene is as tall as its words and scrolls up and down inside itself.
     let fitRaf = 0;
     const fitAll = () => {
       fitRaf = 0;
-      el.querySelectorAll<HTMLElement>(`.${styles.scene}`).forEach((scene) => {
+      el.querySelectorAll<HTMLElement>(`.${styles.sceneHero}`).forEach((scene) => {
         const stack = scene.firstElementChild as HTMLElement | null;
         if (!stack) return;
         stack.style.zoom = '';

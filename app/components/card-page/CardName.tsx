@@ -197,9 +197,16 @@ export function CardName({ name }: { name: string }) {
     ro.observe(el);
     const mo = new MutationObserver(draw);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-night'] });
+    // The name is measured in the serif face, and until that face is in, the measure is of a stand-in a different width,
+    // which draws the name too large. Ask for the face outright (ready can resolve before anything has asked), and
+    // draw again whenever a font finishes arriving.
+    const fam = getComputedStyle(document.body).getPropertyValue('--font-instrument-serif');
+    document.fonts?.load(`italic 400 100px ${fam}`).then(draw, () => {});
     document.fonts?.ready.then(draw);
+    document.fonts?.addEventListener?.('loadingdone', draw);
     window.addEventListener('sg:namefont', draw);
     return () => {
+      document.fonts?.removeEventListener?.('loadingdone', draw);
       ro.disconnect();
       mo.disconnect();
       window.removeEventListener('sg:namefont', draw);
