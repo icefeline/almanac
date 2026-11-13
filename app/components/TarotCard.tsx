@@ -665,7 +665,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
         </Scene>
 
         {/* nothing to show when nothing was written (a past day with no reflection) */}
-        {footer && <Scene name="your thoughts">{footer}</Scene>}
+        {footer && <Scene name="words">{footer}</Scene>}
       </Journey>
     </main>
     </div>
