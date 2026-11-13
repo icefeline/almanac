@@ -6,7 +6,8 @@
  * uses the NOAA low-precision solar position rather than a full ephemeris.
  *
  * Where the reader's coordinates are cached (lib/utils/here.ts) the altitude is
- * real. Without them it falls back to the device clock at a mid-latitude, so the
+ * real. Without them it uses a city in the device's time zone (lib/utils/zone-centre.ts),
+ * and for a zone it does not know, the device clock at a mid-latitude, so the
  * sky still turns dawn → day → sunset → night, just not on the reader's exact
  * minute. Nothing here is sent anywhere.
  */
@@ -20,6 +21,8 @@ export interface SkyMoment {
 
 const RAD = Math.PI / 180;
 
+import { zoneCentre } from './zone-centre';
+
 export function skyMoment(
   at: Date,
   where: { latitude: number; longitude: number } | null,
@@ -30,6 +33,9 @@ export function skyMoment(
   const declination = 23.44 * Math.sin((2 * Math.PI * (dayOfYear - 81)) / 365) * RAD;
   // equation of time, minutes
   const eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+
+  // no shared location: a city in the device's time zone will do for a colour of sky
+  where = where ?? zoneCentre();
 
   let latitude: number;
   let solarHours: number;

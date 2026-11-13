@@ -2440,3 +2440,9 @@ details[open] > .fold::after { content: '\2212'; }
    whenever the scene is scrolled out of view, so they never show over a neighbouring scene */
 .distillBody[data-away] .trackOverlay,
 .distillBody[data-away] .grid { visibility: hidden; }
+
+/* the distill scene never scrolls up and down: explicitly, not left to a :has() rule that some browsers do not read */
+.sheet .scene:has(.distillScene) { overflow-y: clip; }
+
+/* the distill scene never scrolls up and down: explicitly, not left to a :has() rule that some browsers do not read */
+.sheet .scene:has(.distillScene) { overflow-y: clip; }
