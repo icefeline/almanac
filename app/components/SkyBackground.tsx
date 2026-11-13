@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import TimeSwitch from './TimeSwitch'; // TEMP
+import dynamic from 'next/dynamic';
 import { skyMoment, skyPalette, type SkyMoment, type SkyStop } from '@/lib/utils/sky-time';
 import { drawGarden, gardenFor, islandPose, readDraws, type Plant } from '@/lib/utils/garden';
 import { paintCreatures } from '@/lib/utils/creatures';
 import { getHere } from '@/lib/utils/here';
+
+// Dev only: a pill that pins the sky to an hour and cycles the card-name face. `NODE_ENV` is fixed at build time, so in a
+// production build this is `null` and the component's code is never bundled.
+const TimeSwitch = process.env.NODE_ENV === 'production' ? null : dynamic(() => import('./TimeSwitch'), { ssr: false });
 
 /**
  * The sky behind everything: soft drifting clouds, ordered-dithered down to a
@@ -371,7 +375,8 @@ export default function SkyBackground() {
       refreshPalette();
       if (reduced) draw(performance.now());
     };
-    window.addEventListener('sg:sky', onSky);
+    // dev only: the time switcher drives this; production never listens
+    if (process.env.NODE_ENV !== 'production') window.addEventListener('sg:sky', onSky);
     window.addEventListener('sg:drew', replant);
     window.addEventListener('storage', replant);
     const minute = window.setInterval(() => {
@@ -389,14 +394,14 @@ export default function SkyBackground() {
       window.clearInterval(minute);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('sg:drew', replant);
-      window.removeEventListener('sg:sky', onSky);
+      if (process.env.NODE_ENV !== 'production') window.removeEventListener('sg:sky', onSky);
       window.removeEventListener('storage', replant);
     };
   }, []);
 
   return (
     <>
-      <TimeSwitch />
+      {TimeSwitch && <TimeSwitch />}
       <canvas
         ref={ref}
         aria-hidden="true"

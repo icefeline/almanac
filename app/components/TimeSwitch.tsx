@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 /**
  * TEMPORARY: pins the sky to an hour so the reading page can be seen against every
- * time of day. Dev only (hidden in production builds). Delete this file and its one
+ * time of day. Dev only: SkyBackground imports it only when NODE_ENV is not production, so it is never bundled. Delete this file and its one
  * line in SkyBackground.tsx when the look is settled.
  */
 const HOURS: { label: string; sun: { altitude: number; morning: boolean } | null }[] = [
