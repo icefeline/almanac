@@ -15,12 +15,14 @@ const DESKTOP_SCALE = 909 / 748;
 const WELCOME_PX = 26;
 import AsciiFlower from './AsciiFlower';
 import Wordmark from './Wordmark';
+import AlmanacSplash from './AlmanacSplash';
 import SkyBackground from './SkyBackground';
 import {
   ObBack, ObHead, ObFields, ObTag, ObHint, ObToggle, ObPermission, ObCta,
-  fieldStyle, obValue, obPx, LIME, BONE,
+  fieldStyle, obValue, obPx, LIME, BONE, bodyOf,
   COBALT, INK,
 } from './onboarding-ui';
+import type { Tone } from './onboarding-ui';
 import { clearHere, getHere, hasHere } from '@/lib/utils/here';
 
 /** The reader's answer to "use my location", kept next to the personalise flag. */
@@ -191,6 +193,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   /** Design canvas is 356 wide; scale it to whatever the phone actually is. */
   const [mobileScale, setMobileScale] = useState(1);
+  // the sky sets data-night on the page once the sun is down; the step screens follow it
+  const [night, setNight] = useState(false);
+  useEffect(() => {
+    const el = document.documentElement;
+    const read = () => setNight(el.hasAttribute('data-night'));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(el, { attributes: true, attributeFilter: ['data-night'] });
+    return () => mo.disconnect();
+  }, []);
 
   // Location geocode feedback
   const [locationResolved, setLocationResolved] = useState<string | null>(null);
@@ -237,7 +249,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       if (base && w === base.w && h < base.h) return; // keyboard, not a new viewport
       baseViewportRef.current = { w, h };
       setIsMobile(w < 768);
-      setMobileScale(Math.min(w / 356, h / 748));
+      setMobileScale(Math.min(w / 356, h / 748, w >= 768 ? 1.3 : Infinity));
       setBaseHeight(h);
     };
     check();
@@ -969,6 +981,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   // ── Step content (MOBILE) ──────────────────────────────────────────────────────────
   const renderStepContent = () => {
+    // the step screens sit straight on the live sky: cobalt and ink by day, lime and bone at night
+    const T: Tone = night ? 'dark' : 'light';
+    const ACC = night ? LIME : COBALT;
     switch (currentStep) {
       case 0:
         return (
@@ -978,41 +993,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                margins below centre the wordmark in the space above the button */
             style={{ paddingBottom: `${96 * mobileScale}px` }}
           >
-            {/*
-              Logo group — sized off one unit so the wordmark scales with the
-              viewport instead of being pinned to a fixed px size. The unit is
-              width-driven (42vw, the original proportion) until the screen is
-              too short for it — on a landscape phone a pure-vw wordmark grew
-              taller than the viewport and pushed the CTA off-screen — so the
-              height caps it. Every other measurement is a ratio of that unit,
-              keeping the Figma proportions intact at any size.
-              Auto margins centre it in the space above the CTA.
-            */}
-            <div style={{
-              '--wm': 'min(42vw, 34dvh)',
-              position: 'relative',
-              width: '100%',
-              height: 'calc(var(--wm) * 1.6)',
-              marginTop: 'auto',
-              marginBottom: 'auto',
-              flexShrink: 0,
-              overflow: 'visible',
-            } as React.CSSProperties}>
-              {/* Wordmark — 5a, typed out, in the same lime "glass" as before: 20% fill, 80% outline. */}
-              <Wordmark
-                animated="/slow-garden-wordmark-glass.webp"
-                still="/slow-garden-wordmark-glass-still.png"
-                alt="slow garden"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '90%',
-                  maxWidth: '520px',
-                }}
-              />
-            </div>
+            {/* The splash: "almanac" in pixels, orbit rings and sparkles over the live sky. */}
+            <AlmanacSplash tone="sky" />
 
             {/* Sits above the CTA rather than over the wordmark: the reader
                 should meet the name first, and the notice only matters at the
@@ -1020,16 +1002,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <InAppBrowserNotice scale={mobileScale} />
 
             {/* Continue — the same CTA the rest of the onboarding uses */}
-            <ObCta scale={mobileScale} onClick={handleNext} />
+            <ObCta raise={64} tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} />
           </div>
         );
 
       case 1:
         return (
           <div className="relative w-full h-full">
-            <ObBack tone="dark" scale={mobileScale} onClick={() => setCurrentStep(0)} />
+            <ObBack tone={T} scale={mobileScale} onClick={() => setCurrentStep(0)} />
             <ObHead
-              tone="dark"
+              tone={T}
               scale={mobileScale}
               title={<>WHAT&apos;S<br />YOUR NAME?</>}
               sub="FIRST NAME IS FINE"
@@ -1038,8 +1020,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 field is still in full view once the keyboard is up — rather
                 than at the canvas's midpoint where the keyboard covers it. */}
             <ObFields scale={mobileScale} top={330}>
-              <div style={fieldStyle('dark', mobileScale, true, true)}>
-                <span style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, mobileScale), color: LIME }}>&gt;</span>
+              <div style={fieldStyle(T, mobileScale, true, true)}>
+                <span style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, mobileScale), color: ACC }}>&gt;</span>
                 <input
                   type="text"
                   value={name}
@@ -1047,28 +1029,28 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   onKeyDown={(e) => { if (e.key === 'Enter' && canContinueFromName) handleNext(); }}
                   placeholder="YOUR NAME"
                   autoFocus
-                  style={{ ...obValue(mobileScale, true), color: BONE, textTransform: 'uppercase' }}
+                  style={{ ...obValue(mobileScale, true), color: bodyOf(T), textTransform: 'uppercase' }}
                 />
               </div>
-              <ObHint tone="dark" scale={mobileScale}>STORED ON YOUR DEVICE ONLY</ObHint>
+              <ObHint tone={T} scale={mobileScale}>STORED ON YOUR DEVICE ONLY</ObHint>
+              <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} disabled={!canContinueFromName} />
             </ObFields>
-            <ObCta scale={mobileScale} onClick={handleNext} disabled={!canContinueFromName} />
           </div>
         );
 
       case 2:
         return (
           <div className="relative w-full h-full">
-            <ObBack tone="dark" scale={mobileScale} onClick={() => setCurrentStep(1)} />
+            <ObBack tone={T} scale={mobileScale} onClick={() => setCurrentStep(1)} />
             <ObHead
-              tone="dark"
+              tone={T}
               scale={mobileScale}
               title={<>WHEN WERE<br />YOU BORN?</>}
               sub="SLOW GARDEN READS A VEDIC CHART."
             />
             <ObFields scale={mobileScale} stack top={330}>
               <div>
-                <div style={fieldStyle('dark', mobileScale, birthDate.length > 0)}>
+                <div style={fieldStyle(T, mobileScale, birthDate.length > 0)}>
                   <input
                     type="text"
                     placeholder="DD/MM/YYYY"
@@ -1082,15 +1064,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                       }
                     }}
                     maxLength={10}
-                    style={{ ...obValue(mobileScale), color: BONE }}
+                    style={{ ...obValue(mobileScale), color: bodyOf(T) }}
                   />
-                  <ObTag tone="dark" scale={mobileScale} required />
+                  <ObTag tone={T} scale={mobileScale} required />
                 </div>
-                {dateError && <FieldError message={dateError} variant="dark" />}
+                {dateError && <FieldError message={dateError} variant={T} />}
               </div>
 
               <div>
-                <div style={fieldStyle('dark', mobileScale, birthTime.length > 0)}>
+                <div style={fieldStyle(T, mobileScale, birthTime.length > 0)}>
                   <input
                     type="text"
                     placeholder="HH:MM"
@@ -1103,45 +1085,45 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                       }
                     }}
                     maxLength={5}
-                    style={{ ...obValue(mobileScale), color: BONE }}
+                    style={{ ...obValue(mobileScale), color: bodyOf(T) }}
                   />
-                  <ObTag tone="dark" scale={mobileScale} required={false} />
+                  <ObTag tone={T} scale={mobileScale} required={false} />
                 </div>
-                {timeError && <FieldError message={timeError} variant="dark" />}
+                {timeError && <FieldError message={timeError} variant={T} />}
               </div>
 
               <div>
-                <div style={fieldStyle('dark', mobileScale, birthLocation.length > 0)}>
+                <div style={fieldStyle(T, mobileScale, birthLocation.length > 0)}>
                   <input
                     type="text"
                     placeholder="CITY, COUNTRY"
                     value={birthLocation}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    style={{ ...obValue(mobileScale), color: BONE, textTransform: 'uppercase' }}
+                    style={{ ...obValue(mobileScale), color: bodyOf(T), textTransform: 'uppercase' }}
                   />
-                  <ObTag tone="dark" scale={mobileScale} required={false} />
+                  <ObTag tone={T} scale={mobileScale} required={false} />
                 </div>
-                {locationError && <FieldError message={locationError} variant="dark" />}
+                {locationError && <FieldError message={locationError} variant={T} />}
                 {!locationError && locationChecking && (
-                  <ObHint tone="dark" scale={mobileScale}>CHECKING…</ObHint>
+                  <ObHint tone={T} scale={mobileScale}>CHECKING…</ObHint>
                 )}
                 {!locationError && !locationChecking && locationResolved !== null && (
-                  <ObHint tone="dark" scale={mobileScale}>
+                  <ObHint tone={T} scale={mobileScale}>
                     {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "COULDN'T FIND THAT — TRY ANOTHER SPELLING"}
                   </ObHint>
                 )}
               </div>
+              <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} disabled={!canContinueFromBirthdate} />
             </ObFields>
-            <ObCta scale={mobileScale} onClick={handleNext} disabled={!canContinueFromBirthdate} />
           </div>
         );
 
       case 3:
         return (
           <div className="relative w-full h-full">
-            <ObBack tone="dark" scale={mobileScale} onClick={() => setCurrentStep(2)} />
+            <ObBack tone={T} scale={mobileScale} onClick={() => setCurrentStep(2)} />
             <ObHead
-              tone="dark"
+              tone={T}
               scale={mobileScale}
               tight
               title={<>ENABLE<br />PERMISSIONS</>}
@@ -1149,26 +1131,26 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             />
             <ObFields scale={mobileScale} top={330}>
               <ObPermission
-                tone="dark" scale={mobileScale} label="READ MY CHART"
+                tone={T} scale={mobileScale} label="READ MY CHART"
                 on={personalise} onChange={setPersonalise}
               >
                 READS YOUR CHART AGAINST TODAY'S SKY, SO THE CARD CAN OPEN OUT INTO WHAT IT MIGHT MEAN FOR YOU.
               </ObPermission>
               <ObPermission
-                tone="dark" scale={mobileScale} label="USE MY LOCATION"
+                tone={T} scale={mobileScale} label="USE MY LOCATION"
                 on={useLocation} onChange={handleLocationToggle}
               >
                 SETS YOUR SUNRISE, SUNSET AND MOON PHASE FROM WHERE YOU ACTUALLY ARE.
               </ObPermission>
               {locationBlocked && (
-                <ObHint tone="dark" scale={mobileScale} onClick={() => handleLocationToggle(true)}>
+                <ObHint tone={T} scale={mobileScale} onClick={() => handleLocationToggle(true)}>
                   {locationRetried
                     ? 'STILL BLOCKED — ALLOW LOCATION FROM THE LOCK ICON IN YOUR ADDRESS BAR'
                     : 'YOUR BROWSER BLOCKED LOCATION — TAP TO ASK AGAIN'}
                 </ObHint>
               )}
+              <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} />
             </ObFields>
-            <ObCta scale={mobileScale} onClick={handleNext} />
           </div>
         );
 
@@ -1189,7 +1171,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           >
             {isLoadingWelcome && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <AsciiFlower color={LIME} label="reading your chart" />
+                <AsciiFlower color={ACC} label="reading your chart" />
               </div>
             )}
 
@@ -1208,7 +1190,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{
                     fontFamily: 'var(--font-vt323), monospace',
                     fontSize: obPx(readingPx * 1.5, mobileScale),
-                    lineHeight: 1, color: LIME, textShadow: '0 2px 16px rgba(0,0,0,.5)',
+                    lineHeight: 1, color: ACC, textShadow: night ? '0 2px 16px rgba(0,0,0,.5)' : undefined,
                     textTransform: 'uppercase',
                   }}
                 >
@@ -1224,8 +1206,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     style={{
                       fontFamily: 'var(--font-vt323), monospace',
                       fontSize: obPx(readingPx, mobileScale), letterSpacing: '0.01em',
-                      lineHeight: 1.2, color: BONE, textTransform: 'uppercase',
-                      textShadow: '0 2px 16px rgba(0,0,0,.5)',
+                      lineHeight: 1.2, color: bodyOf(T), textTransform: 'uppercase',
+                      textShadow: night ? '0 2px 16px rgba(0,0,0,.5)' : undefined,
                       whiteSpace: 'pre-line',
                     }}
                   >
@@ -1260,7 +1242,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <span
                 style={{
                   fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, mobileScale),
-                  color: LIME, paddingBottom: obPx(8, mobileScale),
+                  color: ACC, paddingBottom: obPx(8, mobileScale),
                 }}
               >
                 ← DRAG ME
@@ -1317,7 +1299,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
       {/* ── MOBILE layout — full screen, no device frame ── */}
       <div
-        className={`md:hidden relative z-10 flex flex-col
+        className={`${currentStep === 0 ? 'md:hidden' : ''} relative z-10 flex flex-col
         ${currentStep === 0 ? '' : isDesignStep ? '' : 'px-5'}
         ${currentStep === 4 ? 'overflow-hidden' : currentStep === 0 || isDesignStep ? '' : 'py-8'}`}
         /* held at the pre-keyboard height for the same reason the scale is —
@@ -1336,7 +1318,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           <div className="flex-1 flex items-center justify-center w-full">
             <div
               className="relative w-full"
-              style={{ height: 748 * mobileScale }}
+              style={{ height: 748 * mobileScale, maxWidth: isMobile ? undefined : 356 * mobileScale }}
             >
               {renderStepContent()}
             </div>
@@ -1352,343 +1334,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       </div>
 
       {/* ── DESKTOP layout — device frame, proportionally scaled to fit viewport ── */}
-      <div className="hidden md:flex relative z-10 items-center justify-center min-h-screen" style={{ minHeight: '100dvh' }}>
-        {/*
-          Outer sizing box: gives the flex container real dimensions (scaled) so
-          centering works correctly without relying on the absolutely-positioned children.
-          translateX compensates for the screen being off-center within the 801px frame
-          artwork (the frame's screen cutout sits left of canvas-center to make room for
-          the fanned deck) — without it, flex centers the artwork but the readable
-          header/fields inside the screen end up left-of-viewport-center. Using a transform
-          (not margin) so the shift is exact — margin gets half-absorbed by flex centering.
-        */}
-        <div style={{ position: 'relative', width: `${801 * deviceScale}px`, height: `${1000 * deviceScale}px`, transform: `translateX(${67.935 * deviceScale}px)` }}>
-          {/*
-            Inner natural-size container scaled via transform.
-            Both the device frame image and the content area live here at their natural
-            pixel sizes, so they always stay in exact proportion regardless of viewport.
-          */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '801px',
-              height: '1000px',
-              transformOrigin: 'top left',
-              transform: `scale(${deviceScale})`,
-            }}
-          >
-            {/* Device frame with deck fan */}
-            <img
-              src="/device-frame-deck-swirl.png"
-              alt=""
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '801px',
-                height: '1000px',
-                objectFit: 'contain',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
-            />
-
-            {/* Blue screen content area — positioned to sit exactly inside the device frame image */}
-            <div
-              className="overflow-hidden absolute z-20"
-              style={{
-                width: '647px',
-                height: '909px',
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-60.5%, -50%)',
-                background: '#F7F4E6',
-              }}
-            >
-              {/* Card-back pattern, softened — shown on all onboarding steps */}
-              <img
-                src="/card-back-swirl.png"
-                alt=""
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  opacity: 0.1,
-                  pointerEvents: 'none',
-                  zIndex: 0,
-                }}
-              />
-              {/* Desktop content uses original dark-on-light styling */}
-              <div className={`h-full overflow-y-auto ${currentStep === 0 || isDesignStep ? '' : 'px-12'}`} style={{ color: '#172211', position: 'relative', zIndex: 1 }}>
-
-                {/* Step 0 — welcome / logo */}
-                {currentStep === 0 && (
-                  <div className="flex flex-col h-full" style={{ position: 'relative' }}>
-                    {/* Content — flex column; font metrics from Figma ×1.1234 scale, spiral mobile-proportioned */}
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-                      {/* Logo group: full width, overflow visible so text bleeds edges.
-                          Centred in the space above the CTA — the button's band
-                          (62 tall, 34 from the bottom) is excluded, not divided. */}
-                      <div style={{
-                        position: 'absolute',
-                        top: `${((909 - 96 * DESKTOP_SCALE) - 435) / 2}px`,
-                        left: 0,
-                        right: 0,
-                        height: '435px',
-                        overflow: 'visible',
-                      }}>
-                        {/* Wordmark — 5a, typed out, navy with a lime shadow on the light window */}
-                        <Wordmark
-                          animated="/slow-garden-wordmark-navy.gif"
-                          still="/slow-garden-wordmark-navy-still.png"
-                          alt="slow garden"
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '92%',
-                          }}
-                        />
-                      </div>
-                      {/* Continue — the same CTA the rest of the onboarding uses */}
-                      <ObCta scale={DESKTOP_SCALE} onClick={handleNext} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Steps 1-3 — the design canvas, centred in the panel */}
-                {isDesignStep && (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <div
-                      className="relative w-full"
-                      style={{ height: 748 * DESKTOP_SCALE }}
-                    >
-                      {currentStep === 1 && (
-                        <>
-                          <ObBack tone="light" scale={DESKTOP_SCALE} onClick={() => setCurrentStep(0)} />
-                          <ObHead
-                            tone="light"
-                            scale={DESKTOP_SCALE}
-                            title={<>WHAT&apos;S<br />YOUR NAME?</>}
-                            sub="FIRST NAME IS FINE"
-                          />
-                          <ObFields scale={DESKTOP_SCALE} top={330}>
-                            <div style={fieldStyle('light', DESKTOP_SCALE, true, true)}>
-                              <span style={{ fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, DESKTOP_SCALE), color: COBALT }}>&gt;</span>
-                              <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' && canContinueFromName) handleNext(); }}
-                                placeholder="YOUR NAME"
-                                autoFocus
-                                style={{ ...obValue(DESKTOP_SCALE, true), color: INK, textTransform: 'uppercase' }}
-                              />
-                            </div>
-                            <ObHint tone="light" scale={DESKTOP_SCALE}>STORED ON YOUR DEVICE ONLY</ObHint>
-                          </ObFields>
-                          <ObCta scale={DESKTOP_SCALE} onClick={handleNext} disabled={!canContinueFromName} />
-                        </>
-                      )}
-
-                      {currentStep === 2 && (
-                        <>
-                          <ObBack tone="light" scale={DESKTOP_SCALE} onClick={() => setCurrentStep(1)} />
-                          <ObHead
-                            tone="light"
-                            scale={DESKTOP_SCALE}
-                            title={<>WHEN WERE<br />YOU BORN?</>}
-                            sub="SLOW GARDEN READS A VEDIC CHART."
-                          />
-                          <ObFields scale={DESKTOP_SCALE} stack top={330}>
-                            <div>
-                              <div style={fieldStyle('light', DESKTOP_SCALE, birthDate.length > 0)}>
-                                <input
-                                  type="text"
-                                  placeholder="DD/MM/YYYY"
-                                  value={birthDate}
-                                  onChange={(e) => handleDateChange(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && canContinueFromBirthdate) handleNext();
-                                    if (e.key === 'Backspace' && birthDate.length > 0) {
-                                      e.preventDefault();
-                                      handleDateChange(birthDate.replace(/\D/g, '').slice(0, -1));
-                                    }
-                                  }}
-                                  maxLength={10}
-                                  style={{ ...obValue(DESKTOP_SCALE), color: INK }}
-                                />
-                                <ObTag tone="light" scale={DESKTOP_SCALE} required />
-                              </div>
-                              {dateError && <FieldError message={dateError} variant="light" />}
-                            </div>
-
-                            <div>
-                              <div style={fieldStyle('light', DESKTOP_SCALE, birthTime.length > 0)}>
-                                <input
-                                  type="text"
-                                  placeholder="HH:MM"
-                                  value={birthTime}
-                                  onChange={(e) => handleTimeChange(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Backspace' && birthTime.length > 0) {
-                                      e.preventDefault();
-                                      handleTimeChange(birthTime.replace(/\D/g, '').slice(0, -1));
-                                    }
-                                  }}
-                                  maxLength={5}
-                                  style={{ ...obValue(DESKTOP_SCALE), color: INK }}
-                                />
-                                <ObTag tone="light" scale={DESKTOP_SCALE} required={false} />
-                              </div>
-                              {timeError && <FieldError message={timeError} variant="light" />}
-                            </div>
-
-                            <div>
-                              <div style={fieldStyle('light', DESKTOP_SCALE, birthLocation.length > 0)}>
-                                <input
-                                  type="text"
-                                  placeholder="CITY, COUNTRY"
-                                  value={birthLocation}
-                                  onChange={(e) => handleLocationChange(e.target.value)}
-                                  style={{ ...obValue(DESKTOP_SCALE), color: INK, textTransform: 'uppercase' }}
-                                />
-                                <ObTag tone="light" scale={DESKTOP_SCALE} required={false} />
-                              </div>
-                              {locationError && <FieldError message={locationError} variant="light" />}
-                              {!locationError && locationChecking && (
-                                <ObHint tone="light" scale={DESKTOP_SCALE}>CHECKING…</ObHint>
-                              )}
-                              {!locationError && !locationChecking && locationResolved !== null && (
-                                <ObHint tone="light" scale={DESKTOP_SCALE}>
-                                  {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "COULDN'T FIND THAT — TRY ANOTHER SPELLING"}
-                                </ObHint>
-                              )}
-                            </div>
-                          </ObFields>
-                          <ObCta scale={DESKTOP_SCALE} onClick={handleNext} disabled={!canContinueFromBirthdate} />
-                        </>
-                      )}
-
-                      {currentStep === 4 && (() => {
-                        const { title: rTitle, body: rBody } = readingParts();
-                        return (
-                          <>
-                            {isLoadingWelcome && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <AsciiFlower color={COBALT} weight={500} label="reading your chart" />
-                              </div>
-                            )}
-
-                            {!isLoadingWelcome && (
-                              <div
-                                style={{
-                                  position: 'absolute', left: obPx(24, DESKTOP_SCALE), right: obPx(24, DESKTOP_SCALE),
-                                  top: obPx(80, DESKTOP_SCALE), display: 'flex', flexDirection: 'column',
-                                  gap: obPx(14, DESKTOP_SCALE),
-                                  maxHeight: obPx(500, DESKTOP_SCALE), overflowY: 'auto',
-                                }}
-                              >
-                                <div style={{
-                                  fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(WELCOME_PX, DESKTOP_SCALE),
-                                  lineHeight: 1.15, color: COBALT, textTransform: 'uppercase',
-                                }}>
-                                  {rTitle}
-                                </div>
-                                {rBody && (
-                                  <div style={{
-                                    fontFamily: 'var(--font-vt323), monospace',
-                                    fontSize: obPx(WELCOME_PX, DESKTOP_SCALE),
-                                    lineHeight: 1.15, color: COBALT, textTransform: 'uppercase',
-                                    whiteSpace: 'pre-line',
-                                  }}>
-                                    {rBody}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            <div
-                              style={{
-                                position: 'absolute', left: obPx(24, DESKTOP_SCALE), right: obPx(24, DESKTOP_SCALE),
-                                bottom: obPx(34, DESKTOP_SCALE), display: 'flex', alignItems: 'flex-end',
-                                gap: obPx(16, DESKTOP_SCALE),
-                                visibility: isTypingComplete && !isDragging ? 'visible' : 'hidden',
-                              }}
-                            >
-                              <img
-                                src="/card-back-swirl.png"
-                                alt="Card back"
-                                className="select-none"
-                                style={{
-                                  width: obPx(140, DESKTOP_SCALE), height: obPx(210, DESKTOP_SCALE),
-                                  objectFit: 'cover', cursor: 'grab',
-                                  userSelect: 'none', WebkitUserSelect: 'none',
-                                }}
-                                onMouseDown={handleMouseDown}
-                                draggable="false"
-                              />
-                              <span style={{
-                                fontFamily: 'var(--font-vt323), monospace', fontSize: obPx(24, DESKTOP_SCALE),
-                                color: COBALT, paddingBottom: obPx(8, DESKTOP_SCALE),
-                              }}>
-                                ← DRAG ME
-                              </span>
-                            </div>
-                          </>
-                        );
-                      })()}
-
-                      {currentStep === 3 && (
-                        <>
-                          <ObBack tone="light" scale={DESKTOP_SCALE} onClick={() => setCurrentStep(2)} />
-                          <ObHead
-                            tone="light"
-                            scale={DESKTOP_SCALE}
-                            tight
-                            title={<>ENABLE<br />PERMISSIONS</>}
-                            sub={<>BOTH ARE OPTIONAL, AND BOTH CAN BE<br />TURNED OFF ANY DAY.</>}
-                          />
-                          <ObFields scale={DESKTOP_SCALE} top={330}>
-                            <ObPermission
-                              tone="light" scale={DESKTOP_SCALE} label="READ MY CHART"
-                              on={personalise} onChange={setPersonalise}
-                            >
-                              READS YOUR CHART AGAINST TODAY'S SKY, SO THE CARD CAN OPEN OUT INTO WHAT IT MIGHT MEAN FOR YOU.
-                            </ObPermission>
-                            <ObPermission
-                              tone="light" scale={DESKTOP_SCALE} label="USE MY LOCATION"
-                              on={useLocation} onChange={handleLocationToggle}
-                            >
-                              SETS YOUR SUNRISE, SUNSET AND MOON PHASE FROM WHERE YOU ACTUALLY ARE.
-                            </ObPermission>
-                            {locationBlocked && (
-                              <ObHint tone="light" scale={DESKTOP_SCALE} onClick={() => handleLocationToggle(true)}>
-                                {locationRetried
-                                  ? 'STILL BLOCKED — ALLOW LOCATION FROM THE LOCK ICON IN YOUR ADDRESS BAR'
-                                  : 'YOUR BROWSER BLOCKED LOCATION — CLICK TO ASK AGAIN'}
-                              </ObHint>
-                            )}
-                          </ObFields>
-                          <ObCta scale={DESKTOP_SCALE} onClick={handleNext} />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-
-              </div>
-            </div>
+      {/* ── DESKTOP splash — no window: the poster sits straight on the live sky ── */}
+      {currentStep === 0 && (
+        <div className="hidden md:block fixed inset-0 z-10">
+          <AlmanacSplash tone="sky" />
+          <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 'min(100%, 560px)', transform: 'translateX(-50%)' }}>
+            <ObCta raise={80} tone={night ? 'dark' : 'light'} scale={DESKTOP_SCALE} onClick={handleNext} />
           </div>
         </div>
-      </div>
+      )}
+
 
       {/* Cascaded cards trail */}
       {cascadedCards.map((card, index) => {

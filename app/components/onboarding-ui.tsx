@@ -81,7 +81,7 @@ export function ObHead({
         <div
           style={{
             fontFamily: MONO, fontSize: px(11, scale), letterSpacing: '0.13em',
-            lineHeight: 1.85, color: bodyOf(tone), opacity: tone === 'light' ? 0.6 : 0.75,
+            lineHeight: 1.85, color: bodyOf(tone), opacity: tone === 'light' ? 0.78 : 0.75,
           }}
         >
           {sub}
@@ -160,7 +160,7 @@ export function ObHint({
 }) {
   const style: React.CSSProperties = {
     marginTop: px(10, scale), fontFamily: MONO, fontSize: px(9, scale),
-    letterSpacing: '0.2em', color: bodyOf(tone), opacity: tone === 'light' ? 0.45 : 0.6,
+    letterSpacing: '0.2em', color: bodyOf(tone), opacity: tone === 'light' ? 0.7 : 0.6,
     lineHeight: 1.8, textAlign: 'left',
   };
 
@@ -273,9 +273,13 @@ export function ObToggle({
 }
 
 export function ObCta({
-  scale, onClick, disabled = false, label = 'CONTINUE',
+  scale, onClick, disabled = false, label = 'CONTINUE', tone = 'dark', inline = false, raise = 0,
 }: {
-  scale: number; onClick: () => void; disabled?: boolean; label?: string;
+  scale: number; onClick: () => void; disabled?: boolean; label?: string; tone?: Tone;
+  /** Design px to lift the pinned button off the foot of the screen (the splash sits it higher). */
+  raise?: number;
+  /** Sits in the flow, a fixed gap under the fields, instead of being pinned to the foot of the screen. */
+  inline?: boolean;
 }) {
   /*
    * The CTA stays at the bottom of the step and does not chase the keyboard.
@@ -301,10 +305,12 @@ export function ObCta({
       // move the button out from under the finger mid-tap
       onPointerDown={(e) => { e.preventDefault(); }}
       style={{
-        position: 'absolute',
-        left: px(24, scale), right: px(24, scale),
-        bottom: px(34, scale),
-        height: px(62, scale), background: LIME, color: INK,
+        ...(inline
+          ? { position: 'relative', marginTop: px(30, scale), width: '100%' }
+          : { position: 'absolute', left: px(24, scale), right: px(24, scale), bottom: px(34 + raise, scale) }),
+        height: px(62, scale),
+        // lime with ink at night; cobalt with paper by day, so it holds against a bright sky
+        background: tone === 'light' ? COBALT : LIME, color: tone === 'light' ? '#F7F4E6' : INK,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: `0 ${px(22, scale)}`, border: 'none', borderRadius: 0,
         fontFamily: PIXEL, fontSize: px(28, scale),
