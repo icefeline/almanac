@@ -215,6 +215,52 @@ function drawnDays(now: Date): Set<number> {
   return out;
 }
 
+
+/* ---- the sound of a leaf coming off a pad: grains of filtered paper noise, made on the spot (Web Audio) ---- */
+let audio: AudioContext | null = null;
+function audioCtx(): AudioContext | null {
+  try {
+    if (localStorage.getItem('slow-garden-sound') === 'off') return null;
+    if (!audio) {
+      const A = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!A) return null;
+      audio = new A();
+    }
+    if (audio.state === 'suspended') void audio.resume();
+    return audio;
+  } catch {
+    return null;
+  }
+}
+/** One short crackle of paper fibres. `at` is in seconds from now. */
+function ripGrain(c: AudioContext, at: number, loud: number, bright: number) {
+  const len = Math.floor(c.sampleRate * (0.02 + Math.random() * 0.03));
+  const buf = c.createBuffer(1, len, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.6);
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  const band = c.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = (1800 + Math.random() * 2600) * bright;
+  band.Q.value = 0.8;
+  const g = c.createGain();
+  g.gain.value = Math.min(0.5, loud) * (0.5 + Math.random() * 0.5);
+  src.connect(band).connect(g).connect(c.destination);
+  src.start(c.currentTime + at);
+}
+/** The last, long rip when the leaf comes away: a burst of grains that thins out and darkens. */
+function ripOff() {
+  const c = audioCtx();
+  if (!c) return;
+  const n = 26;
+  for (let i = 0; i < n; i++) {
+    const t = (i / n) * 0.5 + Math.random() * 0.012;
+    const fade = 1 - i / n;
+    ripGrain(c, t, 0.34 * (0.35 + fade), 0.7 + fade * 0.5);
+  }
+}
+
 export default function TearSheet({
   onTear,
   onDone,
@@ -250,13 +296,32 @@ export default function TearSheet({
     if (!page || disabled) return;
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+    // The card page sits behind the leaf, clipped to the strip the leaf has left bare: its top edge, measured from where it
+    // hung, is the line the card appears above. So the card shows as the paper passes it, not the moment you touch it.
+    const root = document.documentElement;
+    let baseTop = 0;
+    let raf = 0;
+    const follow = () => {
+      const edge = Math.max(0, page.getBoundingClientRect().top - baseTop);
+      // the name and the card come up together, a little more of them the further the leaf has been drawn down
+      const p = Math.min(1, edge / (window.innerHeight * 0.5));
+      root.style.setProperty('--tear-p', String(p * p * (3 - 2 * p)));
+    };
+    const chase = () => {
+      follow();
+      raf = requestAnimationFrame(chase);
+    };
     const down = (e: PointerEvent) => {
       if (tornRef.current) return;
+      baseTop = page.getBoundingClientRect().top;
+      lastGrain = 0;
+      audioCtx(); // a press is the gesture the browser wants before it will play sound
       dragRef.current = { active: true, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0 };
       page.style.transition = 'none';
       try { page.setPointerCapture?.(e.pointerId); } catch { /* the drag still works */ }
     };
     let peeked = false;
+    let lastGrain = 0;
     const move = (e: PointerEvent) => {
       const d = dragRef.current;
       if (!d.active || tornRef.current) return;
@@ -269,6 +334,15 @@ export default function TearSheet({
       const pull = Math.min(1, pullDistance(d.dx, d.dy) / 420);
       // hangs from the bar: it swings from the top as it is pulled down and aside
       page.style.transform = `translate(${d.dx * 0.6}px, ${Math.max(0, d.dy) * 0.9}px) rotate(${pull * 5 + d.dx * 0.012}deg)`;
+      follow();
+      // paper fibres crackle as it is drawn down: a grain for every few pixels, louder the faster it goes
+      const dist = pullDistance(d.dx, d.dy);
+      const step = dist - lastGrain;
+      if (step > 12) {
+        const c = audioCtx();
+        if (c) ripGrain(c, 0, Math.min(0.3, 0.05 + step / 160), 1);
+        lastGrain = dist;
+      } else if (step < -40) lastGrain = dist;
     };
     const end = () => {
       const d = dragRef.current;
@@ -280,7 +354,13 @@ export default function TearSheet({
         // the page is revealed the moment the tear commits, so the real thing — the name, the
         // words arriving, the next scene at the edge — is what the leaf falls away from
         onTear();
-        const finish = () => onDone?.();
+        ripOff();
+        const finish = () => {
+          cancelAnimationFrame(raf);
+          root.style.removeProperty('--tear-p');
+          onDone?.();
+        };
+        if (!reduce) raf = requestAnimationFrame(chase);
         if (barRef.current) {
           barRef.current.style.transition = 'transform .7s ease-in';
           barRef.current.style.transform = 'translateY(-130%)';
@@ -297,6 +377,14 @@ export default function TearSheet({
         page.style.transform = 'none';
         peeked = false;
         onPeek?.(false);
+        // the leaf springs back over the card: let it close up with it
+        const t0 = performance.now();
+        const settle = () => {
+          follow();
+          if (performance.now() - t0 < 500) raf = requestAnimationFrame(settle);
+          else root.style.removeProperty('--tear-p');
+        };
+        raf = requestAnimationFrame(settle);
       }
     };
     page.addEventListener('pointerdown', down);
@@ -305,6 +393,7 @@ export default function TearSheet({
     page.addEventListener('pointercancel', end);
     page.addEventListener('lostpointercapture', end);
     return () => {
+      cancelAnimationFrame(raf);
       page.removeEventListener('pointerdown', down);
       page.removeEventListener('pointermove', move);
       page.removeEventListener('pointerup', end);

@@ -1524,6 +1524,10 @@ details[open] > .fold::after { content: '\2212'; }
 .sealed .journey { opacity: 0; visibility: visible; transition: opacity .35s ease; }
 /* ...until the leaf is pulled: then the page behind it shows */
 .sealed.peek .journey { opacity: 1; }
+/* ...but only the card itself: the name comes with it; the words and figures stay unseen until the tear is made */
+.sealed.peek .journey * { visibility: hidden; }
+.sealed.peek .journey [data-card-image], .sealed.peek .journey [data-card-image] *,
+.sealed.peek .journey .cardname, .sealed.peek .journey .cardname * { visibility: visible; }
 
 /* distill: the list and the reading on the left, the tracked field on the right */
 .distillScene .distillBody { display: grid; grid-template-columns: .62fr 1.7fr; column-gap: 3cqw; height: 100%; }

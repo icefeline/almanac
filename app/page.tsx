@@ -914,6 +914,8 @@ export default function Home() {
             {/* Card Display — ref wraps TarotCard so getBoundingClientRect gives exact card position.
                 While unrevealed, the tear-off page covers the card; tearing it is the reveal. */}
             <div ref={cardAnchorRef} className="relative">
+              {/* while the leaf is on or falling, the page behind shows only as much of itself as the leaf has been drawn down */}
+              <div style={!isRevealed || falling ? { opacity: 'var(--tear-p, 0)' } : undefined}>
               <TarotCard
                 card={card}
                 isReversed={isReversed}
@@ -927,6 +929,7 @@ export default function Home() {
                 cardDate={dateString}
                 footer={isRevealed ? renderInputBlock() : undefined}
               />
+              </div>
               {(!isRevealed || falling) && (
                 <TearSheet
                   onTear={handleTearReveal}
