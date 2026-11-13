@@ -126,6 +126,13 @@ export default function SkyBackground() {
     let stars = 0;
     let open = 0;
     // each island wears its own soft colour, so they read as objects against the clouds
+    // the garden's colours: flower 0 pink · 1 lilac · 2 butter · 3 coral · 4 red; leaf 0 fresh · 1 moss · 2 sage · 3 cream
+    let bloomLitV: RGB[] = [];
+    let bloomShadeV: RGB[] = [];
+    let leafLitV: RGB[] = [];
+    let leafShadeV: RGB[] = [];
+    let wing: RGB = [168, 214, 150];
+    let wingEdge: RGB = [236, 206, 120];
     let islandLit: RGB[] = [];
     let islandShade: RGB[] = [];
     let altitude = 0;
@@ -183,6 +190,14 @@ export default function SkyBackground() {
       leafShade = mix3(cs, [78, 140, 112], 0.55);
       bloomLit = mix3(cl, [255, 190, 208], 0.62);
       bloomShade = mix3(cs, [196, 112, 160], 0.55);
+      const BLOOMS: RGB[] = [[255, 190, 208], [214, 190, 255], [255, 232, 150], [255, 178, 130], [238, 112, 118]];
+      const LEAVES: RGB[] = [[168, 214, 172], [196, 208, 130], [150, 200, 200], [246, 238, 214], [168, 132, 98], [96, 150, 96]];
+      bloomLitV = BLOOMS.map((c) => mix3(cl, c, 0.62));
+      bloomShadeV = BLOOMS.map((c) => mix3(cs, [c[0] * 0.78, c[1] * 0.55, c[2] * 0.68], 0.55));
+      leafLitV = LEAVES.map((c) => mix3(cl, c, 0.6));
+      leafShadeV = LEAVES.map((c) => mix3(cs, [c[0] * 0.5, c[1] * 0.7, c[2] * 0.6], 0.55));
+      wing = mix3(cl, [172, 214, 140], 0.62);
+      wingEdge = mix3(cl, [240, 208, 112], 0.7);
       stars = Math.max(0, Math.min(1, (-m.altitude - 3) / 9));
       // flowers open with the sun and close as it goes
       open = smooth(-5, 10, m.altitude);
@@ -274,7 +289,14 @@ export default function SkyBackground() {
               } else {
                 const bloom = gd[p + 1] > gd[p];
                 const shaded = shadeEdge || (!litEdge && bayer > 0.72);
-                c = bloom ? (shaded ? bloomShade : bloomLit) : shaded ? leafShade : leafLit;
+                if (bloom) {
+                  // the level in the green channel is the flower's colour
+                  const v = Math.min(4, Math.max(0, Math.round((255 - gd[p + 1]) / 40)));
+                  c = shaded ? bloomShadeV[v] : bloomLitV[v];
+                } else {
+                  const v = Math.min(5, Math.max(0, Math.round((255 - gd[p]) / 50)));
+                  c = shaded ? leafShadeV[v] : leafLitV[v];
+                }
               }
             }
           }
@@ -302,7 +324,7 @@ export default function SkyBackground() {
           h,
           t,
           altitude,
-          { light: cl, shade: cs, pink: bloomLit, pinkShade: bloomShade, glow },
+          { light: cl, shade: cs, pink: bloomLit, pinkShade: bloomShade, glow, wing, wingEdge },
           snail,
         );
       }

@@ -7,6 +7,7 @@
  * depends on the real sun:
  *
  *   birds       by day            a loose flock crossing, wings beating
+ *   butterflies by day            two green-gold ones wandering the garden, wings opening and closing
  *   moths       dusk into night   wandering near the flowers, fluttering
  *   fireflies   night             slow blinks low in the garden
  *   snail       always            crawling along the rim of an island — the brand creature
@@ -20,6 +21,9 @@ export interface CreatureColours {
   pink: RGB;
   pinkShade: RGB;
   glow: RGB;
+  /** butterfly wings and their gold edge */
+  wing: RGB;
+  wingEdge: RGB;
 }
 
 export interface SnailSpot {
@@ -33,6 +37,9 @@ const BIRD_UP = ['X.....X', '.XX.XX.', '...X...'];
 const BIRD_DOWN = ['...X...', '.XXXXX.', 'X.....X'];
 const MOTH_OPEN = ['XX...XX', 'XXX.XXX', '.XXXXX.', '..X.X..'];
 const MOTH_SHUT = ['..X.X..', '..XXX..', '..XXX..', '...X...'];
+// g = wing, y = wing edge, b = body
+const BUTTERFLY_OPEN = ['yg.....gy', 'ggg...ggg', 'ggggbgggg', '.gggbggg.', '..gybyg..', '...y.y...'];
+const BUTTERFLY_SHUT = ['...g.g...', '..ggggg..', '..g.b.g..', '..gybyg..', '...yby...', '....b....'];
 // p = shell light, o = shell shade, # = body
 const SNAIL = ['..pppp..#', '.pooopp.#', '.popopp##', '#########', '.#######.'];
 
@@ -86,7 +93,8 @@ export function paintCreatures(
       for (let rx = 0; rx < sw; rx++) {
         const ch = rows[ry][flip ? sw - 1 - rx : rx];
         if (ch === '.') continue;
-        const col = ch === 'p' ? c.pink : ch === 'o' ? c.pinkShade : c.light;
+        const col =
+          ch === 'p' ? c.pink : ch === 'o' ? c.pinkShade : ch === 'g' ? c.wing : ch === 'y' ? c.wingEdge : ch === 'b' ? c.shade : c.light;
         for (let sy = 0; sy < scale; sy++) for (let sx = 0; sx < scale; sx++) put(x0 + rx * scale + sx, y0 + ry * scale + sy, col);
       }
     }
@@ -106,6 +114,17 @@ export function paintCreatures(
         const up = Math.floor(t * 3 + b * 0.7 + f) % 2 === 0;
         sprite(up ? BIRD_UP : BIRD_DOWN, x, y, 2, dir === -1);
       }
+    }
+  }
+
+  // butterflies: two of them, wandering low over the flowers on a warm day
+  if (day > 0.3) {
+    const count = day > 0.7 ? 2 : 1;
+    for (let i = 0; i < count; i++) {
+      const x = w * (0.5 + 0.42 * Math.sin(t * 0.05 + i * 2.4)) + Math.sin(t * 1.3 + i) * 5;
+      const y = h * (0.6 + 0.2 * Math.sin(t * 0.07 + i * 1.7)) + Math.sin(t * 4.2 + i) * 3 + Math.cos(t * 0.6 + i) * 8;
+      const open = Math.floor(t * 5 + i * 0.5) % 2 === 0;
+      sprite(open ? BUTTERFLY_OPEN : BUTTERFLY_SHUT, x, y, 2, Math.cos(t * 0.05 + i * 2.4) < 0);
     }
   }
 

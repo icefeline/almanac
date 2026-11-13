@@ -14,10 +14,13 @@
  * viewport so the garden re-flows on resize.
  */
 
-export type Species = 'flower' | 'fern' | 'tree' | 'bell' | 'reed' | 'thistle' | 'vine' | 'island';
+export type Species =
+  | 'flower' | 'fern' | 'tree' | 'bell' | 'reed' | 'thistle' | 'vine' | 'island'
+  // from the photographs: a coneflower, a lavender spike, a pair of toadstools, hanging moss
+  | 'coneflower' | 'lavender' | 'mushroom' | 'moss';
 
 /** What an island carries on its back. */
-export type Flora = 'tree' | 'gate' | 'sundial' | 'flower';
+export type Flora = 'tree' | 'gate' | 'sundial' | 'flower' | 'arch';
 
 export interface Plant {
   id: string;
@@ -44,10 +47,18 @@ export interface Plant {
   flora?: Flora;
   /** Islands only: index into ISLAND_TINTS (0–5); 7 is plain cloud. */
   tint?: number;
+  /** Flower colour: 0 pink · 1 lilac · 2 butter · 3 coral · 4 red. */
+  hue?: number;
+  /** Leaf colour: 0 fresh · 1 moss · 2 sage · 3 cream · 4 woody brown · 5 deep green. */
+  leafHue?: number;
 }
 
 const LEAF = 'rgb(255,0,0)';
 const FLOWER = 'rgb(0,255,0)';
+// A colour is a level in its channel. The red channel carries leaves (255 fresh, 205 moss, 155 sage, 105 cream, 55 woody brown, 10 deep green) and the
+// green channel carries flowers (255 pink, 215 lilac, 175 butter, 135 coral, 95 red). SkyBackground reads the level back.
+const LEAFS = ['rgb(255,0,0)', 'rgb(205,0,0)', 'rgb(155,0,0)', 'rgb(105,0,0)', 'rgb(55,0,0)', 'rgb(10,0,0)'];
+const FLOWERS = ['rgb(0,255,0)', 'rgb(0,215,0)', 'rgb(0,175,0)', 'rgb(0,135,0)', 'rgb(0,95,0)'];
 
 function smooth(e0: number, e1: number, x: number): number {
   const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
@@ -73,17 +84,27 @@ export function rng(seed: number): () => number {
  */
 export function ambientPlants(): Plant[] {
   const r = rng(7);
-  const spec: [Species, number, number, 1 | -1][] = [
+  // [species, x, height, dir, flower colour, leaf colour]
+  const spec: [Species, number, number, 1 | -1, number?, number?][] = [
     ['flower', 0.06, 0.34, 1],
+    ['coneflower', 0.2, 0.3, 1, 0],
     ['fern', 0.15, 0.27, 1],
+    ['moss', 0.08, 0.3, -1, 0, 1],
     ['tree', 0.92, 0.3, 1],
+    ['lavender', 0.78, 0.3, 1, 1],
+    ['mushroom', 0.04, 0.14, 1],
     ['bell', 0.83, 0.33, 1],
+    ['coneflower', 0.94, 0.22, 1, 3],
     ['reed', 0.975, 0.25, 1],
+    ['moss', 0.9, 0.24, -1, 0, 2],
     ['thistle', 0.25, 0.2, 1],
+    ['lavender', 0.11, 0.24, 1, 1],
     ['vine', 0.035, 0.4, -1],
+    ['mushroom', 0.88, 0.11, 1],
     ['fern', 0.9, 0.24, -1],
+    ['coneflower', 0.31, 0.16, 1, 2],
     ['bell', 0.13, 0.22, -1],
-    ['flower', 0.71, 0.15, 1],
+    ['flower', 0.71, 0.15, 1, 2],
     ['flower', 0.31, 0.12, 1],
   ];
   const wild: Plant[] = spec.map(([species, x, height, dir], i) => ({
@@ -97,6 +118,8 @@ export function ambientPlants(): Plant[] {
     delay: i * 0.45,
     duration: 9 + r() * 6,
     maturity: 1,
+    hue: spec[i][4],
+    leafHue: spec[i][5],
   }));
   const island = (id: string, x: number, y: number, size: number, flora: Flora, delay: number, tint: number): Plant => ({
     id,
@@ -115,10 +138,11 @@ export function ambientPlants(): Plant[] {
   });
   // the first island leads the list so it is always kept; the rest go as your garden fills
   return [
-    island('wild-island-0', 0.62, 0.17, 0.3, 'tree', 14, 4),
-    ...wild.slice(0, 5),
-    island('wild-island-1', 0.22, 0.7, 0.24, 'sundial', 40, 5),
-    ...wild.slice(5),
+    island('wild-island-0', 0.62, 0.17, 0.36, 'arch', 14, 4),
+    ...wild.slice(0, 6),
+    island('wild-island-1', 0.22, 0.7, 0.18, 'tree', 40, 5),
+    island('wild-island-2', 0.8, 0.45, 0.1, 'flower', 85, 3),
+    ...wild.slice(6),
   ];
 }
 
@@ -190,10 +214,13 @@ export function plantsFromHistory(draws: Draw[], nowMs: number): Plant[] {
     const r = rng(day * 131 + rank * 7 + suit.length);
 
     let species: Species = 'flower';
-    if (suit === 'cups') species = 'bell';
-    else if (suit === 'wands') species = rank % 2 ? 'fern' : 'vine';
-    else if (suit === 'swords') species = rank % 2 ? 'thistle' : 'reed';
-    else if (suit === 'pentacles') species = 'tree';
+    if (suit === 'cups') species = rank % 3 === 0 ? 'lavender' : 'bell';
+    else if (suit === 'wands') species = rank % 5 === 0 ? 'moss' : rank % 2 ? 'fern' : 'vine';
+    else if (suit === 'swords') species = rank % 3 === 0 ? 'coneflower' : rank % 2 ? 'thistle' : 'reed';
+    else if (suit === 'pentacles') species = rank % 4 === 0 ? 'mushroom' : 'tree';
+    // each day's colour: it follows the day, so an old plant keeps its own
+    const hue = (day * 3 + rank) % 5;
+    const leafHue = rank % 3 === 0 ? 1 : rank % 7 === 0 ? 2 : 0;
 
     // the golden ratio walks consecutive days apart; it is by calendar day, not by
     // position in the list, so an old plant never shuffles when a new one is added
@@ -207,7 +234,7 @@ export function plantsFromHistory(draws: Draw[], nowMs: number): Plant[] {
     const age = Math.max(0, today - day);
     if (suit === 'major') {
       // the major arcana are islands: they drift, so where they start doesn't matter much
-      const flora: Flora = (['tree', 'gate', 'sundial', 'flower'] as const)[rank % 4];
+      const flora: Flora = (['tree', 'arch', 'gate', 'sundial', 'flower'] as const)[rank % 5];
       const high = r() < 0.6;
       return {
         id: `draw-${d.date}`,
@@ -217,7 +244,7 @@ export function plantsFromHistory(draws: Draw[], nowMs: number): Plant[] {
         flora,
         tint: (day * 5 + rank) % 6,
         dir: 1,
-        height: 0.2 + (Math.min(rank, 21) / 21) * 0.14,
+        height: 0.1 + (Math.min(rank, 21) / 21) * 0.26 + r() * 0.05,
         lean: 0,
         phase: r() * Math.PI * 2,
         // islands don't sprout: they arrive, from an edge, a little while after you look up
@@ -230,7 +257,10 @@ export function plantsFromHistory(draws: Draw[], nowMs: number): Plant[] {
       id: `draw-${d.date}`,
       species,
       x,
-      dir: d.reversed ? -1 : 1,
+      hue,
+      leafHue,
+      // moss only hangs; a toadstool and a stair only stand
+      dir: species === 'moss' ? -1 : species === 'mushroom' ? 1 : d.reversed ? -1 : 1,
       height,
       lean: (r() - 0.5) * 0.5,
       phase: r() * Math.PI * 2,
@@ -249,7 +279,7 @@ export function gardenFor(draws: Draw[], nowMs: number): Plant[] {
   const all = plantsFromHistory(draws, nowMs);
   // Islands drift across the whole sky, so more than a few turn it into a crowd:
   // the four most recent major arcana float, the rest have set down as memory.
-  const islands = all.filter((p) => p.species === 'island').slice(-4);
+  const islands = all.filter((p) => p.species === 'island').slice(-3);
   const mine = [...all.filter((p) => p.species !== 'island'), ...islands];
   const wild = ambientPlants();
   const keep = Math.max(2, wild.length - mine.length);
@@ -288,8 +318,10 @@ export function islandPose(
 
   const local = t - p.delay;
   if (local < 0) return null;
-  const crossing = 170 + (p.phase % 1) * 110; // seconds edge to edge: unhurried
-  const rest = 20 + ((p.phase * 3) % 1) * 40;
+  // the nearer (bigger) an island, the quicker it crosses; the far small ones take their time. Each spends a good while
+  // out of the picture, so the sky is often empty and an island arriving is an event.
+  const crossing = (70 + (0.4 - Math.min(0.4, p.height)) * 360) * (0.85 + (p.phase % 1) * 0.3);
+  const rest = 45 + ((p.phase * 3) % 1) * 110;
   const cycle = crossing + rest;
   const k = Math.floor(local / cycle);
   const u = (local - k * cycle) / crossing;
@@ -344,6 +376,8 @@ function drawIsland(
   const { cx, cy, W } = pose;
   // fully off screen: nothing to paint
   if (cx < -W * 2 || cx > w + W * 2 || cy < -W * 2 || cy > h + W * 2) return;
+  const LEAF = LEAFS[p.leafHue ?? 0];
+  const FLOWER = FLOWERS[p.hue ?? 0];
 
   const tintR = ((p.tint ?? 0) % ISLAND_TINTS) * 12;
   const grad = g.createLinearGradient(0, cy - W * 0.2, 0, cy + W * 0.95);
@@ -364,6 +398,23 @@ function drawIsland(
   g.quadraticCurveTo(cx - W * 0.2, cy + W * 0.95, cx, cy + W * 1.05);
   g.quadraticCurveTo(cx + W * 0.2, cy + W * 0.95, cx + W * 0.62, cy + W * 0.2);
   g.fill();
+
+  // loose rocks drifting off its edge, each on its own slow bob
+  const shard = (ox: number, oy: number, rx: number, ry: number, k: number) => {
+    const bobY = still ? 0 : Math.sin(sway * 0.5 + p.phase * 2 + k * 2.1) * W * 0.03;
+    g.fillStyle = `rgb(${tintR},0,190)`;
+    g.beginPath();
+    g.ellipse(cx + ox * W, cy + oy * W + bobY, rx * W, ry * W, 0.3 * (k % 2 ? 1 : -1), 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.moveTo(cx + ox * W - rx * W * 0.8, cy + oy * W + bobY);
+    g.lineTo(cx + ox * W, cy + oy * W + bobY + ry * W * 2.4);
+    g.lineTo(cx + ox * W + rx * W * 0.8, cy + oy * W + bobY);
+    g.fill();
+  };
+  shard(-1.2, 0.5, 0.17, 0.07, 0);
+  shard(1.15, 0.75, 0.12, 0.05, 1);
+  shard(0.75, 1.2, 0.09, 0.04, 2);
 
   // roots, trailing in the wind
   g.strokeStyle = LEAF;
@@ -397,6 +448,44 @@ function drawIsland(
     g.fill();
   };
   switch (p.flora) {
+    case 'arch': {
+      // a ruined arch with a tree on either side, moss hanging from its crown, and a thread of water falling past it
+      const ah = W * 0.62;
+      stem(cx - W * 0.2, baseY, ah, Math.max(2, W * 0.07), MASS_LIGHT);
+      stem(cx + W * 0.2, baseY, ah, Math.max(2, W * 0.07), MASS_LIGHT);
+      g.strokeStyle = MASS_LIGHT;
+      g.lineWidth = Math.max(2, W * 0.07);
+      g.beginPath();
+      g.arc(cx + wind, baseY - ah, W * 0.2, Math.PI, 0);
+      g.stroke();
+      for (const side of [-1, 1]) {
+        const tx = cx + side * W * 0.55;
+        const th = W * (0.42 + (side === 1 ? 0.12 : 0));
+        stem(tx, baseY, th, Math.max(1.8, W * 0.045), LEAF);
+        for (const [ox, oy] of [[0, 0], [-0.1, 0.06], [0.1, 0.06], [0, -0.12]]) {
+          disc(tx + wind + ox * W, baseY - th + oy * W, W * 0.17, W * 0.13, LEAF);
+        }
+      }
+      // moss from the crown
+      g.strokeStyle = LEAFS[1];
+      g.lineWidth = Math.max(1, W * 0.014);
+      for (let k = -2; k <= 2; k++) {
+        const x0 = cx + wind + k * W * 0.06;
+        const y0 = baseY - ah - W * 0.18 + Math.abs(k) * W * 0.018;
+        const len = W * (0.2 + 0.08 * (((k * 7 + 9) % 4) / 4));
+        const sw2 = Math.sin(sway * 0.9 + p.phase + k) * W * 0.03;
+        g.beginPath();
+        g.moveTo(x0, y0);
+        g.quadraticCurveTo(x0 + sw2 * 0.5, y0 + len * 0.5, x0 + sw2, y0 + len);
+        g.stroke();
+      }
+      // the water: a few cream flecks falling off the island's rim
+      for (let k = 0; k < 4; k++) {
+        const fall = (((sway * 0.35 + k * 0.27 + p.phase) % 1) + 1) % 1;
+        disc(cx + W * 0.34, baseY + W * 0.1 + fall * W * 0.7, Math.max(0.8, W * 0.012), Math.max(1.2, W * 0.03), LEAFS[3]);
+      }
+      break;
+    }
     case 'gate': {
       const gh = W * 0.8;
       stem(cx - W * 0.28, baseY, gh, Math.max(2, W * 0.06), MASS_LIGHT);
@@ -469,6 +558,8 @@ export function drawGarden(
     }
     const growth = plantGrowth(p, grow);
     if (growth <= 0.01) continue;
+    const LEAF = LEAFS[p.leafHue ?? 0];
+    const FLOWER = FLOWERS[p.hue ?? 0];
     const H = p.height * h * growth;
     const bx = p.x * w;
     const by = p.dir === 1 ? h + 2 : -2;
@@ -527,19 +618,92 @@ export function drawGarden(
         break;
       }
       case 'vine': {
-        stem(sw);
-        for (let i = 2; i <= N; i += 2) {
-          const [x, y] = pts[i];
-          const side = i % 4 === 0 ? 1 : -1;
-          const r = H * 0.035 * (1 - (i / N) * 0.4);
-          disc(x + side * r * 1.2, y, r * 1.1, r * 0.7, side * 0.5, LEAF);
+        // a twisted woody vine: two strands wound round each other, brown and mossy, with clumps of moss caught in
+        // the twists, small fern leaves off the nodes and thin tendrils curling away. It tapers to the tip, and the
+        // wind moves the whole length from its root, so it hangs the way a real one does.
+        const down = p.dir === -1 ? 1 : -1;
+        const turn = (i: number) => i * 0.62 + p.phase;
+        const amp = (s: number) => H * 0.034 * (1 - s * 0.45);
+        const strand = (sgn: number, i: number): Pt => [pts[i][0] + Math.sin(turn(i)) * amp(i / N) * sgn, pts[i][1]];
+        for (let i = 0; i < N; i++) {
+          const f = i / N;
+          const wd = Math.max(1.4, H * 0.024 * (1 - f * 0.55));
+          const aFront = Math.cos(turn(i)) > 0;
+          const seg = (sgn: number, colour: string) => {
+            const a1 = strand(sgn, i);
+            const a2 = strand(sgn, i + 1);
+            g.strokeStyle = colour;
+            g.lineWidth = wd;
+            g.beginPath();
+            g.moveTo(a1[0], a1[1]);
+            g.lineTo(a2[0], a2[1]);
+            g.stroke();
+          };
+          // the strand behind first, so each crossing reads as over and under
+          if (aFront) {
+            seg(-1, LEAFS[1]);
+            seg(1, LEAFS[4]);
+          } else {
+            seg(1, LEAFS[4]);
+            seg(-1, LEAFS[1]);
+          }
         }
-        // curled tip
-        g.strokeStyle = LEAF;
-        g.lineWidth = Math.max(1.2, sw * 0.7);
-        g.beginPath();
-        g.arc(tip[0] + H * 0.03, tip[1], H * 0.03, Math.PI, Math.PI * 2.6);
-        g.stroke();
+        // moss caught in the twists: little irregular clumps, in three greens
+        const mossHues = [LEAFS[1], LEAFS[5], LEAF];
+        for (let i = 2; i < N; i += 2) {
+          const f = i / N;
+          const [x, y] = pts[i];
+          const n = 3 + ((i * 7) % 3);
+          for (let j = 0; j < n; j++) {
+            const ang = (j / n) * Math.PI * 2 + i;
+            const r = H * (0.018 + 0.016 * (((i * 13 + j * 5) % 7) / 7)) * (1 - f * 0.45);
+            disc(
+              x + Math.cos(ang) * amp(f) * 1.2,
+              y + Math.sin(ang) * amp(f) * 0.9,
+              r * 1.1,
+              r * 0.85,
+              ang,
+              mossHues[(i + j) % 3],
+            );
+          }
+        }
+        // small fern leaves: a rachis with leaflets either side
+        for (const i of [4, 8, 12, 15]) {
+          if (i >= N) continue;
+          const side = i % 8 === 4 ? 1 : -1;
+          const [x, y] = pts[i];
+          const L = H * 0.1 * (1 - (i / N) * 0.4);
+          const ex = x + side * L;
+          const ey = y + down * -0.2 * L - down * L * 0.3 + L * 0.15 + Math.sin(sway * 0.9 + p.phase + i) * L * 0.08;
+          g.strokeStyle = LEAFS[5];
+          g.lineWidth = Math.max(1, H * 0.008);
+          g.beginPath();
+          g.moveTo(x, y);
+          g.lineTo(ex, ey);
+          g.stroke();
+          for (let k = 1; k <= 5; k++) {
+            const u = k / 6;
+            const qx = x + (ex - x) * u;
+            const qy = y + (ey - y) * u;
+            const ll = L * 0.3 * (1 - u * 0.55);
+            stroke([qx, qy], [qx, qy - ll], Math.max(1, H * 0.009), LEAF);
+            stroke([qx, qy], [qx, qy + ll], Math.max(1, H * 0.009), LEAF);
+          }
+        }
+        // tendrils: thin brown threads that wander off and curl at the end
+        for (const i of [5, 9, 13]) {
+          if (i >= N) continue;
+          const side = i % 4 === 1 ? 1 : -1;
+          const [x, y] = pts[i];
+          const sw3 = Math.sin(sway * 0.8 + p.phase + i) * H * 0.012;
+          g.strokeStyle = LEAFS[4];
+          g.lineWidth = Math.max(1, H * 0.007);
+          g.beginPath();
+          g.moveTo(x, y);
+          g.quadraticCurveTo(x + side * H * 0.08 + sw3, y + H * 0.02, x + side * H * 0.06 + sw3, y + H * 0.09);
+          g.arc(x + side * H * 0.045 + sw3, y + H * 0.09, H * 0.015, 0, Math.PI * 1.6);
+          g.stroke();
+        }
         break;
       }
       case 'bell': {
@@ -602,6 +766,109 @@ export function drawGarden(
         }
         disc(tip[0], tip[1], H * 0.045, H * 0.04, 0, FLOWER);
         disc(pts[9][0] - H * 0.05, pts[9][1], H * 0.05, H * 0.022, -0.6, LEAF);
+        break;
+      }
+      case 'coneflower': {
+        // pink and lilac ones droop their petals around a dark cone; butter and coral ones hold them out like a sun
+        stem(sw);
+        disc(pts[6][0] + H * 0.06, pts[6][1], H * 0.06, H * 0.022, -0.6, LEAF);
+        disc(pts[10][0] - H * 0.055, pts[10][1], H * 0.05, H * 0.02, 0.6, LEAF);
+        const droop = (p.hue ?? 0) <= 1;
+        const petals = 12;
+        const L = H * 0.11 * (0.3 + 0.7 * open);
+        for (let k = 0; k < petals; k++) {
+          const a = (k / petals) * Math.PI * 2 + sway * 0.03;
+          const ox = Math.cos(a) * L * (droop ? 0.8 : 0.72);
+          const oy = droop ? (0.35 + 0.35 * Math.abs(Math.sin(a))) * L : Math.sin(a) * L * 0.72;
+          const rot = Math.atan2(oy, ox);
+          disc(tip[0] + ox, tip[1] + oy, L * 0.46, L * 0.17, rot, FLOWER);
+        }
+        disc(tip[0], tip[1], L * 0.3, L * 0.28, 0, LEAFS[1]);
+        break;
+      }
+      case 'lavender': {
+        stem(sw * 0.8);
+        for (let k = 0; k < 4; k++) {
+          const [x, y] = pts[2 + k];
+          stroke([x, y], [x + (k % 2 ? 1 : -1) * H * 0.08, y - p.dir * H * 0.07], Math.max(1.1, sw * 0.6), LEAF);
+        }
+        const buds = 16;
+        for (let k = 0; k < buds; k++) {
+          const i = Math.min(N, Math.round(N * (0.6 + 0.4 * (k / buds))));
+          const [x, y] = pts[i];
+          const side = k % 2 ? 1 : -1;
+          const r = H * 0.022 * (1 - (k / buds) * 0.45);
+          disc(x + side * H * 0.017, y, r * 0.8, r * 1.5, side * 0.4, FLOWER);
+        }
+        break;
+      }
+      case 'mushroom': {
+        // a pair of toadstools: cream stems, red domes, cream spots
+        const cap = FLOWERS[4];
+        const cream = LEAFS[3];
+        const one = (ox: number, hh: number, cr: number, k: number) => {
+          const sx = bx + ox * H;
+          const topY = by - p.dir * H * hh;
+          const lean2 = Math.sin(sway * 0.4 + p.phase + k) * H * 0.012 + p.lean * H * 0.05;
+          g.strokeStyle = cream;
+          g.lineWidth = Math.max(2, H * 0.07 * cr * 2.6);
+          g.beginPath();
+          g.moveTo(sx, by);
+          g.quadraticCurveTo(sx + lean2, by - p.dir * H * hh * 0.5, sx + lean2 * 1.6, topY);
+          g.stroke();
+          const cx2 = sx + lean2 * 1.6;
+          g.fillStyle = cap;
+          g.beginPath();
+          g.ellipse(cx2, topY, H * cr, H * cr * 0.62, 0, Math.PI, Math.PI * 2);
+          g.fill();
+          g.beginPath();
+          g.ellipse(cx2, topY, H * cr, H * cr * 0.14, 0, 0, Math.PI * 2);
+          g.fill();
+          for (const [sx2, sy2, sr] of [[-0.45, -0.28, 0.12], [0.1, -0.4, 0.14], [0.5, -0.2, 0.1], [-0.1, -0.12, 0.08]]) {
+            disc(cx2 + sx2 * H * cr, topY + sy2 * H * cr, H * cr * sr, H * cr * sr, 0, cream);
+          }
+        };
+        one(-0.2, 0.55, 0.24, 0);
+        one(0.12, 1, 0.3, 1);
+        // moss around their feet
+        for (let k = 0; k < 6; k++) disc(bx + (k - 2.5) * H * 0.07, by - p.dir * H * 0.03, H * 0.05, H * 0.03, 0, LEAFS[1]);
+        break;
+      }
+      case 'moss': {
+        // hanging moss: ragged strands of different lengths and greens that begin above the edge of the screen,
+        // thickest at the top and thinning to nothing, each swaying a little differently
+        const down = -p.dir;
+        const strands = 9;
+        const hues = [LEAFS[1], LEAFS[2], LEAFS[5], LEAF];
+        const hsh = (k: number) => {
+          const v = Math.sin(k * 127.1 + p.phase * 31.7) * 43758.5453;
+          return v - Math.floor(v);
+        };
+        for (let k = 0; k < strands; k++) {
+          const x0 = bx + (k / (strands - 1) - 0.5) * H * 0.62 + (hsh(k) - 0.5) * H * 0.08;
+          const len = H * (0.25 + 0.75 * hsh(k + 9)) * (1 - Math.abs(k / (strands - 1) - 0.5) * 0.6);
+          const hue = hues[k % hues.length];
+          g.strokeStyle = hues[(k + 1) % hues.length];
+          g.lineWidth = Math.max(1, H * 0.006);
+          g.beginPath();
+          for (let j = 0; j <= 16; j++) {
+            const f = j / 16;
+            const x = x0 + Math.sin(sway * 0.7 + p.phase + k * 0.9 + f * 4) * H * 0.035 * f;
+            const y = by - down * H * 0.05 + down * len * f;
+            if (j === 0) g.moveTo(x, y);
+            else g.lineTo(x, y);
+          }
+          g.stroke();
+          // the fluff of it: small clumps down the strand, fewer and finer toward the tip
+          for (let j = 0; j <= 16; j++) {
+            const f = j / 16;
+            if (hsh(k * 31 + j) < 0.28 + f * 0.3) continue;
+            const x = x0 + Math.sin(sway * 0.7 + p.phase + k * 0.9 + f * 4) * H * 0.035 * f + (hsh(k * 7 + j) - 0.5) * H * 0.03;
+            const y = by - down * H * 0.05 + down * len * f;
+            const r = H * 0.022 * (1.1 - f * 0.8);
+            disc(x, y, r * 1.2, r, hsh(j) * 3, hue);
+          }
+        }
         break;
       }
       case 'flower':
