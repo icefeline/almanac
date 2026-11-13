@@ -2281,3 +2281,14 @@ details[open] > .fold::after { content: '\2212'; }
   --h: 1px;
 }
 .sheet .scene .module > .explain p { font-size: 15px; line-height: 1.35; max-width: 30em; }
+
+/* For you: the reading and the transit explanation are set in lowercase, and the transit button sits close under the line it belongs to */
+.sheet .scene .module > .insight,
+.sheet .scene .module > .explain p { text-transform: lowercase; }
+.sheet .scene .module > .explain { margin-top: 2px; }
+@media (max-width: 760px) { .sheet .scene .module > .explain { margin-top: -12px; } }
+
+/* the try-this on a wide screen, larger still */
+@media (min-width: 761px) {
+  .sheet .scene .module > .try .pull { font-size: clamp(46px, min(5vw, 8.4dvh), 100px); line-height: 1; }
+}
