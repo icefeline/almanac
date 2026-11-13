@@ -27,7 +27,8 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
     return () => mq.removeEventListener('change', on);
   }, []);
 
-  const onLegal = pathname.startsWith('/privacy') || pathname.startsWith('/terms');
+  // /reading is a past reading framed inside a window: the window is the chrome, so no menu in it
+  const onLegal = pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/reading');
   const onDreams = pathname.startsWith('/dreams') || milkyHost;
   // the legal pages are plain documents: no menu, no charms. the home page mounts its own copy.
   if (onLegal || (pathname === '/' && !home && !milkyHost)) return null;

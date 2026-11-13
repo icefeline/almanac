@@ -6,7 +6,7 @@ import { getActiveMeaning, getActiveKeywords } from '@/lib/utils/card-utils';
 import { cardArchetypes } from '@/lib/data/card-archetypes';
 import { cardAbout } from '@/lib/data/card-about';
 import {
-  CardName, Distill, DistillScene, Journey, Keywords, KeywordRing, Meaning, MeaningScene, Module, Plate, Readout, Scene, AboutScene, StateLine,
+  CardName, DistillScene, Journey, KeywordRing, MeaningScene, Module, Plate, Readout, Scene, AboutScene, StateLine,
   styles, type MarginRow,
 } from './card-page';
 import { clockTime, formatOrb, lifetimeDraws, noteShares } from '@/lib/utils/card-readout';
@@ -571,7 +571,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
        lays out the same whether it fills the screen or sits in a 420px window
        on the year view. See .shell in card-page.module.css. */
     <div className={`${styles.shell} ${surface === 'window' ? styles.shellWindow : ''}`}>
-    <main className={`${styles.page} ${surface === 'window' ? '' : styles.sheet}`}>
+    <main className={`${styles.page} ${styles.sheet}`}>
       {/* The reading is a journey: the card, then a scene for each category. On the page
           it runs sideways; in a year-view window it is just a vertical stack. */}
       <Journey>
@@ -645,37 +645,27 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
 
         {/* The meaning, set big as a poem. A year-view window keeps the plain block. */}
         <Scene name="meaning">
-          {surface === 'window' ? (
-            <>
-              <Keywords keywords={activeKeywords} />
-              <Meaning lede={activeMeaning} sub={card.description} terms={activeKeywords} />
-            </>
-          ) : (
-            <MeaningScene lede={activeMeaning} terms={activeKeywords} seed={seed} />
-          )}
+          <MeaningScene lede={activeMeaning} terms={activeKeywords} seed={seed} />
         </Scene>
 
-        {surface !== 'window' && aboutText && (
+        {aboutText && (
           <Scene name="about this card">
             <AboutScene text={aboutText} terms={activeKeywords} />
           </Scene>
         )}
 
-        <Scene name="distill" hint={surface === 'window' ? undefined : 'touch a note to read what it gives'}>
-          {surface === 'window' ? (
-            <Distill cardId={card.id} isReversed={isReversed} shares={noteShares(card.id, noteCount)} />
-          ) : (
-            <DistillScene
-              cardId={card.id}
-              cardName={card.name}
-              keywords={activeKeywords}
-              isReversed={isReversed}
-              shares={noteShares(card.id, noteCount)}
-            />
-          )}
+        <Scene name="distill" hint="touch a note to read what it gives">
+          <DistillScene
+            cardId={card.id}
+            cardName={card.name}
+            keywords={activeKeywords}
+            isReversed={isReversed}
+            shares={noteShares(card.id, noteCount)}
+          />
         </Scene>
 
-        <Scene name="your thoughts">{footer}</Scene>
+        {/* nothing to show when nothing was written (a past day with no reflection) */}
+        {footer && <Scene name="your thoughts">{footer}</Scene>}
       </Journey>
     </main>
     </div>

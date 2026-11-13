@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TarotCard as TarotCardType } from '@/lib/types/tarot';
-import PastCardReading from './PastCardReading';
 import type { Sky } from '@/lib/data/skies';
 
 export interface WindowRect { x: number; y: number; w: number; h: number }
@@ -23,16 +22,16 @@ interface CardWindowProps {
   onClose: () => void;
 }
 
-/** Default width. Phone-ish on purpose: the reading inside is the mobile one. */
+/** Default width: wide enough for the reading's own layout, which adapts to whatever the window becomes. */
 export const WIN_W = 420;
-const MIN_W = 320;
-const MIN_H = 240;
+const MIN_W = 360;
+const MIN_H = 320;
 /**
  * Just under the 880px the reading uses to switch to its two-column desktop
  * layout. The window holds the mobile reading, so it is never allowed to get
  * wide enough to turn into a different page under the reader's hands mid-drag.
  */
-const MAX_W = 860;
+const MAX_W = 1100;
 /** How much room the window leaves the nav at the top of the screen. */
 const GAP = 12;
 
@@ -111,6 +110,7 @@ export default function CardWindow({
   const [r, setR] = useState<WindowRect & { restore: WindowRect | null }>(
     { ...rect, restore: null },
   );
+  const [dragging, setDragging] = useState(false);
   const drag = useRef<
     { mode: 'move' | 'resize'; px: number; py: number; from: WindowRect } | null
   >(null);
@@ -122,6 +122,7 @@ export default function CardWindow({
     e.preventDefault();
     onFocus();
     drag.current = { mode, px: e.clientX, py: e.clientY, from: r };
+    setDragging(true);
   };
 
   useEffect(() => {
@@ -138,7 +139,7 @@ export default function CardWindow({
       // there is nothing left to restore — the zoom button starts over.
       setR({ ...next, restore: null });
     };
-    const up = () => { drag.current = null; };
+    const up = () => { drag.current = null; setDragging(false); };
     const resize = () => setR(prev => ({ ...clampRect(prev), restore: prev.restore }));
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
@@ -231,8 +232,14 @@ export default function CardWindow({
 
         Transparent, so the frame's sky shows through the reading.
       */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain">
-        <PastCardReading date={date} card={card} isReversed={isReversed} surface="window" />
+      <div className="flex-1 min-h-0">
+        {/* the reading in a frame of its own: its layout is built against the size of its screen, and here the screen is the window */}
+        <iframe
+          title={`Reading for ${date}`}
+          src={`/reading/${date}`}
+          className="block w-full h-full"
+          style={{ border: 0, background: 'transparent', pointerEvents: dragging ? 'none' : 'auto' }}
+        />
       </div>
 
       <div

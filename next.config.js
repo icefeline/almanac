@@ -75,6 +75,10 @@ const csp = [
   'upgrade-insecure-requests',
 ].join('; ');
 
+// The one page the app frames itself: a past day's reading, shown inside the year view's windows (see
+// app/reading/[date]/page.tsx). Same policy as everywhere else, except that this origin may frame it.
+const cspSelfFramed = csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /*
@@ -110,6 +114,14 @@ const nextConfig = {
            * it to any embedded third party, which is what this was for.
            */
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+        ],
+      },
+      // listed after the rule above so these two replace its framing headers for this path only
+      {
+        source: '/reading/:date',
+        headers: [
+          { key: 'Content-Security-Policy', value: cspSelfFramed },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         ],
       },
     ];
