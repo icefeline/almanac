@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import PastCardReading from './PastCardReading';
 import CardWindow, { rectForCell, WindowRect } from './CardWindow';
 import { skyForDraw, type Sky } from '@/lib/data/skies';
 import { TarotCard as TarotCardType } from '@/lib/types/tarot';
@@ -765,7 +764,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                No top border. A lime rule across the head of the sheet drew a
                line under nothing — the rounded corners and the ground change
                already say where the sheet starts. */
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[color:color-mix(in_srgb,var(--accent-c,#2B35D6)_86%,transparent)] backdrop-blur-md rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto"
+            className="md:hidden fixed bottom-0 left-0 right-0 sg-win bg-[color:var(--w-veil)] backdrop-blur-md rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-hidden"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
@@ -815,7 +814,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                      the hairline. */
                 }}
               />
-              <div className="relative w-12 h-1.5 bg-[color:var(--lime-c,#C9F24E)] opacity-40 rounded-full" />
+              <div className="relative w-12 h-1.5 bg-[color:var(--w-ink)] opacity-30 rounded-full" />
             </div>
 
             {/* No horizontal padding of its own: the reading page rendered
@@ -829,10 +828,14 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                 point this padding brings the date to. Anything more read as
                 the date floating between the handle and the card rather than
                 belonging to either. */}
-            <PastCardReading
-              date={selectedDate}
-              card={selectedCard}
-              isReversed={selectedEntry.isReversed || false}
+            {/* the reading in a frame of its own (the same page the desktop windows show): its layout is built against the
+                size of its screen, and here the screen is the sheet. Pulling the sheet down works from the handle and the
+                backdrop; inside the frame a swipe belongs to the reading. */}
+            <iframe
+              title={`Reading for ${selectedDate}`}
+              src={`/reading/${selectedDate}`}
+              className="block w-full"
+              style={{ border: 0, background: 'transparent', height: 'calc(92dvh - 28px)' }}
             />
           </div>
         </>

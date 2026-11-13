@@ -46,7 +46,10 @@ export default function ReadingEmbed() {
   const { date } = useParams<{ date: string }>();
   const [state, setState] = useState<{ card: TarotCardType; reversed: boolean; note: string | null } | null | undefined>(undefined);
 
-  useEffect(() => followParentTheme(), []);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-embed', '');
+    return followParentTheme();
+  }, []);
 
   useEffect(() => {
     try {

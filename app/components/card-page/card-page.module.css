@@ -2085,3 +2085,13 @@ details[open] > .fold::after { content: '\2212'; }
   -webkit-text-fill-color: transparent;
   -webkit-text-stroke: 0;
 }
+
+/* a past reading framed in a window (html[data-embed], set by /reading/[date]): no menu icon to clear at the top and no
+   Pick Card pill to clear at the bottom, so the card and its name get that room back and need less shrinking to fit */
+:global(html[data-embed]) .sheet .sceneHero { padding-top: 40px; padding-bottom: 28px; }
+:global(html[data-embed]) .sheet .scene:not(.sceneHero) { padding-top: 48px; }
+@media (max-width: 760px) {
+  :global(html[data-embed]) .sheet .sceneHero .plateCenter,
+  :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(62vw, 40dvh); }
+  :global(html[data-embed]) .sheet .sceneHero .plate { margin-block: 3vw; }
+}

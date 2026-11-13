@@ -77,7 +77,7 @@ export function rectForCell(cell: DOMRect | null, index: number): WindowRect {
   const top = navH() + GAP;
   const h = typeof window === 'undefined'
     ? 560
-    : Math.min(720, window.innerHeight - top - GAP);
+    : Math.min(880, window.innerHeight - top - GAP);
 
   if (!cell) {
     const k = index % 6;
