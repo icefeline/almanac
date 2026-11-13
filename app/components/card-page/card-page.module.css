@@ -2371,3 +2371,12 @@ details[open] > .fold::after { content: '\2212'; }
 /* the reading, much narrower: a tall thin justified column */
 .sheet .scene .module > .insight { max-width: min(100%, 10.5em); }
 @media (max-width: 760px) { .sheet .scene .module > .insight { max-width: min(100%, 9.5em); } }
+
+/* the narrow column is for phones; on a wide screen the reading is wider so the try-this beneath it stays in view */
+@media (min-width: 761px) {
+  .sheet .scene .module > .insight { max-width: min(100%, 19em); }
+  .sheet .scene .module > .try .pull { font-size: clamp(36px, min(4.4vw, 7.2dvh), 90px); }
+}
+/* the words of the reading that echo the card, in blue, are set larger */
+.sheet .scene .module .insight .hl { font-size: 1.4em; line-height: .9; }
+.sheet .scene .module .pull .hl { font-size: 1.15em; }
