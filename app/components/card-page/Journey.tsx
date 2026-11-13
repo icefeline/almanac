@@ -32,15 +32,24 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
   const ref = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState({ right: false, down: false });
 
-  // which ways there is more to see: the next scene to the right, and more of this scene below
+  // Which tab to show, one at a time, as the reader moves:
+  //   - at rest on a scene that goes on below: the down tab; it goes as soon as they start scrolling down
+  //   - at the foot of such a scene, or at rest on one that fits: the right tab; it goes as soon as they start moving right
+  //     (or back up the scene)
+  // Nothing shows while the strip is between two scenes.
   const measure = useCallback(() => {
     const el = ref.current;
     if (!el) return;
     const scenes = Array.from(el.querySelectorAll<HTMLElement>(`.${styles.scene}`));
     if (!scenes.length) return;
-    const right = el.scrollLeft < el.scrollWidth - el.clientWidth - 12;
     const at = scenes.reduce((best, sc) => (Math.abs(sc.offsetLeft - el.scrollLeft) < Math.abs(best.offsetLeft - el.scrollLeft) ? sc : best), scenes[0]);
-    const down = at.scrollTop + at.clientHeight < at.scrollHeight - 12;
+    const atRest = Math.abs(at.offsetLeft - el.scrollLeft) < 8;
+    const next = el.scrollLeft < el.scrollWidth - el.clientWidth - 12;
+    const scrollable = at.scrollHeight > at.clientHeight + 12;
+    const atTop = at.scrollTop < 8;
+    const atBottom = at.scrollTop + at.clientHeight >= at.scrollHeight - 12;
+    const down = atRest && scrollable && atTop;
+    const right = atRest && next && (!scrollable || atBottom);
     setMore((m) => (m.right === right && m.down === down ? m : { right, down }));
   }, []);
   useEffect(() => {

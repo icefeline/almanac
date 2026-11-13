@@ -2363,3 +2363,7 @@ details[open] > .fold::after { content: '\2212'; }
 @media (max-width: 760px) {
   .sheet .scene .distillScene { position: absolute; height: auto; inset: calc(var(--sat, 0px) + 104px) 30px calc(var(--sab, 0px) + 96px) 18px; }
 }
+
+/* the reading, narrower still: a tall justified column */
+.sheet .scene .module > .insight { max-width: min(100%, 14em); }
+@media (max-width: 760px) { .sheet .scene .module > .insight { max-width: min(100%, 13em); } }
