@@ -76,7 +76,7 @@ export function CardName({ name }: { name: string }) {
           const probe = document.createElement('canvas').getContext('2d')!;
           probe.font = `italic 400 100px ${getComputedStyle(document.body).getPropertyValue('--font-instrument-serif')}`;
           const widest = Math.max(...lines.map((l) => probe.measureText(l).width), 1);
-          const fit = Math.min((el.clientWidth * 0.97 * 100) / widest, window.innerHeight * 0.21, window.innerWidth * 0.34);
+          const fit = Math.min((el.clientWidth * 0.97 * 100) / widest, window.innerHeight * 0.21, window.innerWidth * 0.26);
           if (Math.abs(parseFloat(el.style.fontSize || '0') - fit) > 0.5) el.style.fontSize = `${fit}px`;
         } else if (el.style.fontSize) {
           el.style.fontSize = '';

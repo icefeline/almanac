@@ -154,6 +154,30 @@ export function Module({
     return `> TRANSIT: ${transitExplanation.transitingPlanet.toUpperCase()} ${glyph} ${transitExplanation.natalPlanet.toUpperCase()}${exactness}`;
   })();
 
+  // "what is this transit" sits right under the transit line it explains
+  const showMain = !isLoading && bodyShown && !hasError && !(isRateLimited && !insight);
+  const explainBlock = transitExplanation?.transitingPlanetMeaning ? (
+    <div className={styles.explain}>
+      <button
+        type="button"
+        className={`${styles.moduleRetry} sg-retro`}
+        style={{ marginTop: 0 }}
+        onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+      >
+        {isExpanded ? 'close' : 'what is this transit'}
+      </button>
+      {isExpanded && (
+        <p style={{ marginTop: 10 }}>
+          {transitExplanation.transitingPlanet} ({transitExplanation.transitingPlanetMeaning})
+          is making a {transitExplanation.aspectType} ({transitExplanation.aspectMeaning}) to
+          your natal {transitExplanation.natalPlanet} (
+          {transitExplanation.natalPlanetMeaning}). {transitExplanation.phaseMeaning}
+        </p>
+      )}
+    </div>
+  ) : null;
+
   return (
     <section className={styles.module}>
       <div className={styles.log}>&gt; READ CARD --VERBOSE</div>
@@ -170,6 +194,7 @@ export function Module({
       )}
 
       {!isLoading && transitLine && <div className={styles.log}>{transitLine}</div>}
+      {showMain && explainBlock}
 
       {/* while the read is on its way the page is not empty: the phrase's place holds the
           machine's own words, with its cursor */}
@@ -263,27 +288,6 @@ export function Module({
             </div>
           )}
 
-          {transitExplanation?.transitingPlanetMeaning && (
-            <div className={styles.explain}>
-              <button
-                type="button"
-                className={`${styles.moduleRetry} sg-retro`}
-                style={{ marginTop: 0 }}
-                onClick={() => setIsExpanded(!isExpanded)}
-                aria-expanded={isExpanded}
-              >
-                {isExpanded ? 'close' : 'what is this transit'}
-              </button>
-              {isExpanded && (
-                <p style={{ marginTop: 10 }}>
-                  {transitExplanation.transitingPlanet} ({transitExplanation.transitingPlanetMeaning})
-                  is making a {transitExplanation.aspectType} ({transitExplanation.aspectMeaning}) to
-                  your natal {transitExplanation.natalPlanet} (
-                  {transitExplanation.natalPlanetMeaning}). {transitExplanation.phaseMeaning}
-                </p>
-              )}
-            </div>
-          )}
         </>
       )}
     </section>

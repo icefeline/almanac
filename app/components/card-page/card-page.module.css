@@ -1923,25 +1923,26 @@ details[open] > .fold::after { content: '\2212'; }
    and the strip under the card clears the floating Pick Card pill */
 @media (max-width: 760px) {
   .sheet .sceneHero .sceneLabel { padding-left: 0; }
-  .sheet .sceneHero { padding-bottom: 104px; }
+  .sheet .sceneHero { padding-bottom: 80px; }
 }
 
 /* the line under the card (suit, upright) and the drawn/draws strip sit right up against it, on every screen */
 .sheet .sceneHero .state { margin-top: calc(-2.6dvh + 8px); }
 .sheet .sceneHero .readout { margin-top: calc(-2.6dvh + 12px); }
 
-/* phones: the spinning keyword ring comes back around a smaller card, so it fits the width
-   (the ring is 2.28 times the card wide) */
+/* phones: the card is as large as it can be with the words that are active (the near ring) still wholly on screen. The ring is
+   drawn a little tighter around the card (215% of its width instead of 228%) to buy that room; the ghosted outer ring, the other
+   side of the card, is back too, and may run off the page. */
 @media (max-width: 760px) {
   .sheet .sceneHero .plateCenter,
-  .page .sceneHero [data-card-image] { width: min(54vw, 34dvh); }
-  .sheet .sceneHero .plate { margin-block: 6vw; }
+  .page .sceneHero [data-card-image] { width: min(61vw, 38dvh); }
+  .sheet .sceneHero .plate { margin-block: 3vw; }
   .sheet .sceneHero .ring {
     display: block;
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 228%;
+    width: 215%;
     height: auto;
     transform: translate(-50%, -50%);
     overflow: visible;
@@ -1949,8 +1950,6 @@ details[open] > .fold::after { content: '\2212'; }
   }
   .sheet .sceneHero .ringNear text, .sheet .sceneHero .ringFar text { font-weight: 400; }
   .sheet .sceneHero .keywords { display: none; }
-  /* only the near ring on a phone: the ghosted outer words would need a card half this size */
-  .sheet .sceneHero .ringFar { display: none; }
 }
 
 /* phones: a small readout, tucked low over the field, clear of the Pick Card pill */
@@ -2104,7 +2103,7 @@ details[open] > .fold::after { content: '\2212'; }
 :global(html[data-embed]) .sheet .sceneHero > .sceneStack { justify-content: flex-start; }
 @media (max-width: 760px) {
   :global(html[data-embed]) .sheet .sceneHero .plateCenter,
-  :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(54vw, 40dvh); }
+  :global(html[data-embed]) .page .sceneHero [data-card-image] { width: min(61vw, 40dvh); }
   :global(html[data-embed]) .sheet .sceneHero .plate { margin-block: 3vw; }
 }
 
@@ -2220,4 +2219,25 @@ details[open] > .fold::after { content: '\2212'; }
 /* phones: the right-hand tab hangs over the edge, so the words in a scene stop short of it */
 @media (max-width: 760px) {
   .sheet .scene:not(.sceneHero) { padding-right: 30px; }
+}
+
+/* For you: the log lines (the card read and the transit) a size bigger, with the transit button right under them; and on a phone the key
+   phrase in large blue type with the reading close under it, so the rest is just below the fold and a scroll away */
+.sheet .scene .module .log,
+.sheet .scene .module > .log { font-size: 15px; letter-spacing: .1em; }
+@media (max-width: 760px) {
+  .sheet .scene .module > .phrase {
+    font-size: clamp(52px, 17vw, 96px);
+    line-height: .9;
+  }
+  .sheet .scene .module { gap: 20px; }
+  .sheet .scene .module > .explain { margin-top: -6px; }
+}
+
+/* equal spacing between the sections: every scene after the card carries the same padding on both sides and sits the same distance from the
+   next, so the gap between any two is the same. (On a phone the distill field used to run to the left edge, with no padding at all.) */
+@media (max-width: 760px) {
+  .sheet .scene:not(.sceneHero),
+  .sheet .scene:has(.distillScene) { padding-left: 18px; padding-right: 30px; }
+  .distillScene { inset: calc(var(--sat, 0px) + 104px) 30px 0 18px; }
 }
