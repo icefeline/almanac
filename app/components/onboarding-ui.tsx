@@ -264,10 +264,15 @@ export function ObPermission({
   );
 }
 
-/** Chunky square toggle — deliberately not a pill, to match the field corners. */
+/** Chunky square toggle — deliberately not a pill, to match the field corners. It says ON or OFF in words as well
+ *  as by position and colour, and its colours are the sky's: cobalt with paper by day, lime with ink at night. */
 export function ObToggle({
   tone, scale, on, onChange, label,
 }: { tone: Tone; scale: number; on: boolean; onChange: (v: boolean) => void; label: string }) {
+  const light = tone === 'light';
+  const fill = light ? COBALT : LIME;
+  const paper = light ? '#F7F4E6' : INK;
+  const line = light ? INK : BONE;
   return (
     <button
       role="switch"
@@ -275,23 +280,33 @@ export function ObToggle({
       aria-label={label}
       onClick={() => onChange(!on)}
       style={{
-        width: px(76, scale), height: px(34, scale),
-        background: on ? LIME : 'transparent',
-        border: on
-          ? (tone === 'light' ? `1px solid ${INK}` : 'none')
-          : `1px solid ${tone === 'light' ? 'rgba(18,50,31,.4)' : 'rgba(238,244,224,.4)'}`,
+        width: px(84, scale), height: px(36, scale),
+        background: on ? fill : 'transparent',
+        border: on ? `1px solid ${light ? INK : fill}` : `1px solid ${line}`,
         display: 'flex', alignItems: 'center',
         justifyContent: on ? 'flex-end' : 'flex-start',
+        gap: px(6, scale),
         padding: px(3, scale), cursor: 'pointer', borderRadius: 0,
+        flexDirection: on ? 'row' : 'row-reverse',
       }}
     >
       <span
         style={{
-          width: px(28, scale), height: px(26, scale),
-          background: on ? INK : (tone === 'light' ? INK : BONE),
+          width: px(28, scale), height: px(28, scale),
+          background: on ? paper : line,
           display: 'block',
         }}
       />
+      <span
+        aria-hidden="true"
+        style={{
+          flex: 1, textAlign: 'center',
+          fontFamily: MONO, fontSize: px(10, scale), fontWeight: 500, letterSpacing: '0.06em',
+          color: on ? paper : line,
+        }}
+      >
+        {on ? 'ON' : 'OFF'}
+      </span>
     </button>
   );
 }

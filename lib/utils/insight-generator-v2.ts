@@ -395,7 +395,7 @@ function buildTransitExplanation(transit: TransitData) {
   const phaseMeanings: Record<string, string> = {
     approaching: 'the transit is still closing in on its exact point, so the feeling tends to build a little each day.',
     peak: 'the transit is exact today, which is when its themes tend to be loudest.',
-    separating: 'the transit has passed its exact point and is easing off, though what it stirred up may still be settling.'
+    separating: 'the transit has passed its exact point and is easing off, though what it stirred up may still be silting down.'
   };
 
   return {
@@ -426,7 +426,7 @@ function getCardSynthesis(cardId: string, cardArchetype: CardArchetype['upright'
 
   // Fallback
   return {
-    synthesis: ['something is surfacing today, quietly, and it may be worth a second look'],
+    synthesis: ['something is surfacing today, and it may be worth a second look'],
     action: 'notice what came up and where in your body it sits, and stay there for one slow breath'
   };
 }

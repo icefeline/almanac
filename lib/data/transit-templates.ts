@@ -46,7 +46,7 @@ export const transitTemplates: Record<string, TransitTemplate> = {
       ],
       separating: [
         'it\'s separating now - the intensity easing',
-        'past exact, but the lessons are still landing',
+        'past exact, but the lessons are still sinking in',
         'the pressure releasing as it moves away'
       ]
     }
@@ -152,7 +152,7 @@ export const transitTemplates: Record<string, TransitTemplate> = {
       separating: [
         'the ease fading but lessons remain',
         'past peak but still flowing',
-        'the window closing gently'
+        'the window easing shut'
       ]
     }
   },
@@ -209,7 +209,7 @@ export const planetMeanings: Record<string, string[]> = {
   Pluto: ['deep change', 'power', 'what has to end', 'the underneath', 'compulsion and release'],
   'North Node': ['the direction you lean toward', 'growth', 'what is unfamiliar and calling', 'a longer purpose'],
   'South Node': ['old habits', 'what comes easily', 'what you are leaving', 'the familiar groove'],
-  Chiron: ['an old tenderness', 'healing', 'a wound that teaches', 'where it hurts and helps']
+  Chiron: ['an old bruise', 'healing', 'a wound that teaches', 'where it hurts and helps']
 };
 
 /**

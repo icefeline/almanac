@@ -75,11 +75,11 @@ export default function InAppBrowserNotice({ scale = 1 }: { scale?: number }) {
       }}
     >
       <p style={{ margin: 0 }}>
-        your garden is kept on this device, in this browser. if you open slow
-        garden somewhere else later, it won&rsquo;t follow you here.
+        your almanac is saved on this device, in this browser. open it somewhere
+        else later and it won&rsquo;t follow you.
       </p>
       <p style={{ margin: `${8 * scale}px 0 0`, color: 'rgba(225, 238, 252, 0.62)' }}>
-        {escapeHint(host)} — or keep going, and stay in this one.
+        {escapeHint(host)}, or keep going and stay in this one.
       </p>
 
       <div style={{ display: 'flex', gap: `${14 * scale}px`, marginTop: `${12 * scale}px` }}>

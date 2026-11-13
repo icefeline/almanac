@@ -551,9 +551,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       const date = new Date(year, month - 1, day);
       const today = new Date();
       if (date.getMonth() + 1 !== month || date.getDate() !== day || date.getFullYear() !== year) {
-        setDateError('that date looks a little off. could you check it?');
+        setDateError('that date isn’t quite right. try dd/mm/yyyy.');
       } else if (date > today) {
-        setDateError('that one is still ahead of us. could you check the year?');
+        setDateError('that date hasn’t happened yet. check the year?');
       } else { setDateError(''); }
     } else { setDateError(''); }
   };
@@ -567,7 +567,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (digitsOnly.length === 4) {
       const hours = parseInt(digitsOnly.slice(0, 2));
       const minutes = parseInt(digitsOnly.slice(2, 4));
-      if (hours > 23 || minutes > 59) { setTimeError('that time looks a little off. try 00:00 to 23:59?'); }
+      if (hours > 23 || minutes > 59) { setTimeError('that time isn’t quite right. use 24-hour time, like 14:30.'); }
       else { setTimeError(''); }
     } else { setTimeError(''); }
   };
@@ -580,11 +580,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (value.length === 0) { setLocationError(''); return; }
     if (value.includes(',')) {
       const parts = value.split(',').map(p => p.trim());
-      if (parts[1] && parts[1].length > 0 && parts[1].length < 2) { setLocationError('could you check that place name?'); return; }
-      if (parts[0].length < 2) { setLocationError('could you check that place name?'); return; }
+      if (parts[1] && parts[1].length > 0 && parts[1].length < 2) { setLocationError('try a city and a country.'); return; }
+      if (parts[0].length < 2) { setLocationError('try a city and a country.'); return; }
       setLocationError('');
     } else {
-      if (value.trim().length < 2) { setLocationError('could you check that place name?'); return; }
+      if (value.trim().length < 2) { setLocationError('try a city and a country.'); return; }
       setLocationError('');
     }
 
@@ -646,145 +646,64 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   const sunInsights: { [key: string]: string } = {
-    aries: "there's usually more going on under the surface than anyone gets to see, and the cards tend to find it.",
-    taurus: "you probably hold a lot of things together, and it mostly shows when you stop. what's needed may be more than what's asked for.",
-    gemini: "you think fast and feel deeply, and most people only catch the first. the cards tend to notice both.",
-    cancer: "you absorb a good deal that isn't yours: other people's heaviness, old patterns. it tends to show somewhere.",
-    leo: "the tenderness may run deeper than the confidence suggests. often the softer version is the one people actually reach for.",
-    virgo: "you notice most things, including the ones that would be easier to miss. the cards like working with that sort of attention.",
-    libra: "you carry a fair bit for the people around you and make it look easy. the cards are good at finding what that costs.",
-    scorpio: "you probably sense more than you say, about a situation, about someone, about yourself. the cards mostly confirm it.",
-    sagittarius: "you keep looking ahead because standing still can feel uncomfortable. there may be something worth stopping for.",
-    capricorn: "you hold a lot together and seldom let anyone see the effort. the cards notice what you've stopped noticing.",
-    aquarius: "you tend to observe more than you join in. the cards usually ask what you're watching, and from how far away.",
-    pisces: "what you feel lands twice, once for you and once for everyone nearby. sorting out which is which is slow work.",
+    aries: "you tend to start before you're sure. the sureness usually turns up on the way, and sometimes a day late.",
+    taurus: "you're the one who stays put when things get loud. it looks like calm from the outside, and takes more holding than anyone sees.",
+    gemini: "your mind runs two or three threads at once, and your feelings follow the quieter one. people mostly hear the quick one.",
+    cancer: "you remember how a room felt long after you've left it. what you carry for other people is rarely on any list.",
+    leo: "you light up a room easily. what's harder is being looked at on the days you'd rather be soft and unlit.",
+    virgo: "you notice the loose thread before anyone else does, and then you notice yourself noticing it. both are tiring.",
+    libra: "you smooth things over so well that nobody asks what it costs. you'd probably like to be asked.",
+    scorpio: "you usually know what's going on before anyone says it. what you do with the knowing is slower, and private.",
+    sagittarius: "you keep one eye on the next place. staying put can feel like a small emergency, even when nothing's wrong.",
+    capricorn: "you carry a lot and make it look like nothing. the weight is real, even on days nobody checks.",
+    aquarius: "you watch from a step back and see more because of it. the distance is part of how you care.",
+    pisces: "you pick up the mood in a room before you've decided to. it can be hard to tell whose feeling you're holding.",
   };
 
   // Short mobile-only insights (1 sentence each)
-  const sunInsightsMobile: { [key: string]: string } = {
-    aries: "more under the surface than people see.",
-    taurus: "steadiness that costs more than it looks like.",
-    gemini: "quick on the outside, slower and deeper underneath.",
-    cancer: "you take in a lot that isn't yours to carry.",
-    leo: "gentler underneath than the confidence lets on.",
-    virgo: "you notice everything, even what you'd rather not.",
-    libra: "holding a lot together, for everyone, calmly.",
-    scorpio: "you probably know already and are waiting to be sure.",
-    sagittarius: "always moving so you needn't stop.",
-    capricorn: "composure that takes effort nobody sees.",
-    aquarius: "watching from a distance and feeling it all anyway.",
-    pisces: "feelings land twice when you feel them for everyone.",
-  };
-
-  const moonInsightsMobile: { [key: string]: string } = {
-    aries: "you work things out by moving, not by sitting with them.",
-    taurus: "you need solid ground, and change shakes you more than it shows.",
-    gemini: "you talk it through to find out what you feel.",
-    cancer: "your feelings go back further than you do.",
-    leo: "you want to be seen when you're soft, not only when you're shining.",
-    virgo: "you sort feelings like problems, and some refuse to be sorted.",
-    libra: "you feel through other people until you lose track of what's yours.",
-    scorpio: "you're all in or all shut, with little between.",
-    sagittarius: "feelings need room, and closeness can feel like a fence.",
-    capricorn: "vulnerability stays contained, and letting go feels like losing control.",
-    aquarius: "you need distance to know what you feel.",
-    pisces: "you soak up the room, and other people's pain becomes yours.",
-  };
-
-  const risingInsightsMobile: { [key: string]: string } = {
-    aries: "direct and braced. people call it fearless.",
-    taurus: "people feel safe near you, before you do.",
-    gemini: "you shift to suit the room, then wonder which version was you.",
-    cancer: "you lead with softness even while protecting yourself.",
-    leo: "you take up room without trying, even when shrinking.",
-    virgo: "you arrive put together. nobody sees the overthinking.",
-    libra: "you make everyone comfortable, and sometimes vanish doing it.",
-    scorpio: "your intensity arrives before you do. small talk is hard work.",
-    sagittarius: "open and light, and better at moving than staying.",
-    capricorn: "composed on the surface, with the pressure kept inside.",
-    aquarius: "slightly outside the frame. people get it or they don't.",
-    pisces: "you absorb rooms without meaning to, and it costs you.",
-  };
-
-  const numerologyInsightsMobile: { [key: number]: string } = {
-    1: "you may find yourself leading, even when it's lonely.",
-    2: "you build bridges, and sometimes lose your own voice crossing.",
-    3: "expression is what you're for. holding it in makes it fester.",
-    4: "you build to last, and being the steady one is tiring.",
-    5: "freedom matters. the work is committing without vanishing.",
-    6: "you're built to care, and learning that martyrdom isn't love.",
-    7: "you go deep, and small talk grates.",
-    8: "legacy is the theme. strength and control are different things.",
-    9: "you're always finishing cycles, letting go even when it hurts.",
-    11: "you pick up frequencies others miss. it's overwhelming until it feels like a use.",
-    22: "the vision is clear and bringing it to earth takes everything.",
-    33: "people feel something healing in you before you speak, and it gets heavy.",
-  };
-
-  const getWelcomeMessageMobile = (): string => {
-    if (!birthDate) return '';
-    const sunSign = getSunSign(birthDate);
-    const hasBirthTime = birthTime && !noKnowBirthTime;
-    const hasLocation = birthLocation && birthLocation.trim().length >= 2;
-    if (hasBirthTime && hasLocation) {
-      const moonSign = getMoonSign(birthDate, birthTime);
-      const risingSign = getRisingSign(birthDate, birthTime);
-      return `${name},\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\n${risingInsightsMobile[risingSign]}\nthe cards are ready when you are.`;
-    }
-    if (hasBirthTime) {
-      const moonSign = getMoonSign(birthDate, birthTime);
-      return `${name},\n${sunInsightsMobile[sunSign]}\n${moonInsightsMobile[moonSign]}\nthe cards are ready. pull one when you like.`;
-    }
-    if (hasLocation) {
-      return `${name},\n${sunInsightsMobile[sunSign]}\nthe cards are laid out. pull one when you like.`;
-    }
-    const lifePathNumber = getLifePathNumber(birthDate);
-    return `${name},\n${sunInsightsMobile[sunSign]}\n${numerologyInsightsMobile[lifePathNumber]}\nthe cards are ready. pull one whenever.`;
-  };
-
   const moonInsights: { [key: string]: string } = {
-    aries: "emotionally you tend to work things out by moving. sitting still with a feeling may be the harder option.",
-    taurus: "your inner world likes stability. sudden changes rattle it more than most people around you would guess.",
-    gemini: "talking is how you find out what you feel. a long silence around big feelings may not suit you.",
-    cancer: "some of what you carry emotionally may be older than you, more of a pattern than a mood.",
-    leo: "you may want to be seen when you're soft, and not only when you're switched on.",
-    virgo: "you probably sort feelings the way you'd sort a problem, and some of them won't be sorted.",
-    libra: "you feel through the people around you, sometimes until it's unclear which feelings were yours.",
-    scorpio: "it tends to be all in or all closed, with not much of a middle.",
-    sagittarius: "your feelings may need room around them. closeness can start to feel like a fence.",
-    capricorn: "vulnerability may stay contained, because letting it out feels like losing the handle.",
-    aquarius: "you might need a bit of distance before you can tell what you feel. raw feeling without any room can be a lot.",
-    pisces: "you soak up the room, and other people's pain can become yours before you notice.",
+    aries: "feelings go quickly for you, like weather you walk straight through. sitting still with one is the unfamiliar part.",
+    taurus: "your inner life wants steadiness. a sudden change can rattle it for days, even when you're calm about it out loud.",
+    gemini: "you find out what you feel by saying it. a long silence around something big can leave you guessing.",
+    cancer: "some of what you feel is older than you are. it can trace back to a kitchen you stood in as a child.",
+    leo: "you'd like to be seen when you're soft, and not only when you're doing well.",
+    virgo: "you sort feelings the way you'd sort a problem. a few won't go into any pile.",
+    libra: "you feel things through the people near you, sometimes until you can't say which feelings began with you.",
+    scorpio: "it's usually all or nothing in here. the middle is a place you rarely get to rest.",
+    sagittarius: "your feelings need room around them. close attention can start to feel like a fence.",
+    capricorn: "you keep what's tender contained. letting it out can feel like dropping something you were told to hold.",
+    aquarius: "you need a little distance to tell what you feel. when a feeling arrives without any, it's a lot.",
+    pisces: "you take on the mood around you and only later wonder whose it was.",
   };
 
   const risingInsights: { [key: string]: string } = {
     aries: "you walk in direct and a little braced, and people often read that as fearlessness.",
-    taurus: "people feel safe near you, usually before you've found your own footing.",
-    gemini: "you may shift a little to match whoever you're with, and later wonder which version was yours.",
-    cancer: "you lead with softness even when you're trying to protect yourself.",
-    leo: "you take up room without trying, even on days you're making yourself smaller.",
-    virgo: "you arrive looking put together, and nobody sees the overthinking that went into it.",
-    libra: "you make people comfortable, and sometimes you leave yourself out of the picture.",
-    scorpio: "people feel your intensity before you've said anything, and small talk can be hard work.",
-    sagittarius: "you arrive open and light. people may not see that you're simply better at moving than staying.",
-    capricorn: "you look composed and fine, and the pressure you hold doesn't show.",
-    aquarius: "you show up a little outside the frame. some people get it right away and some never do.",
-    pisces: "you pick up the mood of a room without meaning to, and it costs you more than they'd guess.",
+    taurus: "people feel at ease near you, usually before you've found your own footing.",
+    gemini: "you shift a little to match whoever you're with, and later wonder which version was yours.",
+    cancer: "you lead with softness, even on days you're guarding something.",
+    leo: "you take up room without trying, even on the days you're making yourself smaller.",
+    virgo: "you arrive looking put together. nobody sees the overthinking that got you there.",
+    libra: "you make people comfortable, and sometimes leave yourself out of the room.",
+    scorpio: "your intensity arrives a beat before you do. small talk takes real effort.",
+    sagittarius: "you come across open and light, and a little hard to pin down.",
+    capricorn: "you look composed. the pressure stays on the inside, where nobody can see it.",
+    aquarius: "you stand slightly outside the frame. some people get it right away, and some never will.",
+    pisces: "you soak up a room without meaning to, and it costs you more than it shows.",
   };
 
   const numerologyInsights: { [key: number]: string } = {
-    1: "you may find yourself leading, even when it's lonely.",
+    1: "you end up leading, even when it's lonely up there.",
     2: "you build bridges between people, and now and then lose your own voice on the way across.",
-    3: "expression seems to be what you're for, and keeping it in makes it fester.",
-    4: "you tend to build things meant to last, and being the steady one can be tiring.",
-    5: "freedom matters a great deal. the work is committing without disappearing into it.",
-    6: "you're built to care for people, and learning that martyrdom isn't love.",
-    7: "you go deep, and surface chatter may set your teeth on edge.",
-    8: "legacy is the theme here. real strength and control are different things.",
-    9: "you're often finishing cycles, letting things go even when it hurts.",
-    11: "you pick up frequencies others miss. the sensitivity can be overwhelming until it feels like a use.",
-    22: "the vision is clear and bringing it to earth takes everything you have.",
-    33: "people may feel a healing quality in you before you've said anything, and the weight of that grows.",
+    3: "you seem made for expression, and it sours when you keep it in.",
+    4: "you build things to last. being the steady one gets tiring.",
+    5: "freedom matters a great deal to you. the harder work is committing without disappearing into it.",
+    6: "you're made to care for people. you may be learning that martyrdom isn't love.",
+    7: "you go deep, and surface chatter sets your teeth on edge.",
+    8: "legacy is the theme. real strength and control turn out to be different things.",
+    9: "you're always finishing something, letting go even when it hurts.",
+    11: "you pick up frequencies other people miss. the sensitivity overwhelms you until you find a use for it.",
+    22: "the vision is clear. bringing it down to earth takes everything you have.",
+    33: "people feel something healing in you before you've said a word, and the weight of that grows.",
   };
 
   const getWelcomeMessage = (): string => {
@@ -795,17 +714,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (hasBirthTime && hasLocation) {
       const moonSign = getMoonSign(birthDate, birthTime);
       const risingSign = getRisingSign(birthDate, birthTime);
-      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\n${risingInsights[risingSign]}\n\nthe cards have taken it all in. whenever you're ready.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\n${risingInsights[risingSign]}\n\nthat's the whole chart. pull a card whenever you like.`;
     }
     if (hasBirthTime) {
       const moonSign = getMoonSign(birthDate, birthTime);
-      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\nthe cards have it. pull one when it feels right.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\n${moonInsights[moonSign]}\n\nthat's what the chart shows so far. pull a card when you feel like it.`;
     }
     if (hasLocation) {
-      return `${name},\n\n${sunInsights[sunSign]}\n\nthe cards have it. pull one when it feels right.`;
+      return `${name},\n\n${sunInsights[sunSign]}\n\nthat's what the chart shows so far. pull a card when you feel like it.`;
     }
     const lifePathNumber = getLifePathNumber(birthDate);
-    return `${name},\n\n${sunInsights[sunSign]}\n\n${numerologyInsights[lifePathNumber]}\n\nthe cards are ready whenever you are.`;
+    return `${name},\n\n${sunInsights[sunSign]}\n\n${numerologyInsights[lifePathNumber]}\n\nthat's a first sketch of you. pull a card when you're ready.`;
   };
 
   // Typewriter effect — waits for the API-generated welcome message
@@ -1015,7 +934,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               scale={mobileScale}
               title={<>WHAT&apos;S<br />YOUR NAME?</>}
               eyebrow="▸ HELLO"
-              sub="A FIRST NAME IS PLENTY"
+              sub="FIRST NAME ONLY, IF YOU LIKE."
             />
             {/* Sits under the heading, at the permissions step's height, so the
                 field is still in full view once the keyboard is up — rather
@@ -1033,7 +952,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{ ...obValue(mobileScale, true), color: bodyOf(T), textTransform: 'uppercase' }}
                 />
               </div>
-              <ObHint tone={T} scale={mobileScale}>IT STAYS ON YOUR DEVICE, WITH YOU</ObHint>
+              <ObHint tone={T} scale={mobileScale}>SAVED ON THIS DEVICE. THERE IS NO ACCOUNT.</ObHint>
               <ObCta inline tone={night ? 'dark' : 'light'} scale={mobileScale} onClick={handleNext} disabled={!canContinueFromName} />
             </ObFields>
           </div>
@@ -1047,8 +966,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               tone={T}
               scale={mobileScale}
               title={<>WHEN WERE<br />YOU BORN?</>}
-              eyebrow="▸ THANK YOU"
-              sub="THIS HELPS THE CARDS FEEL A LITTLE MORE LIKE YOURS."
+              eyebrow="▸ YOUR STARS"
+              sub="ONLY THE DATE IS NEEDED. TIME AND PLACE MAKE YOUR CHART MORE EXACT."
             />
             <ObFields scale={mobileScale} stack top={330}>
               <div>
@@ -1107,11 +1026,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 </div>
                 {locationError && <FieldError message={locationError} variant={T} />}
                 {!locationError && locationChecking && (
-                  <ObHint tone={T} scale={mobileScale}>LOOKING IT UP…</ObHint>
+                  <ObHint tone={T} scale={mobileScale}>LOOKING FOR THAT PLACE…</ObHint>
                 )}
                 {!locationError && !locationChecking && locationResolved !== null && (
                   <ObHint tone={T} scale={mobileScale}>
-                    {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "WE COULDN'T FIND THAT ONE. MAYBE TRY ANOTHER SPELLING?"}
+                    {locationResolved ? `↳ ${locationResolved.toUpperCase()}` : "NO MATCH FOR THAT. TRY A CITY AND COUNTRY, LIKE LISBON, PORTUGAL."}
                   </ObHint>
                 )}
               </div>
@@ -1130,20 +1049,20 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               tight
               eyebrow="▸ LAST ONE"
               title={<>TWO SMALL<br />CHOICES</>}
-              sub={<>BOTH ARE YOURS TO MAKE, AND YOU CAN<br />CHANGE YOUR MIND ANY DAY.</>}
+              sub={<>BOTH ARE OPTIONAL. SAY NO TO EITHER<br />AND THE APP STILL WORKS.</>}
             />
             <ObFields scale={mobileScale} top={330}>
               <ObPermission
-                tone={T} scale={mobileScale} label="READ MY CHART"
+                tone={T} scale={mobileScale} label="PERSONAL READINGS"
                 on={personalise} onChange={setPersonalise}
               >
-                LETS THE CARD TALK ABOUT YOUR OWN CHART AND TODAY'S SKY.
+                SENDS YOUR BIRTH DETAILS TO CLAUDE SO EACH READING IS ABOUT YOU. OFF, AND YOU GET THE CARD'S GENERAL MEANING.
               </ObPermission>
               <ObPermission
-                tone={T} scale={mobileScale} label="USE MY LOCATION"
+                tone={T} scale={mobileScale} label="WHERE YOU ARE"
                 on={useLocation} onChange={handleLocationToggle}
               >
-                SHOWS YOUR OWN SUNRISE, SUNSET AND MOON, FROM WHEREVER YOU ARE.
+                USES YOUR LOCATION FOR YOUR SUNRISE, SUNSET AND MOON PHASE. WITHOUT IT, THOSE ARE GENERIC.
               </ObPermission>
               {locationBlocked && (
                 <ObHint tone={T} scale={mobileScale} onClick={() => handleLocationToggle(true)}>

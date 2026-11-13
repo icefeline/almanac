@@ -33,8 +33,8 @@ export default function CardSelector({ onSelectCard }: CardSelectorProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="sg-retro fixed bottom-6 right-6 px-7 py-3.5 z-50 font-light"
-        style={{ ['--face' as string]: '#3f5a3a', ['--ink' as string]: '#f4f1e6' }}
+        className="sg-retro sg-secondary fixed bottom-6 right-6 px-7 py-3.5 z-50 font-light"
+        
       >
         🎴 Pick Card
       </button>

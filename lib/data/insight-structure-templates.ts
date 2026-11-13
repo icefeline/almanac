@@ -38,7 +38,7 @@ export const transitingPlanetActions: Record<string, string[]> = {
   jupiter: ['widening the frame', 'making more room than usual', 'bringing in a bit of luck or generosity', 'stretching what feels possible'],
   uranus: ['loosening a habit that felt permanent', 'sending an unexpected jolt of insight', 'unsettling what had gone stale', 'nudging toward something truer'],
   neptune: ['softening edges that were too sharp', 'making what was certain a little blurry', 'raising the volume on intuition', 'asking what lies behind the story'],
-  pluto: ['working at the roots', 'bringing what was buried closer to the surface', 'stirring something you\'d put away', 'slowly breaking down what can\'t continue']
+  pluto: ['working at the roots', 'bringing what was buried closer to the surface', 'stirring something you\'d put away', 'wearing away what can\'t continue']
   ,mars: ['raising the heat', 'adding urgency', 'stirring courage or irritation', 'pushing for movement']
 };
 
@@ -47,7 +47,7 @@ export const aspectDescriptions: Record<string, string[]> = {
   opposition: ['facing', 'pulling against', 'standing across from'],
   conjunction: ['sitting on', 'merging with', 'lying right alongside'],
   trine: ['trining', 'moving easily with', 'warming'],
-  sextile: ['opening a side door to', 'offering a small opening to', 'leaning toward']
+  sextile: ['opening a side door to', 'offering a modest opening to', 'leaning toward']
 };
 
 export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; action: string }> = {
@@ -76,14 +76,14 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'a knowing is gathering around {house_theme} without much language. {transiting_planet} brushes your {natal_planet} and the quieter signals get a little louder',
       'part of you has already noticed what {house_theme} is about. {transiting_planet} meets your {natal_planet}, and what it knows may arrive as a feeling in the body before it turns into a sentence',
-      'something is being held back, maybe by you, near {house_theme}. {transiting_planet} on your {natal_planet} makes the silence around it easier to hear'
+      'a truth is being held back, maybe by you, near {house_theme}. {transiting_planet} on your {natal_planet} makes the silence around it easier to hear'
     ],
     action: 'catch the moment you explain a feeling away. stay in your body for one slow breath before the explanation finishes'
   },
 
   'major-3': {
     synthesis: [
-      'something near {house_theme} is growing at its own speed. {transiting_planet} warms your {natal_planet}, and the pace it keeps may not match the pace you\'ve been demanding',
+      'a slow crop near {house_theme} is growing at its own speed. {transiting_planet} warms your {natal_planet}, and the pace it keeps may not match the pace you\'ve been demanding',
       'there is a soft abundance close to {house_theme}, easier to miss when you\'re counting what\'s undone. {transiting_planet} on your {natal_planet} makes it more tangible',
       'care has been flowing outward around {house_theme}. {transiting_planet} meets your {natal_planet} and turns some of it back toward you, if you let it'
     ],
@@ -92,11 +92,11 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'major-4': {
     synthesis: [
-      'a boundary around {house_theme} is asking to be named. {transiting_planet} presses on your {natal_planet}, and the structure you have been holding up quietly is the one doing the work',
+      'a boundary around {house_theme} is asking to be named. {transiting_planet} presses on your {natal_planet}, and the structure you have been holding up without applause is the one doing the work',
       'the question of who is in charge shows up near {house_theme}. {transiting_planet} against your {natal_planet} makes the answer more visible, whether it is steady or tight',
       'order in {house_theme} may feel either like shelter or like bracing. {transiting_planet} and your {natal_planet} sit in the room, and both readings might be true'
     ],
-    action: 'catch the clench of a rule you are enforcing, on yourself or someone else. plant both feet and check whether your shoulders can drop an inch'
+    action: 'catch the clench of a rule you are enforcing, on yourself or another person. plant both feet and check whether your shoulders can drop an inch'
   },
 
   'major-5': {
@@ -128,9 +128,9 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'major-8': {
     synthesis: [
-      'a wild feeling near {house_theme} may respond better to company than to handling. {transiting_planet} touches your {natal_planet} and the gentler approach seems to be the stronger one',
+      'a wild feeling near {house_theme} may respond better to company than to handling. {transiting_planet} touches your {natal_planet} and the milder approach seems to be the stronger one',
       'there\'s a kind of courage around {house_theme} that doesn\'t look like courage from outside. {transiting_planet} meets your {natal_planet}, and patience carries most of it',
-      'something in {house_theme} is roaring and may only want to be heard. {transiting_planet} on your {natal_planet} softens the way you might approach it'
+      'a loud feeling in {house_theme} is roaring and may only want to be heard. {transiting_planet} on your {natal_planet} softens the way you might approach it'
     ],
     action: 'watch for the instant you tighten up against a feeling. open your hands on your lap, palms up, and let the feeling be there for a few breaths'
   },
@@ -146,7 +146,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'major-10': {
     synthesis: [
-      'something around {house_theme} is turning and not asking permission. {transiting_planet} on your {natal_planet} marks the turn, and some of it is luck instead of your doing',
+      'a tide around {house_theme} is turning and not asking permission. {transiting_planet} on your {natal_planet} marks the turn, and some of it is luck instead of your doing',
       'a pattern near {house_theme} may be repeating, or finishing. {transiting_planet} meets your {natal_planet}, and the shape of the cycle is easier to trace',
       '{house_theme} may feel like it\'s moving without you. {transiting_planet} against your {natal_planet} suggests it is a larger rhythm, not a verdict'
     ],
@@ -173,7 +173,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'major-13': {
     synthesis: [
-      'something near {house_theme} has finished, or nearly. {transiting_planet} meets your {natal_planet}, and holding it up may be costing more than letting it fall',
+      'a chapter near {house_theme} has finished, or nearly. {transiting_planet} meets your {natal_planet}, and holding it up may be costing more than letting it fall',
       'an old version of how you handle {house_theme} is wearing thin. {transiting_planet} on your {natal_planet} loosens the stitching',
       'there is grief and room together around {house_theme}. {transiting_planet} touches your {natal_planet}, and they tend to arrive in the same hour'
     ],
@@ -192,7 +192,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'major-15': {
     synthesis: [
       'a habit near {house_theme} feels more fixed than it is. {transiting_planet} meets your {natal_planet}, and the chain is looser than the story about it',
-      'something pays you in comfort around {house_theme}. {transiting_planet} on your {natal_planet} makes the payment visible',
+      'a habit pays you in comfort around {house_theme}. {transiting_planet} on your {natal_planet} makes the payment visible',
       'there\'s a pull in {house_theme} you might not want to look at. {transiting_planet} touches your {natal_planet}, and looking at it is not the same as obeying it'
     ],
     action: 'watch for the pull a moment before you act on it. keep your hands still and notice where in your body it lives'
@@ -200,16 +200,16 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'major-16': {
     synthesis: [
-      'something around {house_theme} is not holding, and some part of you knew. {transiting_planet} hits your {natal_planet} and the false wall goes first',
+      'a wall around {house_theme} is not holding, and some part of you knew. {transiting_planet} hits your {natal_planet} and the false wall goes first',
       'the foundation near {house_theme} might be shakier than it was presented. {transiting_planet} on your {natal_planet} brings it to the surface',
       'a truth about {house_theme} is getting louder than the story. {transiting_planet} meets your {natal_planet} and the noise may feel like loss before it feels like air'
     ],
-    action: 'notice where you rush to repair something that is better left to settle. feel the floor under you for a moment, and register that it is still there'
+    action: 'notice where you rush to repair something that is better left to clear, like silt. feel the floor under you for a moment, and register that it is still there'
   },
 
   'major-17': {
     synthesis: [
-      'there is a thin, steady light near {house_theme}. {transiting_planet} meets your {natal_planet} and something that was dimmed after a rough stretch is returning',
+      'there is a thin, steady light near {house_theme}. {transiting_planet} meets your {natal_planet} and a light that was dimmed after a rough stretch is returning',
       'healing around {house_theme} is slow and quiet. {transiting_planet} touches your {natal_planet}, and it may only show as a little more room',
       'you might be a few degrees more hopeful about {house_theme} than you\'ve admitted. {transiting_planet} on your {natal_planet} lets it show'
     ],
@@ -219,7 +219,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'major-18': {
     synthesis: [
       'near {house_theme}, the light is poor and imagination is running loud. {transiting_planet} on your {natal_planet} makes fears and intuitions sound alike',
-      'something around {house_theme} isn\'t clear yet, and doesn\'t have to be. {transiting_planet} meets your {natal_planet}, and the fog is part of the information',
+      'the picture around {house_theme} isn\'t clear yet, and doesn\'t have to be. {transiting_planet} meets your {natal_planet}, and the fog is part of the information',
       'the worry in {house_theme} may be older than its current reason. {transiting_planet} touches your {natal_planet} and the older layer surfaces'
     ],
     action: 'watch for the story that fills a blank with the worst case. name the feeling once, silently, and notice that it is quieter once named'
@@ -228,7 +228,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'major-19': {
     synthesis: [
       'there is plain warmth near {house_theme}, available without a reason. {transiting_planet} meets your {natal_planet} and the light seems less guarded',
-      'something about {house_theme} may simply be going well. {transiting_planet} on your {natal_planet} makes it hard to talk yourself out of it',
+      'one corner of {house_theme} may simply be going well. {transiting_planet} on your {natal_planet} makes it hard to talk yourself out of it',
       'you might be allowed to be visible around {house_theme}. {transiting_planet} touches your {natal_planet}, and the dimmer switch is within reach'
     ],
     action: 'catch the habit of adding a caveat to good news. turn your face toward any light in the room for a few seconds before saying the caveat, or not'
@@ -237,7 +237,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'major-20': {
     synthesis: [
       'a call is sounding near {house_theme}, and it\'s mostly forgiveness. {transiting_planet} meets your {natal_planet}, and the old account is ready to be read kindly',
-      'something from the past around {house_theme} is asking to be seen without a verdict. {transiting_planet} on your {natal_planet} opens the door a little',
+      'a leftover from the past around {house_theme} is asking to be seen without a verdict. {transiting_planet} on your {natal_planet} opens the door a little',
       'the harshest judge near {house_theme} may be inside. {transiting_planet} touches your {natal_planet} and the voice sounds more familiar than fair'
     ],
     action: 'notice when your inner commentary turns to verdict. say your own name silently and see if the next sentence changes tone'
@@ -247,7 +247,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'a cycle around {house_theme} is closing, whether or not you\'ve marked it. {transiting_planet} meets your {natal_planet} and the edges of the thing are suddenly visible',
       'you\'ve come further near {house_theme} than the daily view lets on. {transiting_planet} on your {natal_planet} gives you a place to see it from',
-      'something is nearly finished in {house_theme}. {transiting_planet} touches your {natal_planet}, and the remaining piece is smaller than it feels'
+      'a long stretch is nearly finished in {house_theme}. {transiting_planet} touches your {natal_planet}, and the remaining piece is smaller than it feels'
     ],
     action: 'catch the urge to move straight on to the next thing. stand still for one breath and say what the finished thing taught'
   },
@@ -257,7 +257,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'cups-ace': {
     synthesis: [
-      'a feeling is being offered near {house_theme}, and receiving it is the harder half. {transiting_planet} meets your {natal_planet}, and something tender is asking for room',
+      'a feeling is being offered near {house_theme}, and receiving it is the harder half. {transiting_planet} meets your {natal_planet}, and something raw is asking for room',
       'the cup is already overflowing around {house_theme}. {transiting_planet} touches your {natal_planet}, and being filled may feel odd after a dry stretch',
       'there may be a softening in {house_theme} you haven\'t named yet. {transiting_planet} on your {natal_planet} brings it up'
     ],
@@ -275,7 +275,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'cups-3': {
     synthesis: [
-      'there\'s company worth sitting in around {house_theme}. {transiting_planet} meets your {natal_planet}, and shared gladness could land better than private gladness',
+      'there\'s company worth sitting in around {house_theme}. {transiting_planet} meets your {natal_planet}, and shared gladness might go down better than private gladness',
       'a table is set near {house_theme}, and you might be on the guest list. {transiting_planet} on your {natal_planet} turns your head toward the room',
       'joy around {house_theme} seems to be a group thing today. {transiting_planet} touches your {natal_planet}, and being seen as happy is part of it'
     ],
@@ -284,7 +284,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'cups-4': {
     synthesis: [
-      'something is on offer near {house_theme} and attention is turned inward. {transiting_planet} meets your {natal_planet}, and the flatness may be hiding an appetite',
+      'an offer is open near {house_theme} and attention is turned inward. {transiting_planet} meets your {natal_planet}, and the flatness may be hiding an appetite',
       'around {house_theme}, boredom might be more like a closed door than an empty room. {transiting_planet} on your {natal_planet} knocks on it',
       'you may be declining something in {house_theme} before it has finished arriving. {transiting_planet} touches your {natal_planet}, and a second look is possible'
     ],
@@ -302,9 +302,9 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'cups-6': {
     synthesis: [
-      'something old surfaces near {house_theme}, soft and specific. {transiting_planet} meets your {natal_planet}, and a younger version of you has something to say',
+      'an old memory surfaces near {house_theme}, soft and specific. {transiting_planet} meets your {natal_planet}, and a younger version of you has something to say',
       'around {house_theme}, a memory is doing quiet work. {transiting_planet} on your {natal_planet} warms it',
-      'an early kindness is echoing in {house_theme}. {transiting_planet} touches your {natal_planet} and the old sweetness has a use now'
+      'an early kindness is coming back around in {house_theme}. {transiting_planet} touches your {natal_planet} and the old sweetness has a use now'
     ],
     action: 'catch the memory that arrives uninvited. let it play out, then look at one thing in the room as it is today'
   },
@@ -320,7 +320,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'cups-8': {
     synthesis: [
-      'something near {house_theme} still looks fine and has stopped feeding you. {transiting_planet} meets your {natal_planet}, and the walking-away part of you is already awake',
+      'a setup near {house_theme} still looks fine and has stopped feeding you. {transiting_planet} meets your {natal_planet}, and the walking-away part of you is already awake',
       'around {house_theme}, there may be a quiet leaving going on in you. {transiting_planet} on your {natal_planet} makes it audible',
       'you might have outgrown a corner of {house_theme}. {transiting_planet} touches your {natal_planet}, and the outgrowing is not a failure'
     ],
@@ -329,7 +329,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'cups-9': {
     synthesis: [
-      'something near {house_theme} has turned out well, and you moved past it quickly. {transiting_planet} meets your {natal_planet} and slows the clock',
+      'a result near {house_theme} has turned out well, and you moved past it quickly. {transiting_planet} meets your {natal_planet} and slows the clock',
       'satisfaction around {house_theme} is allowed to be plain. {transiting_planet} on your {natal_planet} gives it a seat',
       'a wish touching {house_theme} may already be partly met. {transiting_planet} touches your {natal_planet}, and savouring is part of receiving'
     ],
@@ -349,7 +349,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'a small, slightly odd impulse is surfacing near {house_theme}. {transiting_planet} meets your {natal_planet}, and curiosity may do better than analysis',
       'around {house_theme}, a feeling has turned up in a playful costume. {transiting_planet} on your {natal_planet} lets it say hello',
-      'something tender in {house_theme} wants to be taken seriously and not solemnly. {transiting_planet} touches your {natal_planet} and the tone of it is light'
+      'something bruised in {house_theme} wants to be taken seriously and not solemnly. {transiting_planet} touches your {natal_planet} and the tone of it is light'
     ],
     action: 'catch the moment you wave off an idea as silly. give it ten seconds of real attention, like you would a child\'s question'
   },
@@ -386,7 +386,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'swords-ace': {
     synthesis: [
-      'something has gone clear near {house_theme}. {transiting_planet} meets your {natal_planet}, and a fact you can\'t unsee has come into focus',
+      'a fact has gone clear near {house_theme}. {transiting_planet} meets your {natal_planet}, and a fact you can\'t unsee has come into focus',
       'around {house_theme}, a sentence you\'ve been circling is almost sayable. {transiting_planet} on your {natal_planet} sharpens it',
       'a clean cut of understanding is arriving in {house_theme}. {transiting_planet} touches your {natal_planet}, and it may feel like relief and a bruise at once'
     ],
@@ -404,8 +404,8 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'swords-3': {
     synthesis: [
-      'a hurt near {house_theme} is allowed its own size. {transiting_planet} meets your {natal_planet}, and the ache is more honest than the explanations around it',
-      'something went in deep around {house_theme}. {transiting_planet} on your {natal_planet} lets it be felt without needing to repair it today',
+      'a hurt near {house_theme} is allowed its own size. {transiting_planet} meets your {natal_planet}, and the sore spot is more honest than the explanations around it',
+      'a hurt went in deep around {house_theme}. {transiting_planet} on your {natal_planet} lets it be felt without needing to repair it today',
       'grief and truth are in the same sentence near {house_theme}. {transiting_planet} touches your {natal_planet}, and the sentence doesn\'t need an ending'
     ],
     action: 'notice where the hurt lives physically. rest a hand on that spot and breathe out slowly twice'
@@ -424,7 +424,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'a fight near {house_theme} may be won and still feel empty. {transiting_planet} meets your {natal_planet}, and the cost of winning is getting clearer',
       'around {house_theme}, being right and being close pull apart. {transiting_planet} on your {natal_planet} brings that into the open',
-      'an argument in {house_theme} has left a sour air. {transiting_planet} touches your {natal_planet}, and pride is guarding something tender'
+      'an argument in {house_theme} has left a sour air. {transiting_planet} touches your {natal_planet}, and pride is guarding a bruise'
     ],
     action: 'notice the moment you reach for the last word. exhale through your mouth and see whether you still want it'
   },
@@ -432,7 +432,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'swords-6': {
     synthesis: [
       'you may be leaving rough water near {house_theme}. {transiting_planet} meets your {natal_planet}, and the crossing is quiet more than thrilling',
-      'something is being left on the near shore around {house_theme}. {transiting_planet} on your {natal_planet} steadies the boat',
+      'a load is being left on the near shore around {house_theme}. {transiting_planet} on your {natal_planet} steadies the boat',
       'a calmer stretch is possible in {house_theme}. {transiting_planet} touches your {natal_planet}, and distance may be part of the healing'
     ],
     action: 'notice what you\'re still carrying across with you. set one thing down mentally and feel your hands lighten'
@@ -442,7 +442,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'a bit of cleverness is at work near {house_theme}. {transiting_planet} meets your {natal_planet}, and the question is whether it is strategy or avoidance',
       'around {house_theme}, a shortcut might be tempting. {transiting_planet} on your {natal_planet} puts a light on it',
-      'something unsaid in {house_theme} is making you tiptoe. {transiting_planet} touches your {natal_planet}, and the plain version might be lighter'
+      'an unsaid sentence in {house_theme} is making you tiptoe. {transiting_planet} touches your {natal_planet}, and the plain version might be lighter'
     ],
     action: 'catch the glance over your shoulder. plant both feet and say the unedited sentence silently, just to hear it'
   },
@@ -467,7 +467,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'swords-10': {
     synthesis: [
-      'something has ended near {house_theme}, and it was hard. {transiting_planet} meets your {natal_planet}, and there is a thin dawn at the edge',
+      'a long thing has ended near {house_theme}, and it was hard. {transiting_planet} meets your {natal_planet}, and there is a thin dawn at the edge',
       'around {house_theme}, the worst is behind. {transiting_planet} on your {natal_planet} makes that feel believable and not merely announced',
       'a final thing is over in {house_theme}. {transiting_planet} touches your {natal_planet}, and nothing worse sits underneath it'
     ],
@@ -507,7 +507,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'around {house_theme}, reason is asked to carry some mercy. {transiting_planet} on your {natal_planet} sets the weights on the scale',
       'a decision in {house_theme} may need the evidence laid out before the verdict. {transiting_planet} touches your {natal_planet}, and you can see who it touches'
     ],
-    action: 'notice the urge to settle it quickly. sit straight, one slow breath, and picture everyone the decision touches'
+    action: 'notice the urge to wrap it up quickly. sit straight, one slow breath, and picture everyone the decision touches'
   },
 
 
@@ -515,9 +515,9 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'wands-ace': {
     synthesis: [
-      'a spark is catching near {house_theme}, before any plan exists. {transiting_planet} meets your {natal_planet}, and the pulse that jumps is information',
+      'a match is catching near {house_theme}, before any plan exists. {transiting_planet} meets your {natal_planet}, and the pulse that jumps is information',
       'around {house_theme}, there is an itch to begin. {transiting_planet} on your {natal_planet} warms it',
-      'something wants to start in {house_theme}. {transiting_planet} touches your {natal_planet}, and the waiting for permission is the only thing in the way'
+      'a first move is itching in {house_theme}. {transiting_planet} touches your {natal_planet}, and the waiting for permission is the only thing in the way'
     ],
     action: 'notice where your pulse jumps when you think of starting. press your feet into the floor and let that heat stay for a few breaths'
   },
@@ -533,7 +533,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'wands-3': {
     synthesis: [
-      'something you launched near {house_theme} is on its way out. {transiting_planet} meets your {natal_planet}, and tides are not yours to steer',
+      'a venture you launched near {house_theme} is on its way out. {transiting_planet} meets your {natal_planet}, and tides are not yours to steer',
       'around {house_theme}, the groundwork was yours and the weather isn\'t. {transiting_planet} on your {natal_planet} stretches the wait',
       'ships are crossing near {house_theme}. {transiting_planet} touches your {natal_planet}, and doubt is part of the crossing, not a forecast'
     ],
@@ -542,8 +542,8 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'wands-4': {
     synthesis: [
-      'there\'s something near {house_theme} worth celebrating. {transiting_planet} meets your {natal_planet}, and the milestone is real even if the road isn\'t finished',
-      'around {house_theme}, a place feels settled. {transiting_planet} on your {natal_planet} offers a garland',
+      'there\'s a win near {house_theme} worth celebrating. {transiting_planet} meets your {natal_planet}, and the milestone is real even if the road isn\'t finished',
+      'around {house_theme}, a place feels lived-in. {transiting_planet} on your {natal_planet} offers a garland',
       'you might be allowed to pause in {house_theme}. {transiting_planet} touches your {natal_planet}, and someone you\'d like beside you is in the picture'
     ],
     action: 'catch the moment you move past what went well. raise your shoulders, then drop them, and name one thing that finished'
@@ -560,9 +560,9 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'wands-6': {
     synthesis: [
-      'something you did near {house_theme} is being seen. {transiting_planet} meets your {natal_planet}, and taking the thanks in is part of the work',
+      'work you did near {house_theme} is being seen. {transiting_planet} meets your {natal_planet}, and taking the thanks in is part of the work',
       'around {house_theme}, a nod from someone who matters is on the way. {transiting_planet} on your {natal_planet} lifts your chin',
-      'a good day in {house_theme} may be asking to land. {transiting_planet} touches your {natal_planet}, and deflecting is a habit worth catching'
+      'a good day in {house_theme} may be asking to be taken in. {transiting_planet} touches your {natal_planet}, and deflecting is a habit worth catching'
     ],
     action: 'catch the deflection when someone praises you. let the words sit in your chest for one slow breath before replying'
   },
@@ -580,7 +580,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'things are moving quickly near {house_theme}. {transiting_planet} meets your {natal_planet}, and speed can feel both good and dizzy',
       'around {house_theme}, messages and news are travelling. {transiting_planet} on your {natal_planet} clears the sky',
-      'after a still stretch, a flurry arrives in {house_theme}. {transiting_planet} touches your {natal_planet}, and something wants your feet on the ground while it passes'
+      'after a still stretch, a flurry arrives in {house_theme}. {transiting_planet} touches your {natal_planet}, and a part of you wants your feet on the ground while it passes'
     ],
     action: 'catch the sense of being carried. press your feet into the floor and breathe out before you answer the next message'
   },
@@ -605,7 +605,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'wands-page': {
     synthesis: [
-      'something new is catching your curiosity near {house_theme}. {transiting_planet} meets your {natal_planet}, and being bad at it first is fine',
+      'a new interest is catching your curiosity near {house_theme}. {transiting_planet} meets your {natal_planet}, and being bad at it first is fine',
       'around {house_theme}, a beginner\'s fire is lit. {transiting_planet} on your {natal_planet} brings it close',
       'there\'s an idea in {house_theme} that wants to be tried before it\'s perfect. {transiting_planet} touches your {natal_planet}, and eagerness is the best credential'
     ],
@@ -634,7 +634,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'a vision near {house_theme} is able to carry other people. {transiting_planet} meets your {natal_planet}, and conviction does more than command',
       'around {house_theme}, leadership might be showing as steadiness. {transiting_planet} on your {natal_planet} gives it a spine',
-      'something you believe in is shaping {house_theme}. {transiting_planet} touches your {natal_planet}, and your authority is quieter than you expect'
+      'a belief is shaping {house_theme}. {transiting_planet} touches your {natal_planet}, and your authority is quieter than you expect'
     ],
     action: 'catch the urge to push others along. straighten your back, loosen your grip and let your voice drop half a tone'
   },
@@ -644,7 +644,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'pentacles-ace': {
     synthesis: [
-      'something solid is being offered near {house_theme}. {transiting_planet} meets your {natal_planet}, and it\'s a seed, not a harvest',
+      'a solid footing is being offered near {house_theme}. {transiting_planet} meets your {natal_planet}, and it\'s a seed, not a harvest',
       'around {house_theme}, a practical opening has appeared. {transiting_planet} on your {natal_planet} puts it within reach',
       'a small, real chance is available in {house_theme}. {transiting_planet} touches your {natal_planet}, and small may be the right size'
     ],
@@ -662,9 +662,9 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'pentacles-3': {
     synthesis: [
-      'something near {house_theme} would be better built by more hands. {transiting_planet} meets your {natal_planet}, and a second opinion is a form of respect',
+      'a project near {house_theme} would be better built by more hands. {transiting_planet} meets your {natal_planet}, and a second opinion is a form of respect',
       'around {house_theme}, craft meets design. {transiting_planet} on your {natal_planet} brings someone\'s skill into the room',
-      'you may have a skill in {house_theme} that someone else needs. {transiting_planet} touches your {natal_planet}, and offering it is part of the work'
+      'you may have a skill in {house_theme} that somebody else needs. {transiting_planet} touches your {natal_planet}, and offering it is part of the work'
     ],
     action: 'notice where you\'re doing alone what a few hands would lighten. rest your palms on a table and think of one person who could take a corner'
   },
@@ -708,7 +708,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'pentacles-8': {
     synthesis: [
       'the work near {house_theme} is repetitive and real. {transiting_planet} meets your {natal_planet}, and skill arrives through the doing',
-      'around {house_theme}, practice is quietly changing you. {transiting_planet} on your {natal_planet} sharpens the hands',
+      'around {house_theme}, practice is changing you by degrees. {transiting_planet} on your {natal_planet} sharpens the hands',
       'devotion to a craft shows up in {house_theme}. {transiting_planet} touches your {natal_planet}, and nobody is watching, which suits it'
     ],
     action: 'catch the moment of going through the motions. slow your hands for one task and feel the material'
@@ -727,7 +727,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
     synthesis: [
       'what\'s being built near {house_theme} may outlast you. {transiting_planet} meets your {natal_planet}, and belonging is made of small repeated things',
       'around {house_theme}, there\'s a long view of home. {transiting_planet} on your {natal_planet} widens it',
-      'a legacy is quietly forming in {house_theme}. {transiting_planet} touches your {natal_planet}, and traditions and money are both part of it'
+      'a legacy is accruing in {house_theme}. {transiting_planet} touches your {natal_planet}, and traditions and money are both part of it'
     ],
     action: 'catch the habit of counting only what\'s new. look at one old thing that has held up and feel its weight in your hand'
   },
@@ -735,7 +735,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
   'pentacles-page': {
     synthesis: [
       'a practical beginning is available near {house_theme}. {transiting_planet} meets your {natal_planet}, and being a beginner takes more patience than glory',
-      'around {house_theme}, a small lesson is waiting. {transiting_planet} on your {natal_planet} puts a book on the desk',
+      'around {house_theme}, a little lesson is waiting. {transiting_planet} on your {natal_planet} puts a book on the desk',
       'you may be about to learn something in {house_theme}. {transiting_planet} touches your {natal_planet}, and the first hour counts'
     ],
     action: 'notice the plan that never becomes the first hour. put your palm flat on whatever work is nearest and stay there for three breaths'
@@ -761,7 +761,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 
   'pentacles-king': {
     synthesis: [
-      'something near {house_theme} has been built to last. {transiting_planet} meets your {natal_planet}, and stewardship matters more than accumulation',
+      'a structure near {house_theme} has been built to last. {transiting_planet} meets your {natal_planet}, and stewardship matters more than accumulation',
       'around {house_theme}, resources are on your side. {transiting_planet} on your {natal_planet} asks how you\'d use them well',
       'solid ground is under {house_theme}. {transiting_planet} touches your {natal_planet}, and you might hold it lightly'
     ],
@@ -770,8 +770,8 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
 };
 
 export const keyPhraseTemplates = {
-  challenging: ['the part that won\'t hold', 'what the pressure shows', 'a truth with edges', 'friction with a message', 'the old thing giving way', 'what you\'d rather not look at', 'the crack that lets light in', 'an honest ache'],
-  neutral: ['between two weathers', 'a pause with a pulse', 'the held breath', 'listening sideways', 'a slow turning', 'the quiet middle', 'something settling', 'the day\'s own pace'],
+  challenging: ['the part that won\'t hold', 'what the pressure shows', 'a truth with edges', 'friction with a message', 'the old thing giving way', 'what you\'d rather not look at', 'the crack that lets light in', 'a plain sore spot'],
+  neutral: ['between two weathers', 'a pause with a pulse', 'the held breath', 'listening sideways', 'a slow turning', 'the quiet middle', 'something silting down', 'the day\'s own pace'],
   expansive: ['a door left ajar', 'room to move', 'light at the edge', 'the unforced yes', 'ease arriving', 'warmth on the wall', 'a window opening', 'more space than expected']
 };
 

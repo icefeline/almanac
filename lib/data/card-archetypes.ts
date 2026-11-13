@@ -109,7 +109,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
         'plaster falling a little each week',
         'a tremor ignored',
         'rebuilding on faulty ground',
-        'a collapse carried quietly'
+        'a collapse carried off-stage'
       ]
     }
   },
@@ -120,7 +120,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['quiet hope', 'mending', 'openness', 'trust returning', 'calm after the storm'],
       emotionalTone: 'expansive',
-      psychologicalFocus: ['refilling slowly', 'believing in small mending', 'being soothed'],
+      psychologicalFocus: ['refilling a spoonful at a time', 'believing in small mending', 'being soothed'],
       actionQualities: ['pouring', 'healing', 'resting under open sky', 'refilling'],
       naturalPhrases: [
         'a jug poured onto the ground',
@@ -379,10 +379,10 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'major-8',
     name: 'Strength',
     upright: {
-      coreThemes: ['gentle courage', 'patience', 'tenderness toward fear', 'quiet resolve', 'soft authority'],
+      coreThemes: ['coaxing courage', 'patience', 'kindness toward fear', 'quiet resolve', 'soft authority'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['keeping company with a wild feeling', 'staying steady', 'being kind to the animal in you'],
-      actionQualities: ['gentling', 'enduring', 'staying close', 'softening your grip'],
+      actionQualities: ['coaxing', 'enduring', 'staying close', 'softening your grip'],
       naturalPhrases: [
         'a hand on a lion\'s jaw',
         'patience reaching what force can\'t',
@@ -497,8 +497,8 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['blending', 'measure', 'patience', 'the middle ground', 'slow mixing'],
       emotionalTone: 'expansive',
-      psychologicalFocus: ['finding the right proportion', 'letting opposites mix', 'moving slowly on purpose'],
-      actionQualities: ['mixing', 'moderating', 'pouring slowly', 'testing'],
+      psychologicalFocus: ['finding the right proportion', 'letting opposites mix', 'moving at a deliberate crawl'],
+      actionQualities: ['mixing', 'moderating', 'pouring in a thin stream', 'testing'],
       naturalPhrases: [
         'two cups poured between',
         'one foot on land, one in water',
@@ -567,11 +567,11 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['fog lifting', 'seeing through it', 'fear loosening', 'the truth surfacing'],
       emotionalTone: 'neutral',
-      psychologicalFocus: ['a story about the dark with an ordinary explanation', 'lingering in confusion because it\'s familiar', 'clarity arriving and not being welcome'],
+      psychologicalFocus: ['a story about the dark with an ordinary explanation', 'loitering in confusion because it\'s familiar', 'clarity arriving and not being welcome'],
       actionQualities: ['seeing through', 'admitting', 'uncovering', 'clearing up'],
       naturalPhrases: [
         'the dog stopped howling and the wolf is still near',
-        'a fog thinning slowly',
+        'a fog thinning by the hour',
         'a story no longer holding'
       ]
     }
@@ -596,7 +596,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['dimmed joy', 'muted pleasure', 'doubting good news', 'cloud cover'],
       emotionalTone: 'challenging',
       psychologicalFocus: ['waving off what went well', 'feeling undeserving', 'indoors on a sunny day'],
-      actionQualities: ['downplaying', 'shrinking', 'deflecting', 'hiding the glow'],
+      actionQualities: ['downplaying', 'shrinking', 'deflecting', 'hiding the shine'],
       naturalPhrases: [
         'the sun behind cloud',
         'success shrugged off',
@@ -653,7 +653,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['loose ends', 'unfinished business', 'shortcuts', 'almost there'],
       emotionalTone: 'challenging',
       psychologicalFocus: ['avoiding the last step', 'holding off an ending because it means a beginning', 'rushing and not feeling complete'],
-      actionQualities: ['lingering', 'skipping', 'circling', 'hedging'],
+      actionQualities: ['loitering', 'skipping', 'circling', 'hedging'],
       naturalPhrases: [
         'a finish line close and uncrossed',
         'one piece being walked around',
@@ -667,10 +667,10 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'wands-ace',
     name: 'Ace of Wands',
     upright: {
-      coreThemes: ['a spark', 'the urge to begin', 'creative heat', 'raw potential', 'eagerness'],
+      coreThemes: ['a struck match', 'the urge to begin', 'creative heat', 'raw potential', 'eagerness'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['saying yes before the plan', 'noticing where your pulse jumps'],
-      actionQualities: ['sparking', 'starting', 'scribbling in the dark', 'catching'],
+      actionQualities: ['striking', 'starting', 'scribbling in the dark', 'catching'],
       naturalPhrases: [
         'an idea at five a.m.',
         'a hand holding a sprouting wand',
@@ -681,12 +681,12 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['a damp match', 'ideas left in a drawer', 'a stalled start', 'flat energy'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['waiting for the right moment until none comes', 'an idea with a glow in a drawer', 'a match that went out'],
+      psychologicalFocus: ['waiting for the right moment until none comes', 'an idea phosphorescing in a drawer', 'a match that went out'],
       actionQualities: ['waiting', 'delaying', 'sitting on it', 'doubting'],
       naturalPhrases: [
         'the idea shelved after waking you',
         'the right moment that never arrives',
-        'a spark with nowhere to go'
+        'a struck match with nowhere to go'
       ]
     }
   },
@@ -779,7 +779,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'wands-4',
     name: 'Four of Wands',
     upright: {
-      coreThemes: ['homecoming', 'a festive pause', 'settled ground', 'a gathering', 'milestone'],
+      coreThemes: ['homecoming', 'a festive pause', 'a lived-in place', 'a gathering', 'milestone'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['letting something finished be enjoyed', 'calling someone to the garland'],
       actionQualities: ['celebrating', 'gathering', 'resting', 'arriving'],
@@ -793,7 +793,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['rushing past', 'unsettled home', 'joy cut short', 'a shaky foundation'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['skipping to the next task before the cake', 'a party on a shaky floor', 'happiness awaiting an invitation'],
+      psychologicalFocus: ['skipping to the next task before the cake', 'a party on a shaky floor', 'happiness waiting on a summons'],
       actionQualities: ['skipping', 'postponing', 'avoiding', 'unsettling'],
       naturalPhrases: [
         'the fairy lights left in the box',
@@ -815,7 +815,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
         'five staffs and no clear winner',
         'a meeting where everyone talks',
         'five opinions on one dishwasher',
-        'an aching jaw after the group project'
+        'a jaw stiff from smiling after the group project'
       ]
     },
     reversed: {
@@ -824,7 +824,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       psychologicalFocus: ['peace kept by avoidance', 'a sharp conversation left unsaid', 'a fight with yourself'],
       actionQualities: ['dodging', 'muttering', 'truce-making', 'wrestling inside'],
       naturalPhrases: [
-        'the quiet that isn\'t settled',
+        'the quiet that hasn\'t cleared',
         'a conversation avoided in the name of peace',
         'a staff to be put down or used'
       ]
@@ -837,7 +837,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['recognition', 'a public win', 'earned confidence', 'being applauded', 'a good day'],
       emotionalTone: 'expansive',
-      psychologicalFocus: ['taking praise in', 'letting a result land'],
+      psychologicalFocus: ['taking praise in', 'letting a result sink in'],
       actionQualities: ['riding', 'accepting', 'walking tall', 'being thanked'],
       naturalPhrases: [
         'a rider with a laurel wand',
@@ -948,7 +948,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'cups-ace',
     name: 'Ace of Cups',
     upright: {
-      coreThemes: ['an offered feeling', 'overflow', 'tenderness arriving', 'a fresh warmth', 'creative flow'],
+      coreThemes: ['an offered feeling', 'overflow', 'warmth arriving unasked', 'a fresh warmth', 'creative flow'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['receiving instead of managing', 'letting something in', 'being filled'],
       actionQualities: ['accepting', 'opening', 'receiving', 'softening'],
@@ -1013,8 +1013,8 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       naturalPhrases: [
         'three cups raised',
         'a messy kitchen at midnight',
-        'laughter landing a second time',
-        'your face aching from smiling'
+        'a joke that earns a second laugh',
+        'your face stiff from smiling'
       ]
     },
     reversed: {
@@ -1080,7 +1080,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       psychologicalFocus: ['grief become an address', 'moving on feeling disloyal', 'a bridge that was always there'],
       actionQualities: ['turning', 'accepting', 'carrying on', 'looking behind'],
       naturalPhrases: [
-        'the head turning slowly',
+        'the head turning by degrees',
         'the spilled cups stared at too long',
         'the bridge seen at last'
       ]
@@ -1126,7 +1126,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       naturalPhrases: [
         'seven cups in a cloud',
         'evenings with too many tabs',
-        'a shimmer none of them can touch',
+        'a heat-haze none of them can touch',
         'options that close themselves by morning'
       ]
     },
@@ -1134,7 +1134,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['clearing the fog', 'sorting wish from plan', 'choosing', 'coming to earth'],
       emotionalTone: 'neutral',
       psychologicalFocus: ['keeping everything open until choosing feels like betrayal', 'a wish dissolving into something plainer'],
-      actionQualities: ['deciding', 'discarding', 'grounding', 'settling'],
+      actionQualities: ['deciding', 'discarding', 'pruning', 'committing'],
       naturalPhrases: [
         'the tabs closing one by one',
         'the plain thing underneath',
@@ -1152,14 +1152,14 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       psychologicalFocus: ['admitting a good thing has stopped feeding you', 'leaving without a villain'],
       actionQualities: ['leaving', 'packing', 'climbing', 'going by moonlight'],
       naturalPhrases: [
-        'a small bag by the door',
+        'a brief bag by the door',
         'a good thing that isn\'t yours any more',
         'the door shut without slamming',
         'a staff and a long road'
       ]
     },
     reversed: {
-      coreThemes: ['lingering', 'staying out of habit', 'postponed departure', 'clinging to comfort'],
+      coreThemes: ['loitering', 'staying out of habit', 'postponed departure', 'clinging to comfort'],
       emotionalTone: 'challenging',
       psychologicalFocus: ['sunk cost', 'fear of the stretch after a goodbye', 'leaving in a rage and bringing it along'],
       actionQualities: ['staying', 'stalling', 'stepping round the bag', 'pretending it still works'],
@@ -1178,7 +1178,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['contentment', 'a wish granted', 'savouring', 'gratitude', 'a good table'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['taking satisfaction at face value', 'noticing what already worked out'],
-      actionQualities: ['savouring', 'sitting back', 'eating slowly', 'enjoying'],
+      actionQualities: ['savouring', 'sitting back', 'eating without hurry', 'enjoying'],
       naturalPhrases: [
         'a meal that came out right',
         'arms folded in contentment',
@@ -1288,10 +1288,10 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'swords-3',
     name: 'Three of Swords',
     upright: {
-      coreThemes: ['heartbreak', 'a hard truth landing', 'sorrow', 'betrayal', 'rain on glass'],
+      coreThemes: ['heartbreak', 'a hard truth sinking in', 'sorrow', 'betrayal', 'rain on glass'],
       emotionalTone: 'challenging',
       psychologicalFocus: ['letting a hurt be its own size', 'not hurrying repair', 'grief without a fix'],
-      actionQualities: ['aching', 'admitting', 'crying', 'staying with it'],
+      actionQualities: ['smarting', 'admitting', 'crying', 'staying with it'],
       naturalPhrases: [
         'a heart pierced against a grey sky',
         'a message read twice',
@@ -1302,8 +1302,8 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['mending', 'forgiving', 'a hurt dodged', 'numbing out'],
       emotionalTone: 'neutral',
-      psychologicalFocus: ['carrying on to avoid looking', 'noise as company for an ache', 'relief that almost hurts'],
-      actionQualities: ['distracting', 'numbing', 'avoiding', 'slowly releasing'],
+      psychologicalFocus: ['carrying on to avoid looking', 'noise as company for a sore place', 'relief that almost hurts'],
+      actionQualities: ['distracting', 'numbing', 'avoiding', 'letting go finger by finger'],
       naturalPhrases: [
         'swords sliding out',
         'work and noise as cover',
@@ -1335,7 +1335,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       naturalPhrases: [
         'the argument carried into the shower',
         'unkindness called honesty',
-        'learning slowly what winning costs'
+        'learning, bill by bill, what winning costs'
       ]
     }
   },
@@ -1387,10 +1387,10 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['stuck at the shore', 'unfinished business', 'a rough crossing', 'reluctance'],
       emotionalTone: 'challenging',
       psychologicalFocus: ['staying with a known pain', 'looking back the whole way over', 'a bag held on the dock'],
-      actionQualities: ['lingering', 'hesitating', 'glancing back', 'clinging'],
+      actionQualities: ['loitering', 'hesitating', 'glancing back', 'clinging'],
       naturalPhrases: [
         'standing on the dock with the bag',
-        'the far shore waiting quietly',
+        'the far shore waiting patiently',
         'a passage that never quite happened'
       ]
     }
@@ -1400,12 +1400,12 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'swords-7',
     name: 'Seven of Swords',
     upright: {
-      coreThemes: ['a quiet scheme', 'a shortcut', 'being sly', 'taking without asking', 'strategy'],
+      coreThemes: ['a hushed scheme', 'a shortcut', 'being sly', 'taking without asking', 'strategy'],
       emotionalTone: 'challenging',
       psychologicalFocus: ['asking whether it\'s clever or evasive', 'seeing what you\'d say plainly'],
       actionQualities: ['planning', 'tiptoeing', 'smoothing over', 'keeping quiet'],
       naturalPhrases: [
-        'a small lie with a long shadow',
+        'a scant lie with a long shadow',
         'swords carried off in the night',
         'looking back over your shoulder',
         'a stone in a shoe'
@@ -1518,9 +1518,9 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       psychologicalFocus: ['saying yes plainly to a modest offer', 'starting at the size you can hold'],
       actionQualities: ['planting', 'accepting', 'starting small', 'holding'],
       naturalPhrases: [
-        'an envelope handed over quietly',
+        'an envelope passed across without comment',
         'a coin above a garden gate',
-        'a small chance that could grow',
+        'a slight chance that could grow',
         'weight in the palm'
       ]
     },
@@ -1572,7 +1572,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['juggling', 'keeping pace', 'flexibility', 'a shifting balance', 'making do'],
       emotionalTone: 'neutral',
       psychologicalFocus: ['riding the swell', 'finding balance as a rhythm'],
-      actionQualities: ['juggling', 'adjusting', 'dancing', 'keeping it moving'],
+      actionQualities: ['juggling', 'adjusting', 'jostling', 'keeping it moving'],
       naturalPhrases: [
         'two coins on an infinity loop',
         'three jobs and a family and the milk remembered',
@@ -1728,7 +1728,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       naturalPhrases: [
         'hands on the bench and mind somewhere else',
         'a pleasure gone to chore',
-        'a corner quietly cut'
+        'a corner cut when no one was looking'
       ]
     }
   },
@@ -1836,7 +1836,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['hasty', 'burning out', 'scattered heat', 'impulse in charge'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['impulse running ahead of intention', 'heat with nowhere to go', 'someone else cleaning up the mess'],
+      psychologicalFocus: ['impulse running ahead of intention', 'heat with nowhere to go', 'another person cleaning up the mess'],
       actionQualities: ['bolting', 'flaring', 'stalling', 'burning'],
       naturalPhrases: [
         'a horse that never left the stable',
@@ -1867,7 +1867,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       psychologicalFocus: ['making yourself smaller to keep others comfortable', 'bravado as power\'s costume', 'seeing through a posture'],
       actionQualities: ['shrinking', 'performing', 'sulking', 'bluffing'],
       naturalPhrases: [
-        'walking into the room and quietly making herself smaller',
+        'walking into the room and making herself smaller by inches',
         'a confidence everyone saw through',
         'fire gone inward'
       ]
@@ -1907,7 +1907,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'cups-page',
     name: 'Page of Cups',
     upright: {
-      coreThemes: ['a creative spark', 'a message from the heart', 'curiosity', 'soft feeling', 'openness'],
+      coreThemes: ['a creative itch', 'a message from the heart', 'curiosity', 'soft feeling', 'openness'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['taking a whim seriously', 'letting a feeling turn up in costume', 'curiosity over analysis'],
       actionQualities: ['doodling', 'wondering', 'trying', 'letting be silly'],
@@ -1938,7 +1938,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['romance', 'following a feeling', 'devotion', 'charm', 'idealism'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['trusting a pull you can\'t justify', 'offering something sincerely', 'being drawn by beauty'],
-      actionQualities: ['pursuing', 'offering', 'riding slowly', 'carrying something carefully'],
+      actionQualities: ['pursuing', 'offering', 'riding at a walk', 'carrying something carefully'],
       naturalPhrases: [
         'a cup held out like something that might spill',
         'a handwritten letter',
@@ -2062,7 +2062,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['rash', 'bulldozing', 'sharp-tongued', 'a rushed plan'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['reply before the truth settled', 'wavering at the gate', 'speed overtaking thought'],
+      psychologicalFocus: ['reply before the truth had cleared', 'wavering at the gate', 'speed overtaking thought'],
       actionQualities: ['rushing', 'blurting', 'wavering', 'bruising'],
       naturalPhrases: [
         'a horse at the gate that never goes',
@@ -2082,7 +2082,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       actionQualities: ['assessing', 'seeing', 'speaking plainly', 'cooling the edges'],
       naturalPhrases: [
         'a profile against cloud',
-        'the woman who was gentle where it mattered',
+        'the woman who was kind where it mattered',
         'an honest assessment',
         'clarity with no cruelty'
       ]
@@ -2094,7 +2094,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       actionQualities: ['cutting', 'withholding', 'sneering', 'watching'],
       naturalPhrases: [
         'an obvious thing left unsaid',
-        'sharp where gentle was needed',
+        'sharp where kindness was needed',
         'a room that feels the chill'
       ]
     }
@@ -2118,7 +2118,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['cold command', 'using logic to win', 'dogmatism', 'abdicating the decision'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['a rule applied because it\'s easy', 'a decision put off for someone else to make', 'reason without mercy'],
+      psychologicalFocus: ['a rule applied because it\'s easy', 'a decision put off for somebody else to make', 'reason without mercy'],
       actionQualities: ['dictating', 'deferring', 'ruling', 'avoiding'],
       naturalPhrases: [
         'right and alone',
@@ -2133,7 +2133,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'pentacles-page',
     name: 'Page of Pentacles',
     upright: {
-      coreThemes: ['a first lesson', 'practical curiosity', 'groundwork', 'studiousness', 'a small start'],
+      coreThemes: ['a first lesson', 'practical curiosity', 'groundwork', 'studiousness', 'a modest start'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['starting as someone who doesn\'t yet know', 'giving the first hour its due'],
       actionQualities: ['studying', 'saving', 'practising', 'starting small'],

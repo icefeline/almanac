@@ -586,7 +586,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setShareOpen(true)}
-          className={`${cardPage.share} sg-retro`}
+          className={`${cardPage.share} sg-retro sg-primary`}
         >
           &gt; SHARE THIS CARD
         </button>

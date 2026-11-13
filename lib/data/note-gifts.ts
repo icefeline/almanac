@@ -71,12 +71,12 @@ const GIFTS: Record<string, string> = {
   patchouli: 'damp earth, cocoa and old books, grounded and a bit rebellious.',
   peach: 'fuzzy skin and juice on the chin, ripe and unembarrassed.',
   petrichor: 'the smell of dry ground when the first rain hits it.',
-  'pink pepper': 'a light, rosy spark, bright but not hot.',
+  'pink pepper': 'a light, rosy prickle, bright but not hot.',
   poppy: 'powdery and faintly bitter, a drowsy field in bloom.',
   rhubarb: 'tart, green and slightly sour, with the crunch of early spring.',
   rose: 'petals and thorns together, soft and a little fierce.',
   'rose water': 'a delicate floral hint from a bakery or a bathroom shelf.',
-  saffron: 'a dry golden thread, leathery and honeyed, expensive in the mouth.',
+  saffron: 'a dry golden filament, leathery and honeyed, expensive in the mouth.',
   sandalwood: 'creamy, soft wood, like a smooth warm bench.',
   'sea salt': 'clean mineral air and wet skin, bracing and honest.',
   seaweed: 'low tide, briny and cool, the sea at its most unglamorous.',
@@ -94,7 +94,7 @@ const GIFTS: Record<string, string> = {
   vervain: 'lemony herb, bright and bracing as a splash of cold water.',
   vetiver: 'dry roots and damp earth, a steadiness that goes down deep.',
   violet: 'powdery and sweet, a faded sweet shop at the back of memory.',
-  'violet leaf': 'green, watery and a touch metallic, a thin cold thread.',
+  'violet leaf': 'green, watery and a touch metallic, a thin cold wire.',
   'water lily': 'cool and clear, green-sweet, calm on the surface.',
   'wet stone': 'cold mineral after rain, with nothing to prove.',
   'white cedar': 'a lighter, drier wood, clean and spare and open.',
@@ -113,7 +113,7 @@ const GENERIC: Record<ShapeKey, string> = {
   sprig: 'a dry herbal steadiness.',
   flower: 'something open, soft and a little heady.',
   wood: 'dry, steady wood.',
-  resin: 'a slow amber glow.',
+  resin: 'a slow amber seep.',
   spice: 'a bright, close heat.',
   root: 'something earthy that goes down deep.',
   pod: 'a warm, round sweetness.',
@@ -143,18 +143,18 @@ export function noteTie(args: {
   const kw = args.keyword.toLowerCase();
   const pick = <T,>(xs: T[]) => xs[(args.card.length + args.keyword.length * 3 + (args.reversed ? 1 : 0)) % xs.length];
   const top = [
-    `the ${name} turns up first in ${kw}, before anything else has settled.`,
+    `the ${name} turns up first in ${kw}, before anything else has found its feet.`,
     `there may be a flicker of ${kw} early in the day, the way the ${name} tends to start.`,
     `${kw} is the first thing this card touches. watch where it surfaces.`,
   ];
   const heart = [
     `under the ${name}, ${kw} may be working in the background, unannounced.`,
     `the middle of the ${name} is ${kw}. you might catch it mid-sentence.`,
-    `a steady hum of ${kw} sits behind this card. see when you stop hearing it.`,
+    `a steady drone of ${kw} sits behind this card. see when you stop hearing it.`,
   ];
   const base = [
     `after the ${name} has passed, ${kw} is what stays on the skin.`,
-    `${kw} lingers last. there may be a trace of it tonight.`,
+    `${kw} hangs about longest. there may be a trace of it tonight.`,
     `once the rest of the ${name} thins out, ${kw} is still there.`,
   ];
   return pick(args.tier === 'top' ? top : args.tier === 'heart' ? heart : base);
