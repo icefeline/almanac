@@ -31,6 +31,16 @@ function CueArrow({ turn }: { turn: number }) {
 export function Journey({ children, cue = true }: { children: ReactNode; /** Show the arrows that say which way there is more. Off while the leaf still covers the page. */ cue?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState({ right: false, down: false });
+  const seenRight = useRef(false);
+  // once the reader has moved to another scene themselves, the right tab has done its job and does not come back (on this device)
+  const markSeen = useCallback(() => {
+    if (seenRight.current) return;
+    seenRight.current = true;
+    try { localStorage.setItem('sg-cue-seen-right', '1'); } catch { /* the tab just stays gone for this visit */ }
+  }, []);
+  useEffect(() => {
+    try { seenRight.current = localStorage.getItem('sg-cue-seen-right') === '1'; } catch { /* first-time behaviour */ }
+  }, []);
 
   // Which tab to show, one at a time, as the reader moves:
   //   - at rest on a scene that goes on below: the down tab; it goes as soon as they start scrolling down
@@ -49,7 +59,7 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
     const atTop = at.scrollTop < 8;
     const atBottom = at.scrollTop + at.clientHeight >= at.scrollHeight - 12;
     const down = atRest && scrollable && atTop;
-    const right = atRest && next && (!scrollable || atBottom);
+    const right = !seenRight.current && atRest && next && (!scrollable || atBottom);
     setMore((m) => (m.right === right && m.down === down ? m : { right, down }));
   }, []);
   useEffect(() => {
@@ -74,7 +84,10 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
     if (!el) return;
     const lefts = Array.from(el.querySelectorAll<HTMLElement>(`.${styles.scene}`)).map((s) => s.offsetLeft);
     const next = lefts.find((l) => l > el.scrollLeft + 8);
-    if (next !== undefined) el.scrollTo({ left: next, behavior: 'smooth' });
+    if (next !== undefined) {
+      markSeen();
+      el.scrollTo({ left: next, behavior: 'smooth' });
+    }
   };
   const goDown = () => {
     const el = ref.current;
@@ -123,6 +136,7 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
       }
       if (!raf) target = el.scrollLeft;
       const direction = e.deltaY > 0 ? 1 : -1;
+      if (direction > 0) markSeen();
       if ((direction < 0 && target <= 1) || (direction > 0 && target >= max() - 1)) return;
       e.preventDefault();
       const unit = e.deltaMode === 1 ? 32 : 1;
@@ -190,6 +204,7 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
     };
     const onUp = () => {
       if (!dragging) return;
+      if (moved && el.scrollLeft > startLeft + 8) markSeen();
       dragging = false;
       el.classList.remove(styles.dragging);
     };
@@ -245,6 +260,7 @@ export function Journey({ children, cue = true }: { children: ReactNode; /** Sho
       else if (dxNow > 40 || v > 0.35) to = from - 1;
       to = Math.max(0, Math.min(lefts.length - 1, to));
       el.classList.remove(styles.swiping);
+      if (to > from) markSeen();
       el.scrollTo({ left: lefts[to], behavior: reduced() ? 'auto' : 'smooth' });
     };
     el.addEventListener('touchstart', onTouchStart, { passive: true });

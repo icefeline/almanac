@@ -52,6 +52,8 @@ export function CardName({ name }: { name: string }) {
     const canvas = cv.current;
     if (!el || !canvas) return;
 
+    let fitTries = 0;
+    let shrink = 1; // how much smaller than the first measure the name has had to go to fit what is actually drawn
     const draw = () => {
       let mode = 'dither';
       try {
@@ -76,7 +78,7 @@ export function CardName({ name }: { name: string }) {
           const probe = document.createElement('canvas').getContext('2d')!;
           probe.font = `italic 400 100px ${getComputedStyle(document.body).getPropertyValue('--font-instrument-serif')}`;
           const widest = Math.max(...lines.map((l) => probe.measureText(l).width), 1);
-          const fit = Math.min((el.clientWidth * 0.97 * 100) / widest, window.innerHeight * 0.21, window.innerWidth * 0.26);
+          const fit = Math.min((el.clientWidth * 0.97 * 100) / widest, window.innerHeight * 0.21, window.innerWidth * 0.26) * shrink;
           if (Math.abs(parseFloat(el.style.fontSize || '0') - fit) > 0.5) el.style.fontSize = `${fit}px`;
         } else if (el.style.fontSize) {
           el.style.fontSize = '';
@@ -121,6 +123,18 @@ export function CardName({ name }: { name: string }) {
         tx.lineWidth = px * 0.05; // the hairlines of a high-contrast face would drop out at this size
         // each line is centred in its own line box, measured the way the (transparent) heading lays out
         const lineH = (parseFloat(cs.lineHeight) || fs * 0.9) / cell;
+        // Check the name against what is actually drawn: measured in the very context it is painted in, the widest line must fit the
+        // heading's own width. If it does not (a different browser's font metrics, or a face that arrived late), the size is cut to
+        // fit and the name drawn again, so it can never be clipped at the sides.
+        const real = Math.max(...lines.map((l) => tx.measureText(l).width)) * cell;
+        const room = el.clientWidth * 0.97;
+        if (phone && real > room && fitTries < 5) {
+          fitTries += 1;
+          shrink = Math.max(0.4, shrink * (room / real));
+          requestAnimationFrame(draw);
+          return;
+        }
+        fitTries = 0;
         lines.forEach((text, i) => {
           const cy = padY / cell + lineH * (i + 0.5) + px * 0.04;
           tx.fillText(text, C / 2, cy);
