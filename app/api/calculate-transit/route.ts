@@ -76,6 +76,32 @@ function clipToSentences(text: string, maxWords: number): string {
   return kept.join(' ');
 }
 
+/** Roughly how far each planet travels in a day, in degrees. Enough to turn an orb into "about N days". */
+const DAILY_MOTION: Record<string, number> = {
+  moon: 13, sun: 1, mercury: 1.2, venus: 1.1, mars: 0.5,
+  jupiter: 0.15, saturn: 0.08, uranus: 0.04, neptune: 0.02, pluto: 0.015,
+};
+
+/**
+ * How close the transit is to exact, in plain words. The dates on a transit are
+ * a window around today, so the honest number is the orb: degrees from exact,
+ * divided by how fast the planet moves. These are facts about the sky, so naming
+ * them is not predicting anything in the reader's life.
+ */
+function describeTiming(t: { transitingPlanet: string; orb: number; phase: string }): string {
+  const speed = DAILY_MOTION[String(t.transitingPlanet).toLowerCase()] ?? 0.5;
+  const days = t.orb / speed;
+  const past = t.phase === 'separating' || t.phase === 'integration';
+  if (t.orb < 0.3 || t.phase === 'peak') return 'at its peak right now, as strong as it gets';
+  const span =
+    days < 1 ? 'within a day'
+    : days < 14 ? `about ${Math.round(days)} day${Math.round(days) === 1 ? '' : 's'}`
+    : days < 75 ? `about ${Math.round(days / 7)} weeks`
+    : `about ${Math.max(2, Math.round(days / 30))} months`;
+  const slow = days >= 75 ? ' (a slow, long-running influence, felt in the background more than in any one day)' : '';
+  return (past ? `${span} past its peak and easing` : `${span} from its peak and building`) + slow;
+}
+
 async function generateClaudeInsight(
   cardId: string,
   isReversed: boolean,
@@ -92,6 +118,8 @@ async function generateClaudeInsight(
   hasBirthTime: boolean,
   hasBirthLocation: boolean,
   vedicContext: string,
+  timing: string,
+  retrogrades: string[],
 ): Promise<ClaudeInsight | null> {
   const cardArchetype = getCardArchetype(cardId, isReversed);
   if (!cardArchetype) return null;
@@ -131,31 +159,26 @@ async function generateClaudeInsight(
     integration: 'settling into you',
   };
 
-  // Tarot's own answer to "why does every action sound the same": the four
-  // suits are the four classical elements, each with its own physical
-  // register. Grounding the immediate move in THIS card's element is what
-  // keeps "catch it and do one small thing" from collapsing into "take a
-  // breath" every single time — breath is genuinely air's register, not
-  // everyone's default.
-  const ELEMENT_REGISTER: Record<string, string> = {
-    fire: 'physical and released through the body: unclench a fist, press your feet hard into the floor, roll your shoulders back, dig a heel into the ground, straighten your spine, shake out your hands, stand up for the length of one breath, warm your palms against each other',
-    water: 'felt through sensation and contact: press something cool to your wrist, notice the weight of your own hands, swallow before you speak, feel your own pulse for a second, let your shoulders drop, run a thumb along the edge of your cup, rest a hand on your sternum',
-    air: 'breath and voice: one slow exhale, closing your mouth before the reflexive reply, naming the feeling once silently, unclenching your jaw, a held breath let go on purpose, letting your tongue drop from the roof of your mouth, counting three sounds you can hear',
-    earth: 'grounding and touch: press a palm flat on a surface, feel the chair take your full weight, uncurl your toes inside your shoes, plant both feet, touch something solid near you, hold a pen or a key and feel its weight, look at one thing in the room until it has a texture',
+  // The action follows the card's own territory, as rules and not as a list: swords are
+  // the mind, cups the feelings, wands energy and drive, pentacles the body, money and the
+  // house. The model invents the move fresh each time. A fixed pool repeats even when it
+  // is drawn at random, so the only random lever left is the medium it is built around.
+  const ACTION_TERRITORY: Record<string, string> = {
+    swords: 'the mind: thoughts, words, doubts, reasoning, decisions. Play with thinking itself: rename it, argue with it, cut it, order it, say it in a different voice, test it on something outside your head. Paper, voice, a phone and a coin are all fair tools',
+    cups: 'feelings and the people around them: mood, closeness, memory, grief, tenderness. Make a feeling physical or shared: give something, taste something, remember something exactly, listen to something, put a feeling somewhere outside yourself',
+    wands: 'energy, drive, anger and creativity: starting, spending energy, courage. Make it kinetic or a little reckless: a dare, a mess made on purpose, something tried badly, something started and stopped on a timer',
+    pentacles: 'the body, money, food, the house and work: what you can touch and fix. Make it tactile and practical: handle, count, cook, move, clean, buy, mend, carry',
   };
-  const SUIT_ELEMENT: Record<string, string> = { wands: 'fire', cups: 'water', swords: 'air', pentacles: 'earth' };
-  // Majors have no suit, so fall back to whichever element the transiting
-  // planet itself belongs to (its classical or modern ruling sign) — every
-  // card still gets a grounded, non-arbitrary register this way.
-  const PLANET_ELEMENT: Record<string, string> = {
-    mars: 'fire', sun: 'fire', jupiter: 'fire',
-    moon: 'water', neptune: 'water', pluto: 'water',
-    mercury: 'air', uranus: 'air',
-    venus: 'earth', saturn: 'earth',
-  };
-  const suit = cardId.slice(0, cardId.indexOf('-'));
-  const cardElement = SUIT_ELEMENT[suit] ?? PLANET_ELEMENT[transitingPlanet.toLowerCase()] ?? 'earth';
-  const elementRegister = ELEMENT_REGISTER[cardElement];
+  const suitName = cardId.slice(0, cardId.indexOf('-'));
+  const territory =
+    ACTION_TERRITORY[suitName] ??
+    'whichever of the four territories (mind, feeling, energy, body) the reading is closest to; treat the card as a big life theme and pick the territory that fits it';
+  const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
+  const ACTION_MEDIA = [
+    'a piece of paper', 'your own voice', 'an object already within reach', 'another person',
+    'a timer', 'the phone in your hand', 'your hands', 'a particular place in the room or house',
+  ];
+  const actionMedium = pick(ACTION_MEDIA);
 
   // Variety levers. Left alone, the model lands on the same few openings,
   // images and sentence shapes day after day. Each reading gets one angle,
@@ -171,9 +194,9 @@ async function generateClaudeInsight(
     'open mid-thought, as if continuing something they were already half-saying to themselves',
   ];
   const SENTENCE_PLANS = [
-    'two sentences: one longer, one short and plain',
+    'three sentences, the middle one the longest',
     'two sentences of roughly equal weight, joined by the logic and not by a conjunction',
-    'one sentence, long enough to carry the whole thought',
+    'three sentences, the last one short',
     'two sentences, the second shorter than the first',
     'one plain sentence and then one that runs on a little',
   ];
@@ -189,7 +212,6 @@ async function generateClaudeInsight(
     'sound, silence and the hum of a house',
     'no imagery at all, only plain direct statement',
   ];
-  const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
   const openingAngle = pick(OPENING_ANGLES);
   const sentencePlan = pick(SENTENCE_PLANS);
   const imagePool = pick(IMAGE_POOLS);
@@ -197,7 +219,7 @@ async function generateClaudeInsight(
   // Build the memory context block if we have history
   let memoryContext = '';
   if (memoryNotes.length > 0 || recentCards.length > 0) {
-    memoryContext = `Background on this person — use this only to deepen your understanding of their current arc. Do not reference it directly. Do not say "as I've noticed", "you've been dealing with", or anything that signals you remember past readings. Let it quietly inform your accuracy and sensitivity.
+    memoryContext = `Background on this person. Use it to make the reading specific to them: you may say plainly that a pattern has been showing up ("that is the second cups card this week", "the same worry keeps coming back"). Do not pretend to remember conversations, do not say "as I've noticed", and never quote a note back word for word.
 
 ${memoryNotes.length > 0 ? `Recent patterns:\n${memoryNotes.map(n => `- ${n}`).join('\n')}` : ''}
 ${recentCards.length > 0 ? `\nCards drawn recently: ${recentCards.join(', ')}` : ''}
@@ -215,7 +237,9 @@ ${recentCards.length > 0 ? `\nCards drawn recently: ${recentCards.join(', ')}` :
 
   const prompt = `${memoryContext}You write the personalised synthesis for a tarot app called Slow Garden. This is the "what this could mean for you" section — the part that makes the reading feel like it was written specifically for this person.
 
-The app exists to help people see themselves more clearly, not to tell them what to do or think. The best insight doesn't hand them a conclusion — it holds up a mirror at exactly the right angle so they can find the thing themselves. Think less therapist, more that one friend who says the true thing across the table, plainly, and then passes the bread.
+Write it as a tarot reader would say it, sat across a table from this one person, having turned the card over and then looked up at them. It is spoken, direct, and in second person ("you"), the way someone talks out loud when they are looking at you and not at a page: short, specific, a little wry, never ceremonial. The person has already read what the card means on the screen, so do not tell them. Never describe the card, summarise its meaning, or say what it traditionally stands for. Use it only as the angle you are speaking from, one image or one word at most, and spend every other word on them: what this week may be like for them, today, in particular.
+
+The app exists to help people see themselves more clearly, not to tell them what to do or think. Hold up a mirror at the right angle so they can find the thing themselves. Think less therapist, more the friend who says the true thing across the table, plainly, and then passes the bread.
 
 Astrology context: Vedic sidereal zodiac (Lahiri ayanamsa), Whole Sign houses.
 
@@ -223,13 +247,13 @@ Voice (these matter):
 - Entirely lowercase, no em dashes
 - British English spelling throughout: realise, recognise, colour, honour, favour, centre, behaviour, practise (verb), towards, grey, judgement. Never the American forms
 - Sound like a perceptive friend, not a practitioner
-- Be specific — vague wisdom is worthless here
-- No "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour your", "give yourself permission", "lean into", "hold space", "sit with", "sit in", "make space", "invite", "invitation", "nudge", "unfold", "land" (as a verb for ideas), "resonate", "stirring", "shift" and "shifting" used abstractly, "something in you", "a part of you", "the way you"
-- Reach for the specific word over the stock one. If you are about to write quietly, gently, softly, deeper, tender or space, find the plainer or stranger word that says what actually happens. Do not use the same verb or noun twice in one reading
+- Be specific about the feeling, not about invented events. Name the emotional state exactly, the timing of the transit, and the part of life it is working on in plain words (home, money, friends, work). Never invent a person, a conversation, a message or an incident you have not been told about
+- No "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour your", "give yourself permission", "notice", "noticing", "landing", "sense of", "lean into", "hold space", "sit with", "sit in", "make space", "invite", "invitation", "nudge", "unfold", "land" (as a verb for ideas), "resonate", "stirring", "shift" and "shifting" used abstractly, "something in you", "a part of you", "the way you"
+- Write with a novelist's vocabulary: exact, concrete, a little unexpected. Name the texture of the moment instead of its category (a dull day is threadbare or listless, a mood is brackish or febrile, someone avoiding a thing is skirting it, a feeling that will not shift is a pall or an inertia). Use one or two uncommon words at most, ones a curious reader would still follow, and never stack adjectives. If you are about to write quietly, gently, softly, deeper, tender, space or small, find the more exact word. Do not use the same verb or noun twice in one reading. To say what they might be experiencing, use forms like "you may catch yourself", "it may show up as", "there may be" or "you might find", and vary them
 - No questions anywhere in the insight or action (the card already asks them)
-- Do not restate or paraphrase the card meaning — they can read it
+- Do not restate or paraphrase the card meaning or anything it says about the card. It is already on screen above this
 - Do not explain the transit in general terms — tell them what THIS transit means in THEIR life right now
-- Do not name any zodiac sign
+- You may name their moon sign or nakshatra once, if it sharpens the point. Use only the sidereal values given below, never a western sign
 
 Do not write like a language model. These are the tells:
 - No "it's not X, it's Y", "not just X but Y", or any sentence built on a correction
@@ -238,7 +262,7 @@ Do not write like a language model. These are the tells:
 - No sayings of the form "X is the Y of Z" — "grief is the language of love" and anything like it
 - No "stands as", "serves as", "represents", "marks", "is a testament to". Use is, has, does
 - No trailing -ing clauses that comment on the sentence they hang off: "revealing...", "reflecting...", "speaking to...", "highlighting...", "a reminder that..."
-- Never these words: profound, vibrant, rich, crucial, key, landscape, tapestry, interplay, intricate, testament, deeply, truly, simply, powerful
+- Never these words: version, draft, thread, loop, profound, vibrant, rich, crucial, key, landscape, tapestry, interplay, intricate, testament, deeply, truly, simply, powerful
 - Do not end on reassurance or a lift. Stop on the last real observation, even if it sits badly. The discomfort is the point
 - Vary the sentence lengths. Do not write three medium sentences in a row
 - No one-word or fragment sentences for drama
@@ -269,6 +293,10 @@ Supporting western-style reading of the same sky, use only if it adds something:
 - ${transitingPlanet} ${aspectType} ${natalPlanet}, ${phaseMeaning[phase] || phase}
 - landing in the ${house}th house: ${houseTheme}
 
+Specifics you may name, because they are plain facts about the sky:
+- Timing of this transit: ${timing}
+- Life area it is working on: ${houseTheme}
+${retrogrades.length ? `- Retrograde right now: ${retrogrades.join(', ')} (revisiting rather than advancing)\n` : ''}
 For this reading only, so it does not sound like yesterday's:
 - Angle: ${openingAngle}
 - Sentence plan for "insight": ${sentencePlan}
@@ -277,14 +305,14 @@ For this reading only, so it does not sound like yesterday's:
 
 Write a JSON object with exactly these four fields:
 
-Length is a hard limit. This is read on a phone in a few seconds, so shorter is better than fuller. Cut anything that does not carry the one idea.
+Length: this is read on a phone and a desktop in a few seconds, so be specific and brief. Every sentence must carry a concrete feeling or fact. Cut anything that only sounds wise.
 
 "keyPhrase": 3-5 words. The headline for this specific moment, something that could only come from this card and this transit. Not a platitude. Lowercase.
 
-"insight": at most 40 words in total, in one or two sentences, plain words. This is the main reading. Put the card, the transit and the house together as one thing happening to them right now, not as three separate facts, and let it surprise them slightly. One idea only. No moralising, no advice, no questions. Do not try to cover everything you were given; choose the single sharpest connection and leave the rest out.
+"insight": at most 60 words, two or three sentences, in everyday words. Speak to the feeling that the chart and the card point at together, and say what it could mean for them today. The reader must be able to say in one sentence what it told them. Order: first, name plainly the emotional weather they may be in (a mood, a pressure, a restlessness, a softness, with its quality: what it is like to be inside it). Second, say why it is this strong or this stuck, using the transit in plain words with its timing. Third, say what it could mean: what the feeling is asking for, or what it is not a sign of. Use "may" and "might", never "will". Do not use a metaphor as the main content. At most one image in the whole reading, and only after the plain statement. Never build the reading on a single repeated word or metaphor: use each noun once. No advice, no questions.
 
-"action": one sentence, at most 25 words. A practice of noticing, not a task to schedule. Name the moment the pattern runs automatically (the flinch, the deflection, the story that keeps them comfortable) and one tiny thing to do the instant they catch it, drawn from this card's own element, ${cardElement}: ${elementRegister}. It must happen in seconds, right where they are.
-Do not default to opening with "notice". Vary the opening: the moment itself ("the second you..."), the feeling ("when your jaw tightens..."), or a plain "catch..." / "watch for...". It should never announce itself as an instruction before it becomes one.
+"action": one sentence, at most 25 words. Something to do or try today, invented fresh for this reading, in the territory of this card: ${territory}. Treat it as a small experiment or a game, the kind of thing that makes the reader smile or raise an eyebrow, and that they can do in under ten minutes with what is within reach. Make it oddly precise (a number, a duration, a particular object). It must fit the feeling the insight named. This time, build it around: ${actionMedium}. If the first idea that comes to mind is a common one, throw it out and take a stranger one. Do not write anything that sounds like wellness advice (deep breathing, journaling, meditating, gratitude lists, drinking water, taking a walk). A body move is fine only if it has a twist you would not find on a wellness site.
+Do not open with \"notice\". Vary how the action begins, and never start it with a body part.
 
 "memoryNote": One sentence, lowercase. An honest private note about what's active in this person's inner life right now — written as a theme, not an event. No card names, no planet names, no "they" or "you". Pattern language only ("tension between X and Y" or "themes of A surfacing alongside B").
 
@@ -301,7 +329,7 @@ Return only valid JSON, no markdown, no extra text.`;
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
+      max_tokens: 350,
       messages: [
         {
           role: 'user',
@@ -324,7 +352,7 @@ Return only valid JSON, no markdown, no extra text.`;
     // part that does not depend on being obeyed — see lib/utils/humanise.ts.
     // Length is the other thing the prompt asks for and cannot guarantee, so
     // it is enforced here too: whole sentences only, never cut mid-thought.
-    parsed.insight = clipToSentences(parsed.insight, 45);
+    parsed.insight = clipToSentences(parsed.insight, 65);
     parsed.action = clipToSentences(parsed.action, 30);
     parsed.keyPhrase = parsed.keyPhrase.split(/\s+/).slice(0, 6).join(' ');
 
@@ -428,6 +456,8 @@ export async function POST(request: Request) {
       !!sanitizedBirthTime,
       !!sanitizedLocation,
       vedicContext,
+      describeTiming(dominantTransit),
+      getRetrogradePlanets(now),
     );
 
     return NextResponse.json({
