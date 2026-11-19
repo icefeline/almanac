@@ -92,6 +92,8 @@ const nextConfig = {
     return {
       beforeFiles: [
         { source: '/', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams' },
+        // the dream map lives at milky.slowww.garden/map
+        { source: '/map', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams/map' },
       ],
     };
   },

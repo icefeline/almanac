@@ -30,8 +30,10 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
   // /reading is a past reading framed inside a window: the window is the chrome, so no menu in it
   const onLegal = pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/reading');
   const onDreams = pathname.startsWith('/dreams') || milkyHost;
+  // the dream map is a whole sky of its own: no about link and no pile of the other apps' icons on it
+  const onMap = pathname === '/dreams/map' || (milkyHost && pathname === '/map');
   // the legal pages are plain documents: no menu, no charms. the home page mounts its own copy.
-  if (onLegal || (pathname === '/' && !home && !milkyHost)) return null;
+  if (onLegal || onMap || (pathname === '/' && !home && !milkyHost)) return null;
   return (
     <AboutMenu
       current={onDreams ? 'milky' : 'almanac'}

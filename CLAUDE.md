@@ -152,6 +152,9 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
 | `slow-garden-use-location`, `slow-garden-here` | — | location consent + resolved place |
 | `slow-garden-webview-noticed` | `'true'` | the in-app-browser notice has been dismissed |
 | `slow-garden-backup-last`, `slow-garden-backup-draws` | timestamp / count | when the reader last made a backup copy and how many draws it held, for the corner note's checkpoint nudge (`app/components/SaveStatus.tsx`, `lib/utils/backup.ts`). Bookkeeping only — never included in a backup |
+| `milky.dreams.v1` | `Dream[]` | the dreams milky remembers on this device (`app/dreams/lib/dreams.ts`): date, text, an optional saved reading, and a `sample` flag on the made-up ones. written after each reading by `rememberDream`, never for a dream that got the care note. read by the map. |
+| `milky.patterns.v4` | `{ key, set }` | the last pattern reading for the remembered dreams, keyed by a hash of their text so it is reused until they change. the sample dreams ship with theirs in `samplePatterns.ts` instead |
+| `milky.backdrop` | `string` | which night sky the map shows |
 
 ---
 
@@ -167,6 +170,10 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
    - `insight` — 2–4 sentences (the main personalised reading)
    - `action` — 1–2 sentences (noticing practice, not behaviour change)
    - `memoryNote` — private pattern note stored for future personalisation
+
+### dream patterns (`/api/dreams/patterns`)
+
+the milky map (`app/dreams/map`) sends the remembered dreams together, the latest forty, and the route returns the specific things that come back across them: `{ patterns[{ id, name, kind, dreams[{ id, detail }], gist, meaning, watch }], links, throughline }`. tries `claude-sonnet-5-5`, falls back to haiku. same voice rules as the interpreter, and `watch` is a noticing practice. rate limited in `middleware.ts` (20 an hour per address). the dreams are sent as material to read, never as instructions.
 
 ### voice (planned — ElevenLabs)
 
