@@ -511,17 +511,20 @@ type Letter = {
   italic: boolean; // italic from the start
   ox: number; oy: number; // where it is written (the centre of the letter, on screen)
   x: number; y: number; px: number; py: number;
+  vx: number; vy: number; // used by the wave setting
   locked: boolean;
   anchor: boolean; // the last letters of the poem can always be taken hold of
   shown: boolean; // is it showing as pulled (serif italic)
   grab: boolean; // can it be taken hold of
 };
-function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
+function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull' | 'wave' }) {
   const box = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const sim = useRef<{ S: Letter[]; rest: number[]; byIdx: Letter[]; drags: Map<number, { l: Letter; ox: number; oy: number }>; running: boolean } | null>(null);
   const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
   const raf = useRef(0);
+  const ripples = useRef<{ cx: number; cy: number; front: number }[]>([]);
+  const pointer = useRef({ x: -9999, y: -9999 });
   const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   // The physics follows the typestring sketch: every letter is a point on one string that snakes through the poem (every other line
@@ -641,6 +644,65 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
     }
   };
 
+  // The wave setting, after the second typestring sketch: nothing is grabbed. The pointer pushes the letters aside as it swims through
+  // them, a click sends rings out across the sky, and every letter springs back, passing a little of its motion to its neighbours on the string.
+  const waveStep = () => {
+    const { S } = sim.current!;
+    const SPRING = 0.035;
+    const WDAMP = 0.86;
+    const COUPLE = 0.022;
+    const R = 150; // how far the pointer reaches
+    const PUSH = 14; // how wide a ripple's pushing band is
+    for (let r = ripples.current.length - 1; r >= 0; r--) {
+      const rip = ripples.current[r];
+      rip.front += 2.2;
+      if (rip.front > 640) {
+        ripples.current.splice(r, 1);
+        continue;
+      }
+      const fade = 1 - rip.front / 640;
+      for (const l of S) {
+        const dx = l.x - rip.cx;
+        const dy = l.y - rip.cy;
+        const d = Math.hypot(dx, dy);
+        const off = Math.abs(d - rip.front);
+        if (off < PUSH && d > 1) {
+          const env = Math.cos((off / PUSH) * Math.PI * 0.5) * fade * 1.1;
+          l.vx += (dx / d) * env;
+          l.vy += (dy / d) * env;
+        }
+      }
+    }
+    const p = pointer.current;
+    for (const l of S) {
+      const dx = l.x - p.x;
+      const dy = l.y - p.y;
+      const d = Math.hypot(dx, dy);
+      if (d < R && d > 1) {
+        const t = 1 - d / R;
+        l.vx += (dx / d) * t * t * 7;
+        l.vy += (dy / d) * t * t * 7;
+      }
+    }
+    for (let i = 1; i < S.length - 1; i++) {
+      const a = S[i - 1];
+      const l = S[i];
+      const b = S[i + 1];
+      l.vx += ((a.vx + b.vx) / 2 - l.vx) * COUPLE;
+      l.vy += ((a.vy + b.vy) / 2 - l.vy) * COUPLE;
+    }
+    for (const l of S) {
+      l.px = l.x;
+      l.py = l.y;
+      l.vx += (l.ox - l.x) * SPRING;
+      l.vy += (l.oy - l.y) * SPRING;
+      l.vx *= WDAMP;
+      l.vy *= WDAMP;
+      l.x += l.vx;
+      l.y += l.vy;
+    }
+  };
+
   const frame = useRef<(now: number) => void>(() => {});
   const last = useRef(-1);
   const acc = useRef(0);
@@ -648,16 +710,18 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
     const m = sim.current;
     if (!m) return;
     if (last.current < 0) last.current = now;
-    acc.current += Math.min((now - last.current) / 1000, 4 / 120);
+    const dt = mode === 'wave' ? 1 / 60 : 1 / 120;
+    acc.current += Math.min((now - last.current) / 1000, 4 * dt);
     last.current = now;
-    while (acc.current >= 1 / 120) {
-      step();
-      acc.current -= 1 / 120;
+    while (acc.current >= dt) {
+      if (mode === 'wave') waveStep();
+      else step();
+      acc.current -= dt;
     }
     const origin = (document.querySelector('[data-map-root]') as HTMLElement | null)?.getBoundingClientRect();
     const stirs: Stir[] = [];
     const spray = dots.current;
-    let active = m.drags.size > 0;
+    let active = m.drags.size > 0 || ripples.current.length > 0;
     let k = 0;
     for (const l of m.S) {
       const dx = l.x - l.ox;
@@ -665,7 +729,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       const off = Math.hypot(dx, dy);
       const sp = Math.hypot(l.x - l.px, l.y - l.py);
       l.el.style.transform = off > 0.01 ? `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)` : '';
-      const grab = !l.locked || l.anchor;
+      const grab = mode === 'pull' && (!l.locked || l.anchor);
       if (grab !== l.grab) {
         l.grab = grab;
         l.el.style.pointerEvents = grab ? 'auto' : 'none';
@@ -688,7 +752,16 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
         }
       }
     }
-    onStir(stirs);
+    // a ripple's ring stirs the dither it crosses
+    if (origin) {
+      for (const rip of ripples.current) {
+        for (let q = 0; q < 12; q++) {
+          const an = (q / 12) * Math.PI * 2;
+          stirs.push({ x: rip.cx + Math.cos(an) * rip.front - origin.x, y: rip.cy + Math.sin(an) * rip.front - origin.y, r: 34, vx: Math.cos(an) * 4, vy: Math.sin(an) * 4, held: false });
+        }
+      }
+    }
+    onStir(stirs.slice(0, 60));
     const cv = canvas.current;
     if (cv) {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -715,6 +788,23 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
           ctx.fillRect(d.x, d.y, d.s, d.s);
         }
         ctx.globalAlpha = 1;
+        // the rings: a crisp hairline with a soft halo, fading inward from the leading edge
+        for (const rip of ripples.current) {
+          const gf = 1 - rip.front / 640;
+          let rr = rip.front;
+          for (let q = 0; rr > 2; q++, rr -= 14) {
+            const f = gf * Math.exp(-q * 0.18);
+            if (f < 0.004) break;
+            ctx.beginPath();
+            ctx.arc(rip.cx, rip.cy, rr, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255,255,255,${(f * 0.07).toFixed(4)})`;
+            ctx.lineWidth = 7;
+            ctx.stroke();
+            ctx.strokeStyle = `rgba(255,255,255,${(f * 0.32).toFixed(4)})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
       }
     }
     if (active || spray.length) raf.current = requestAnimationFrame(frame.current);
@@ -742,7 +832,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       const r = el.getBoundingClientRect();
       const cx = r.x + r.width / 2;
       const cy = r.y + r.height / 2;
-      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, locked: true, anchor: false, shown: false, grab: false };
+      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, grab: false };
     });
     const lines: number[][] = [];
     els.forEach((el, i) => {
@@ -753,9 +843,11 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
     const order = lines.flatMap((idx, li) => ((flip ? li % 2 === 0 : li % 2 === 1) ? [...idx].reverse() : idx));
     const S = order.map((i) => byIdx[i]);
     const rest = S.slice(0, -1).map((a, i) => Math.hypot(S[i + 1].ox - a.ox, S[i + 1].oy - a.oy) * TIE);
-    for (let q = S.length - 1; q > S.length - 7 && q >= 0; q--) {
-      S[q].locked = false;
-      S[q].anchor = true;
+    if (mode === 'pull') {
+      for (let q = S.length - 1; q > S.length - 7 && q >= 0; q--) {
+        S[q].locked = false;
+        S[q].anchor = true;
+      }
     }
     S.forEach((l) => {
       l.grab = !l.locked;
@@ -763,7 +855,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       l.el.style.cursor = l.grab ? 'grab' : '';
     });
     sim.current = { S, rest, byIdx, drags: new Map(), running: false };
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     let alive = true;
@@ -790,6 +882,23 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       sim.current?.drags.delete(e.pointerId);
       wake();
     };
+    const onHover = (e: PointerEvent) => {
+      if (mode !== 'wave' || reduce) return;
+      pointer.current = { x: e.clientX, y: e.clientY };
+      wake();
+    };
+    const onLeave = () => {
+      pointer.current = { x: -9999, y: -9999 };
+    };
+    const onTap = (e: PointerEvent) => {
+      if (mode !== 'wave' || reduce) return;
+      if (e.target instanceof Element && e.target.closest('button,a,[data-scroll]')) return;
+      ripples.current.push({ cx: e.clientX, cy: e.clientY, front: 0 });
+      wake();
+    };
+    window.addEventListener('pointermove', onHover);
+    window.addEventListener('pointerdown', onTap);
+    document.addEventListener('mouseleave', onLeave);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
@@ -797,12 +906,15 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       alive = false;
       cancelAnimationFrame(raf.current);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('pointermove', onHover);
+      window.removeEventListener('pointerdown', onTap);
+      document.removeEventListener('mouseleave', onLeave);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
       onStir([]);
     };
-  }, [build, onStir]);
+  }, [build, onStir, mode, reduce]);
 
   const start = (idx: number, e: React.PointerEvent) => {
     const m = sim.current;
@@ -2577,7 +2689,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} /></div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'wave' ? 'wave' : 'pull'} /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
