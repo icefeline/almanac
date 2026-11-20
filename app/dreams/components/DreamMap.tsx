@@ -906,6 +906,38 @@ export default function DreamMap() {
     setReady(true);
     reduceRef.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   }, []);
+  // Text that scrolls fades out at the edge it is scrolling away from, instead of being cut off sharply: the fade is as long as the
+  // distance scrolled (up to a limit), so it is absent at the very top and grows as you scroll. Works on every [data-scroll] panel.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const FADE = 34;
+    const seen = new WeakSet<Element>();
+    const refresh = (el: HTMLElement) => {
+      const top = Math.max(0, Math.min(FADE, el.scrollTop));
+      const bot = Math.max(0, Math.min(FADE, el.scrollHeight - el.clientHeight - el.scrollTop));
+      el.style.setProperty('--ft', top + 'px');
+      el.style.setProperty('--fb', bot + 'px');
+    };
+    const scan = () => {
+      root.querySelectorAll<HTMLElement>('[data-scroll]').forEach((el) => {
+        if (!seen.has(el)) {
+          seen.add(el);
+          el.addEventListener('scroll', () => refresh(el), { passive: true });
+        }
+        refresh(el);
+      });
+    };
+    scan();
+    const mo = new MutationObserver(scan);
+    mo.observe(root, { childList: true, subtree: true });
+    window.addEventListener('resize', scan);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener('resize', scan);
+    };
+  }, []);
+
   // the way in is a dither wipe from the page before; take it down once the map is up (and its stars, or after a moment)
   useEffect(() => {
     if (!ready) return;
@@ -2440,6 +2472,7 @@ export default function DreamMap() {
             );
           })}
 
+        <style>{`[data-scroll]{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 var(--ft,0px),#000 calc(100% - var(--fb,0px)),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 var(--ft,0px),#000 calc(100% - var(--fb,0px)),transparent 100%)}`}</style>
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
