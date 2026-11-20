@@ -481,7 +481,8 @@ const bevelText = (pressed = false): CSSProperties => ({
 });
 
 /**
- * The empty sky's poem: justified lines, the myth small and quiet, the ask larger and brighter.
+ * The empty sky's poem, set large and overlapping like a poster, in two stanzas: the myth, then the ask, the ask bigger and
+ * set apart. About a third of the letters are italic serif from the start.
  *
  * Every word can be taken hold of and pulled. A word follows the hand with weight, drags its neighbours after it
  * along the poem as if they were threaded on one string, throws off a spray of dots, and lets its letters tip into italic
@@ -489,18 +490,28 @@ const bevelText = (pressed = false): CSSProperties => ({
  * behind them while they move (see stirRef).
  */
 type Stir = { x: number; y: number; r: number; vx: number; vy: number; held: boolean };
-const POEM = ['the greeks said it was milk,', 'spilled by hera across the dark.', 'yours is still empty.', 'tell milky a dream and', 'the first pale thread appears.'];
-/** The myth is context, so it is small and dim. The ask is what the reader is here to do, so it is larger and full white. */
-const POEM_STYLE = [
-  { size: 17, color: 'rgba(255,255,255,0.62)' },
-  { size: 17, color: 'rgba(255,255,255,0.62)' },
-  { size: 18, color: 'rgba(255,255,255,0.85)' },
-  { size: 23, color: '#FFFFFF' },
-  { size: 23, color: '#FFFFFF' },
+const POEM = [
+  { t: 'the greeks', s: 0 },
+  { t: 'said it was', s: 0 },
+  { t: 'milk,', s: 0 },
+  { t: 'spilled by', s: 0 },
+  { t: 'hera across', s: 0 },
+  { t: 'the dark.', s: 0 },
+  { t: 'yours is', s: 0 },
+  { t: 'still empty.', s: 0 },
+  { t: 'tell milky', s: 1 },
+  { t: 'a dream and', s: 1 },
+  { t: 'the first pale', s: 1 },
+  { t: 'thread appears.', s: 1 },
+];
+/** The myth is the setting, so it is smaller. The ask is what the reader is here to do, so it is larger and full white. */
+const STANZA = [
+  { size: 'clamp(26px, min(7vw, 4.8vh), 52px)', color: 'rgba(255,255,255,0.8)' },
+  { size: 'clamp(34px, min(9.5vw, 6.6vh), 72px)', color: '#FFFFFF' },
 ];
 const SERIF = 'var(--font-instrument-serif), Georgia, serif';
 function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
-  const flat = useMemo(() => POEM.flatMap((l) => l.split(' ')), []);
+  const flat = useMemo(() => POEM.flatMap((l) => l.t.split(' ')), []);
   const state = useRef(flat.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
   const els = useRef<(HTMLSpanElement | null)[]>([]);
   const flipped = useRef<number[]>(flat.map(() => -1));
@@ -522,7 +533,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
     if (!kids) return;
     for (let c = 0; c < kids.length; c++) {
       const k = kids[c] as HTMLElement;
-      const on = c < n;
+      const on = c < n || k.dataset.s === '1';
       k.style.fontFamily = on ? SERIF : '';
       k.style.fontStyle = on ? 'italic' : '';
     }
@@ -564,10 +575,10 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
         const b = el.getBoundingClientRect();
         if (origin) stirs.push({ x: b.x + b.width / 2 - origin.x, y: b.y + b.height / 2 - origin.y, r: 16, vx: clamp(me.vx * 2, -12, 12), vy: clamp(me.vy * 2, -12, 12), held: held.current?.i === i });
         // a word in motion throws off dots, along the way it is going
-        const n = Math.min(5, Math.floor(speed));
+        const n = Math.min(9, Math.floor(speed * 1.6));
         for (let q = 0; q < n && spray.length < 700; q++) {
           const max = 60 + Math.random() * 90;
-          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: 1.5 + Math.random() });
+          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: 2 + Math.random() * 2 });
         }
       }
       if (off > 0.05 || speed > 0.02) live = true;
@@ -629,10 +640,22 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
   return (
     <>
       <canvas ref={canvas} style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }} />
-      <div style={{ width: 'min(400px, calc(100vw - 48px))', display: 'flex', flexDirection: 'column', gap: 10, fontFamily: 'var(--font-geist)', lineHeight: 1.45 }}>
+      <div style={{ width: 'min(92vw, 760px)', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-geist)', fontWeight: 500, lineHeight: 0.86, letterSpacing: '-0.03em' }}>
         {POEM.map((line, li) => (
-          <div key={li} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0 8px', fontSize: POEM_STYLE[li].size, color: POEM_STYLE[li].color }}>
-            {line.split(' ').map((w, wi) => {
+          <div
+            key={li}
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0 0.28em',
+              fontSize: STANZA[line.s].size,
+              color: STANZA[line.s].color,
+              alignSelf: (['flex-start', 'flex-end', 'center'] as const)[(li * 7 + 1) % 3],
+              marginLeft: `${((li * 37) % 9) - 4}%`,
+              marginTop: li > 0 && line.s !== POEM[li - 1].s ? '1.2em' : '-0.06em', // the ask is its own paragraph
+            }}
+          >
+            {line.t.split(' ').map((w, wi) => {
               const i = ++k;
               return (
                 <span
@@ -666,9 +689,14 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
                   }}
                   style={{ display: 'inline-block', cursor: 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', willChange: 'transform', pointerEvents: 'auto' }}
                 >
-                  {w.split('').map((ch, ci) => (
-                    <span key={ci}>{ch}</span>
-                  ))}
+                  {w.split('').map((ch, ci) => {
+                    const it = (ci * 5 + wi * 3 + li * 2) % 3 === 0;
+                    return (
+                      <span key={ci} data-s={it ? '1' : '0'} style={it ? { fontFamily: SERIF, fontStyle: 'italic' } : undefined}>
+                        {ch}
+                      </span>
+                    );
+                  })}
                 </span>
               );
             })}
