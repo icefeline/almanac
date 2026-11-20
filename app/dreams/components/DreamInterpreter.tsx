@@ -527,12 +527,18 @@ export default function DreamInterpreter() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 16 }}>
           <div style={{ display: 'flex', gap: 22, fontFamily: 'var(--font-geist)', fontSize: 13, letterSpacing: 0, textTransform: 'none' }}>
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setView('read')}
               onClick={() => setView('read')}
               style={{ cursor: 'pointer', borderBottom: `1px solid ${onRead ? '#FFFFFF' : 'transparent'}`, paddingBottom: 2 }}
             >
               interpret
             </div>
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setView('index')}
               onClick={() => setView('index')}
               style={{ cursor: 'pointer', borderBottom: `1px solid ${onRead ? 'transparent' : '#FFFFFF'}`, paddingBottom: 2 }}
             >
@@ -619,6 +625,9 @@ export default function DreamInterpreter() {
                 {loading ? 'hold on' : 'cmd + enter'}
               </div>
               <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && submit()}
                 onClick={submit}
                 className="di-submit"
                 style={{
@@ -702,6 +711,9 @@ export default function DreamInterpreter() {
 
                 {(reading.lenses.length > 0 || !!reading.recurring) && (
                   <div
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setDeeper((d) => !d)}
                     onClick={() => setDeeper((d) => !d)}
                     style={{ ...navFont, cursor: 'pointer', color: YELLOW, alignSelf: 'flex-start', borderBottom: `1px solid ${YELLOW}`, paddingBottom: 2 }}
                   >
@@ -760,7 +772,7 @@ export default function DreamInterpreter() {
 
                 {reading.actions.length > 0 && <ActionsSpread actions={reading.actions} />}
 
-                <div onClick={reset} style={{ cursor: 'pointer', alignSelf: 'flex-end', fontSize: 14 }}>
+                <div role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && reset()} onClick={reset} style={{ cursor: 'pointer', alignSelf: 'flex-end', fontSize: 14 }}>
                   new dream →
                 </div>
               </div>
@@ -835,7 +847,7 @@ export default function DreamInterpreter() {
 
         {(!onRead || !!reading) && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, paddingTop: 24 }}>
-            <div onClick={toggleView} style={{ cursor: 'pointer', fontSize: 14, marginLeft: 'auto' }}>
+            <div role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleView()} onClick={toggleView} style={{ cursor: 'pointer', fontSize: 14, marginLeft: 'auto' }}>
               {onRead ? 'index →' : 'interpret →'}
             </div>
           </div>
