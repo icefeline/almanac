@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
 import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
-import { RAD, drawSky, loadSky, moonPhase, type SkyData } from '../lib/sky';
+import { RAD, drawSky, loadFigures, loadPlanets, loadSky, moonPhase, type SkyData } from '../lib/sky';
 
 /**
  * /map: the sky of your dreams, over the real sky.
@@ -151,6 +151,46 @@ const BACKDROPS: Backdrop[] = [
     accent: '#E8C25E',
     stipple: 1,
     swatch: 'linear-gradient(180deg,#1F6E8E,#5CC0D2 45%,#C77A44 80%,#B08A28)',
+  },
+  // from the Hubble 25th anniversary images: the crab nebula, cassiopeia a and stephan's quintet
+  {
+    id: 'crab',
+    name: 'crab nebula',
+    bg: `radial-gradient(ellipse at 52% 46%, rgba(70,200,230,0.58), transparent 50%), radial-gradient(ellipse at 84% 22%, rgba(232,112,50,0.5), transparent 54%), radial-gradient(ellipse at 18% 80%, rgba(130,176,70,0.4), transparent 52%), radial-gradient(ellipse at 8% 16%, rgba(190,82,40,0.32), transparent 46%), radial-gradient(ellipse at 90% 90%, rgba(210,100,50,0.28), transparent 44%), ${INK}`,
+    palette: [['#E6FFFF', '#58D0E8', '#1F7EA6'], ['#FFF0D8', '#F08A44', '#A8401E'], ['#F2FFD8', '#B6D86A', '#5E8A2A'], ['#FFE2C4', '#E0703A', '#8A2E18'], ['#EAFFF6', '#7FE4D0', '#2A8A86']],
+    starBright: 1.25,
+    starSize: 1.1,
+    magLimit: 6.2,
+    tint: '#E4F8FF',
+    accent: '#F0A25A',
+    stipple: 1,
+    swatch: 'radial-gradient(circle,#58D0E8 0 30%,#B6D86A 45%,#F08A44 75%,#8A2E18)',
+  },
+  {
+    id: 'cassiopeia',
+    name: 'cassiopeia a',
+    bg: `radial-gradient(ellipse at 48% 38%, rgba(226,124,124,0.36), transparent 52%), radial-gradient(ellipse at 72% 74%, rgba(234,180,94,0.32), transparent 52%), radial-gradient(ellipse at 20% 68%, rgba(196,94,104,0.26), transparent 50%), radial-gradient(ellipse at 40% 8%, rgba(52,112,84,0.34), transparent 52%), #07060A`,
+    palette: [['#FFEFE8', '#F2A8A8', '#9A4650'], ['#FFF3D6', '#EBC070', '#9A6A28'], ['#EAFFF0', '#7FC8A0', '#2E7A5A'], ['#FFE6DC', '#E58A86', '#8A3A40'], ['#FFF8EA', '#F4D9A0', '#B07A3A']],
+    starBright: 1.45,
+    starSize: 1.2,
+    magLimit: 6.4,
+    tint: '#FFF0E6',
+    accent: '#EBC070',
+    stipple: 0.9,
+    swatch: 'linear-gradient(135deg,#07060A,#9A4650 40%,#F2A8A8 62%,#EBC070)',
+  },
+  {
+    id: 'quintet',
+    name: 'stephan’s quintet',
+    bg: `radial-gradient(ellipse at 28% 26%, rgba(110,172,214,0.5), transparent 50%), radial-gradient(ellipse at 76% 22%, rgba(238,172,100,0.46), transparent 48%), radial-gradient(ellipse at 62% 62%, rgba(248,194,124,0.5), transparent 52%), radial-gradient(ellipse at 22% 92%, rgba(242,162,72,0.4), transparent 44%), ${INK}`,
+    palette: [['#EAF6FF', '#7DB8E0', '#2E6A9A'], ['#FFF3DE', '#F4C27C', '#B0662A'], ['#FFE9D0', '#EBA45E', '#8A4A1E'], ['#F2F8FF', '#A8D0F0', '#4A82B8'], ['#FFF8EC', '#F8DBA8', '#C98A44']],
+    starBright: 1.3,
+    starSize: 1.15,
+    magLimit: 6.3,
+    tint: '#FFF2E2',
+    accent: '#F4C27C',
+    stipple: 1,
+    swatch: 'linear-gradient(135deg,#2E6A9A,#7DB8E0 35%,#F4C27C 65%,#B0662A)',
   },
 ];
 
@@ -349,6 +389,9 @@ const PX: Record<string, [string, string, string]> = {
   aurora: ['#14806A', '#5CC8E6', '#B6F06A'],
   cliffs: ['#2250B8', '#6FA2F2', '#E08A3E'],
   pillars: ['#1F6E8E', '#5CC0D2', '#C77A44'],
+  crab: ['#1F7EA6', '#58D0E8', '#F08A44'],
+  cassiopeia: ['#9A4650', '#F2A8A8', '#EBC070'],
+  quintet: ['#2E6A9A', '#7DB8E0', '#F4C27C'],
 };
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
@@ -380,6 +423,7 @@ const ICONS: Record<string, string[]> = {
   minus: ['......K.........', '...KKKLKKK......', '..KLLLLLLLK.....', '.KLLWWLLLGGK....', '.KLWLLLLLLGK....', '.KLWLLLLLLGK....', 'KLLWKKKKKLGGK...', '.KLLLLLLLLGK....', '.KLLLLLLLLGK....', '.KLGLLLLLKKK....', '..KGGGGGGKbB....', '...KKKGKKKBbB...', '......K....BbB..', '............BbB.', '.............BbB', '..............BD'],
   fit: ['................', '................', '................', '..KKKK..KK..KK..', '..K.W.W.W.W.WK..', '...W.W.W.W.W....', '..K.W.W.W.W.WK..', '..KW.W.W.W.W.K..', '....W.W.W.W.W...', '...W.W.W.W.W....', '..K.W.W.W.W.WK..', '..KW.W.W.W.W.K..', '..KKKK..KK..KK..', '................', '................', '................'],
   sky: ['................', '................', '.....KK.........', '..W.KHHK........', '...KHOOK........', '..KHYOK.........', '.KHYYOK.........', '.KHYYOK.........', '.KHYYOK.........', '.KHYYYHK.....W..', '.KHYYYOHKKKKWWW.', '..KHYYYYHHHHKW..', '...KHYYYYYYK....', '....KHYYYYW.....', '.....KKKKK......', '................'],
+  stars: ['................', '................', '................', '.............KK.', '............KWYK', '............KYYK', '.......KK...KKK.', '......KWYK..K...', '......KYYK.K....', '.....K.KKKKK....', '...KK....KWYK...', '..KWYK...KYYK...', '..KYYK....KK....', '...KK...........', '................', '................'],
   menu: ['................', '................', '................', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '................', '................', '................'],
   close: ['................', '................', '................', '...KK.......KK..', '....KK.....KK...', '.....KK...KK....', '......KK.KK.....', '.......KKK......', '.......KKK......', '......KK.KK.....', '.....KK...KK....', '....KK.....KK...', '...KK.......KK..', '................', '................', '................'],
   back: ['................', '................', '................', '........KK......', '.......KK.......', '......KK........', '.....KK.........', '...KKKKKKKKKKK..', '...KKKKKKKKKKK..', '.....KK.........', '......KK........', '.......KK.......', '........KK......', '................', '................', '................'],
@@ -436,6 +480,477 @@ const bevelText = (pressed = false): CSSProperties => ({
   whiteSpace: 'nowrap',
 });
 
+/**
+ * The empty sky's poem, set large and overlapping like a poster, in two stanzas: the myth, then the ask, the ask bigger and
+ * set apart. About a third of the letters are italic serif from the start.
+ *
+ * It is a string of letters, after the typestring sketch: take hold of the last word and pull, and the poem is drawn out behind
+ * it letter by letter. Pulled letters tip into serif italic, throw off a few dots, and stir the dither they pass through (see
+ * stirRef). Let go and the string slowly settles back to how it was written.
+ */
+type Stir = { x: number; y: number; r: number; vx: number; vy: number; held: boolean };
+const POEM = [
+  { t: 'the greeks', s: 0 },
+  { t: 'said it was', s: 0 },
+  { t: 'milk,', s: 0 },
+  { t: 'spilled by', s: 0 },
+  { t: 'hera across', s: 0 },
+  { t: 'the dark.', s: 0 },
+  { t: 'tell milky', s: 1 },
+  { t: 'a dream.', s: 1 },
+];
+/** The myth is the setting, so it is smaller. The ask is what the reader is here to do, so it is larger and full white. */
+const STANZA = [
+  { size: 'clamp(26px, min(7vw, 4.8vh), 52px)', color: 'rgba(255,255,255,0.8)' },
+  { size: 'clamp(34px, min(9.5vw, 6.6vh), 72px)', color: '#FFFFFF' },
+];
+const SERIF = 'var(--font-instrument-serif), Georgia, serif';
+type Letter = {
+  el: HTMLElement;
+  size: number;
+  italic: boolean; // italic from the start
+  ox: number; oy: number; // where it is written (the centre of the letter, on screen)
+  x: number; y: number; px: number; py: number;
+  vx: number; vy: number; // used by the wave setting
+  locked: boolean;
+  anchor: boolean; // the last letters of the poem can always be taken hold of
+  shown: boolean; // is it showing as pulled (serif italic)
+  dith: number; // how far the letter has broken into dither dots, 0 whole to 1 mostly dots
+  grab: boolean; // can it be taken hold of
+};
+function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull' | 'wave' }) {
+  const box = useRef<HTMLDivElement | null>(null);
+  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const sim = useRef<{ S: Letter[]; rest: number[]; byIdx: Letter[]; drags: Map<number, { l: Letter; ox: number; oy: number }>; running: boolean } | null>(null);
+  const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
+  const raf = useRef(0);
+  const pointer = useRef({ x: -9999, y: -9999 });
+  const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  // The physics follows the typestring sketch: every letter is a point on one string that snakes through the poem (every other line
+  // reversed, so the end of a line joins the end of the next). Letters sit locked where they are written. Only the last few can
+  // be taken hold of; a letter unlocks only when its neighbour has pulled it taut, so the poem is drawn out from the end, one letter
+  // after another. There is no gravity, since this is a sky: let go and the string slowly settles back to how it was written.
+  const DAMP = 0.97; // the same values as the typestring sketch: heavy damping and a very gentle pull home, so nothing swings
+  const RET = 0.0002; // the slow drift home
+  const UNLOCK = 1; // how far a letter has to move before the one behind it joins in
+  const ITER = 12;
+  const TIE = 1.0; // the string is exactly as long as the gap it spans, so a pull reaches every letter of the poem at once
+
+  const dragged = (l: Letter) => {
+    for (const d of sim.current!.drags.values()) if (d.l === l) return true;
+    return false;
+  };
+
+  const step = () => {
+    const m = sim.current!;
+    const { S, rest } = m;
+    // a letter unlocks as soon as the one after it has been moved, so the pull is passed back along the whole string
+    for (let i = S.length - 2; i >= 0; i--) {
+      if (S[i].locked && !S[i + 1].locked) {
+        const a = S[i];
+        const b = S[i + 1];
+        if (Math.hypot(b.x - b.ox, b.y - b.oy) > UNLOCK) {
+          a.locked = false;
+          a.px = a.x;
+          a.py = a.y;
+        }
+      }
+    }
+    for (const l of S) {
+      if (l.locked || dragged(l)) continue;
+      const vx = (l.x - l.px) * DAMP;
+      const vy = (l.y - l.py) * DAMP;
+      l.px = l.x;
+      l.py = l.y;
+      l.x += vx + (l.ox - l.x) * RET;
+      l.y += vy + (l.oy - l.y) * RET;
+    }
+    // the string can't stretch, but it is free to go slack
+    for (let it = 0; it < ITER; it++) {
+      for (let i = 0; i < S.length - 1; i++) {
+        const a = S[i];
+        const b = S[i + 1];
+        if (a.locked && b.locked) continue;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy) || 0.001;
+        if (dist <= rest[i]) continue;
+        const diff = (dist - rest[i]) / dist;
+        const af = a.locked || dragged(a);
+        const bf = b.locked || dragged(b);
+        if (af && !bf) {
+          b.x -= dx * diff;
+          b.y -= dy * diff;
+        } else if (!af && bf) {
+          a.x += dx * diff;
+          a.y += dy * diff;
+        } else if (!af && !bf) {
+          a.x += dx * diff * 0.5;
+          a.y += dy * diff * 0.5;
+          b.x -= dx * diff * 0.5;
+          b.y -= dy * diff * 0.5;
+        }
+      }
+    }
+    // letters don't pass through each other
+    for (let i = 0; i < S.length; i++) {
+      const a = S[i];
+      if (a.locked) continue;
+      for (let j = i + 1; j < S.length; j++) {
+        const b = S[j];
+        if (b.locked || j === i + 1) continue;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const min = (a.size + b.size) * 0.3;
+        const d = Math.hypot(dx, dy) || 0.001;
+        if (d < min) {
+          const o = ((min - d) / d) * 0.5;
+          const ad = dragged(a);
+          const bd = dragged(b);
+          if (ad) {
+            b.x += dx * o * 2;
+            b.y += dy * o * 2;
+          } else if (bd) {
+            a.x -= dx * o * 2;
+            a.y -= dy * o * 2;
+          } else {
+            a.x -= dx * o;
+            a.y -= dy * o;
+            b.x += dx * o;
+            b.y += dy * o;
+          }
+        }
+      }
+    }
+    // the edges of the screen
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    for (const l of S) {
+      if (l.locked || dragged(l)) continue;
+      if (l.x < 0) { l.x = 0; l.px = l.x + (l.x - l.px) * 0.4; }
+      if (l.x > W) { l.x = W; l.px = l.x + (l.x - l.px) * 0.4; }
+      if (l.y < 0) { l.y = 0; l.py = l.y + (l.y - l.py) * 0.4; }
+      if (l.y > H) { l.y = H; l.py = l.y + (l.y - l.py) * 0.4; }
+    }
+    // letters that have drifted all the way home lock again, and the rest of the poem is held until it is next pulled
+    const calm = (k: number) => !S[k] || S[k].locked || Math.hypot(S[k].x - S[k].ox, S[k].y - S[k].oy) < 2.5; // is the letter next door at rest
+    for (let i = 0; i < S.length; i++) {
+      const l = S[i];
+      if (l.locked || l.anchor || dragged(l)) continue;
+      // not while a neighbour is still away from home: it may be about to pull this one along
+      if (Math.hypot(l.x - l.ox, l.y - l.oy) < 2.5 && Math.hypot(l.x - l.px, l.y - l.py) < 0.15 && calm(i - 1) && calm(i + 1)) {
+        l.x = l.px = l.ox;
+        l.y = l.py = l.oy;
+        l.locked = true;
+      }
+    }
+  };
+
+  // The wave setting, after the second typestring sketch: nothing is grabbed. The pointer pushes the letters aside as it swims through
+  // them, and every letter springs back, passing a little of its motion to its neighbours on the string.
+  const waveStep = () => {
+    const { S } = sim.current!;
+    const SPRING = 0.035;
+    const WDAMP = 0.86;
+    const COUPLE = 0.022;
+    const R = 150; // how far the pointer reaches
+    const p = pointer.current;
+    for (const l of S) {
+      const dx = l.x - p.x;
+      const dy = l.y - p.y;
+      const d = Math.hypot(dx, dy);
+      if (d < R && d > 1) {
+        const t = 1 - d / R;
+        l.vx += (dx / d) * t * t * 7;
+        l.vy += (dy / d) * t * t * 7;
+      }
+    }
+    for (let i = 1; i < S.length - 1; i++) {
+      const a = S[i - 1];
+      const l = S[i];
+      const b = S[i + 1];
+      l.vx += ((a.vx + b.vx) / 2 - l.vx) * COUPLE;
+      l.vy += ((a.vy + b.vy) / 2 - l.vy) * COUPLE;
+    }
+    for (const l of S) {
+      l.px = l.x;
+      l.py = l.y;
+      l.vx += (l.ox - l.x) * SPRING;
+      l.vy += (l.oy - l.y) * SPRING;
+      l.vx *= WDAMP;
+      l.vy *= WDAMP;
+      l.x += l.vx;
+      l.y += l.vy;
+    }
+  };
+
+  const frame = useRef<(now: number) => void>(() => {});
+  const last = useRef(-1);
+  const acc = useRef(0);
+  frame.current = (now: number) => {
+    const m = sim.current;
+    if (!m) return;
+    if (last.current < 0) last.current = now;
+    const dt = mode === 'wave' ? 1 / 60 : 1 / 120;
+    acc.current += Math.min((now - last.current) / 1000, 4 * dt);
+    last.current = now;
+    while (acc.current >= dt) {
+      if (mode === 'wave') waveStep();
+      else step();
+      acc.current -= dt;
+    }
+    const origin = (document.querySelector('[data-map-root]') as HTMLElement | null)?.getBoundingClientRect();
+    const stirs: Stir[] = [];
+    const spray = dots.current;
+    let active = m.drags.size > 0;
+    let k = 0;
+    for (const l of m.S) {
+      const dx = l.x - l.ox;
+      const dy = l.y - l.oy;
+      const off = Math.hypot(dx, dy);
+      const sp = Math.hypot(l.x - l.px, l.y - l.py);
+      l.el.style.transform = off > 0.01 ? `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)` : '';
+      const grab = mode === 'pull' && (!l.locked || l.anchor);
+      if (grab !== l.grab) {
+        l.grab = grab;
+        l.el.style.pointerEvents = grab ? 'auto' : 'none';
+        l.el.style.cursor = grab ? 'grab' : '';
+      }
+      const pulled = off > 5;
+      if (pulled !== l.shown) {
+        l.shown = pulled;
+        const on = pulled || l.italic;
+        l.el.style.fontFamily = on ? SERIF : '';
+        l.el.style.fontStyle = on ? 'italic' : '';
+      }
+      // as the pointer swims through the words, the letters break into the same dither dots as the sky behind, and re-form as they settle
+      if (mode === 'wave') {
+        const amt = clamp(Math.max(off / 70, sp / 5), 0, 1);
+        if (Math.abs(amt - l.dith) > 0.03 || (amt === 0 && l.dith !== 0)) {
+          l.dith = amt;
+          if (amt < 0.05) {
+            l.el.style.maskImage = '';
+            l.el.style.webkitMaskImage = '';
+          } else {
+            const edge = 100 - amt * 74;
+            const m = `radial-gradient(circle at 50% 50%, #000 ${edge.toFixed(0)}%, transparent ${(edge + 7).toFixed(0)}%)`;
+            l.el.style.maskImage = m;
+            l.el.style.webkitMaskImage = m;
+            l.el.style.maskSize = '4px 4px';
+            l.el.style.webkitMaskSize = '4px 4px';
+          }
+        }
+      }
+      if (!l.locked && (off > 0.3 || sp > 0.05)) active = true;
+      // in the wave setting the loop stays awake while the pointer is near the words, so the first touch has something to push
+      if (mode === 'wave' && Math.hypot(l.x - pointer.current.x, l.y - pointer.current.y) < 220) active = true;
+      if (!l.locked && (off > 4 || sp > 0.4)) {
+        // a letter in motion stirs the dots it passes through, and throws a few
+        if (origin && k++ % 2 === 0 && stirs.length < 30) stirs.push({ x: l.x - origin.x, y: l.y - origin.y, r: 24, vx: clamp((l.x - l.px) * 2, -12, 12), vy: clamp((l.y - l.py) * 2, -12, 12), held: dragged(l) });
+        if (sp > 1.2 && Math.random() < 0.25 && spray.length < 700) {
+          const max = 60 + Math.random() * 90;
+          spray.push({ x: l.x, y: l.y, vx: (l.x - l.px) * 0.4 + (Math.random() - 0.5) * 1.4, vy: (l.y - l.py) * 0.4 + (Math.random() - 0.5) * 1.4, life: max, max, s: 1.5 + Math.random() * 1.5 });
+        }
+      }
+    }
+    onStir(stirs.slice(0, 60));
+    const cv = canvas.current;
+    if (cv) {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      if (cv.width !== Math.round(window.innerWidth * dpr) || cv.height !== Math.round(window.innerHeight * dpr)) {
+        cv.width = Math.round(window.innerWidth * dpr);
+        cv.height = Math.round(window.innerHeight * dpr);
+      }
+      const ctx = cv.getContext('2d');
+      if (ctx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        ctx.fillStyle = '#EAF1FF';
+        for (let q = spray.length - 1; q >= 0; q--) {
+          const d = spray[q];
+          if (--d.life <= 0) {
+            spray.splice(q, 1);
+            continue;
+          }
+          d.vx *= 0.985;
+          d.vy *= 0.985;
+          d.x += d.vx;
+          d.y += d.vy;
+          ctx.globalAlpha = Math.min(1, d.life / d.max) * 0.85;
+          ctx.fillRect(d.x, d.y, d.s, d.s);
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+    if (active || spray.length) raf.current = requestAnimationFrame(frame.current);
+    else {
+      raf.current = 0;
+      last.current = -1;
+      onStir([]);
+    }
+  };
+  const wake = () => {
+    if (!raf.current) {
+      last.current = -1;
+      raf.current = requestAnimationFrame((t) => frame.current(t));
+    }
+  };
+
+  // read the poem off the page: where every letter sits, and the one string that threads them
+  const build = useCallback(() => {
+    const root = box.current;
+    if (!root) return;
+    const els = [...root.querySelectorAll<HTMLElement>('[data-ch]')];
+    if (!els.length) return;
+    els.forEach((e) => (e.style.transform = ''));
+    const byIdx: Letter[] = els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const cx = r.x + r.width / 2;
+      const cy = r.y + r.height / 2;
+      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, dith: 0, grab: false };
+    });
+    const lines: number[][] = [];
+    els.forEach((el, i) => {
+      const li = Number(el.dataset.li);
+      (lines[li] ||= []).push(i);
+    });
+    const flip = (lines.length - 1) % 2 === 1;
+    const order = lines.flatMap((idx, li) => ((flip ? li % 2 === 0 : li % 2 === 1) ? [...idx].reverse() : idx));
+    const S = order.map((i) => byIdx[i]);
+    const rest = S.slice(0, -1).map((a, i) => Math.hypot(S[i + 1].ox - a.ox, S[i + 1].oy - a.oy) * TIE);
+    if (mode === 'pull') {
+      for (let q = S.length - 1; q > S.length - 7 && q >= 0; q--) {
+        S[q].locked = false;
+        S[q].anchor = true;
+      }
+    }
+    S.forEach((l) => {
+      l.grab = !l.locked;
+      l.el.style.pointerEvents = l.grab ? 'auto' : 'none';
+      l.el.style.cursor = l.grab ? 'grab' : '';
+    });
+    sim.current = { S, rest, byIdx, drags: new Map(), running: false };
+  }, [mode]);
+
+  useEffect(() => {
+    let alive = true;
+    const go = () => alive && build();
+    go();
+    document.fonts?.ready.then(() => {
+      if (alive && sim.current && !sim.current.drags.size && !sim.current.S.some((l) => !l.locked && !l.anchor)) build();
+    });
+    const onResize = () => {
+      if (sim.current && !sim.current.drags.size && !sim.current.S.some((l) => !l.locked && !l.anchor)) build();
+    };
+    window.addEventListener('resize', onResize);
+    const onMove = (e: PointerEvent) => {
+      const d = sim.current?.drags.get(e.pointerId);
+      if (!d) return;
+      d.l.x = e.clientX - d.ox;
+      d.l.y = e.clientY - d.oy;
+      d.l.px = d.l.x;
+      d.l.py = d.l.y;
+      d.l.locked = false;
+      wake();
+    };
+    const onUp = (e: PointerEvent) => {
+      sim.current?.drags.delete(e.pointerId);
+      wake();
+    };
+    const onHover = (e: PointerEvent) => {
+      if (mode !== 'wave' || reduce) return;
+      pointer.current = { x: e.clientX, y: e.clientY };
+      wake();
+    };
+    const onLeave = () => {
+      pointer.current = { x: -9999, y: -9999 };
+    };
+    window.addEventListener('pointermove', onHover);
+    document.addEventListener('mouseleave', onLeave);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf.current);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('pointermove', onHover);
+      document.removeEventListener('mouseleave', onLeave);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      onStir([]);
+    };
+  }, [build, onStir, mode, reduce]);
+
+  const start = (idx: number, e: React.PointerEvent) => {
+    const m = sim.current;
+    if (!m || reduce) return;
+    const l = m.byIdx[idx];
+    if (!l || (l.locked && !l.anchor)) return;
+    for (const d of m.drags.values()) if (d.l === l) return;
+    m.drags.set(e.pointerId, { l, ox: e.clientX - l.x, oy: e.clientY - l.y });
+    l.locked = false;
+    l.px = l.x;
+    l.py = l.y;
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* the hold still works without capture */
+    }
+    e.preventDefault();
+    wake();
+  };
+
+  let n = -1;
+  return (
+    <>
+      <canvas ref={canvas} style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }} />
+      <div ref={box} style={{ width: 'min(92vw, 760px)', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-geist)', fontWeight: 500, lineHeight: 0.86, letterSpacing: '-0.03em' }}>
+        {POEM.map((line, li) => (
+          <div
+            key={li}
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0 0.28em',
+              fontSize: STANZA[line.s].size,
+              color: STANZA[line.s].color,
+              alignSelf: (['flex-start', 'flex-end', 'center'] as const)[(li * 7 + 1) % 3],
+              marginLeft: `${((li * 37) % 9) - 4}%`,
+              marginTop: li > 0 && line.s !== POEM[li - 1].s ? '1.2em' : '-0.06em', // the ask is its own paragraph
+            }}
+          >
+            {line.t.split(' ').map((w, wi) => (
+              <span key={wi} style={{ display: 'inline-block' }}>
+                {w.split('').map((ch, ci) => {
+                  const idx = ++n;
+                  // about a third of the letters are italic serif from the start
+                  const it = (ci * 5 + wi * 3 + li * 2) % 3 === 0;
+                  return (
+                    <span
+                      key={ci}
+                      data-ch
+                      data-ui
+                      data-li={li}
+                      data-s={it ? '1' : '0'}
+                      onPointerDown={(e) => start(idx, e)}
+                      style={{ display: 'inline-block', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', willChange: 'transform', pointerEvents: 'none', ...(it ? { fontFamily: SERIF, fontStyle: 'italic' } : null) }}
+                    >
+                      {ch}
+                    </span>
+                  );
+                })}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 function MoonGlyph({ phase, size = 22 }: { phase: number; size?: number }) {
   const R = size / 2 - 1;
   const c = size / 2;
@@ -460,6 +975,8 @@ export default function DreamMap() {
   const [skyId, setSkyId] = useState('nebula');
   const [pressing, setPressing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [consOn, setConsOn] = useState(false);
+  const consRef = useRef(false);
   const [, setTick] = useState(0);
   const [size, setSize] = useState({ w: 900, h: 640 });
 
@@ -497,6 +1014,8 @@ export default function DreamMap() {
   const typeStartRef = useRef(0);
   const fitAgeRef = useRef(0);
   const cursorRef = useRef({ x: -9999, y: -9999, vx: 0, vy: 0, active: false });
+  // words of the empty-sky poem that are being pulled across the sky: they stir the dither like a blob would
+  const stirRef = useRef<{ x: number; y: number; r: number; vx: number; vy: number; held: boolean }[]>([]);
   sizeRef.current = size;
   selRef.current = sel;
 
@@ -507,6 +1026,7 @@ export default function DreamMap() {
     try {
       const v = localStorage.getItem('milky.backdrop');
       if (v && BACKDROPS.some((b) => b.id === v)) setSkyId(v);
+      if (localStorage.getItem('milky.constellations') === '1') setConsOn(true);
     } catch {
       /* the default backdrop is fine */
     }
@@ -521,6 +1041,27 @@ export default function DreamMap() {
       /* optional */
     }
   }, [skyId, ready]);
+  useEffect(() => {
+    consRef.current = consOn;
+    if (!ready) return;
+    try {
+      localStorage.setItem('milky.constellations', consOn ? '1' : '0');
+    } catch {
+      /* optional */
+    }
+    // the figures are only fetched the first time they are asked for
+    if (consOn && skyRef.current && !skyRef.current.lines.length) {
+      loadFigures().then((f) => {
+        if (skyRef.current) {
+          skyRef.current.lines = f.lines;
+          skyRef.current.names = f.names;
+        }
+      });
+      loadPlanets().then((pl) => {
+        if (skyRef.current) skyRef.current.planets = pl;
+      });
+    }
+  }, [consOn, ready, skyReady]);
   useEffect(() => {
     if (ready && !stressRef.current) saveDreams(dreams);
   }, [dreams, ready]);
@@ -693,6 +1234,10 @@ export default function DreamMap() {
     if (!selRef.current) fitRef.current = true;
   }, [dreams, eff]);
 
+  const onStir = useCallback((l: typeof stirRef.current) => {
+    stirRef.current = l;
+  }, []);
+
   const select = useCallback((s: Sel | null) => {
     setSel(s);
     typeStartRef.current = performance.now();
@@ -727,7 +1272,7 @@ export default function DreamMap() {
     const availW = narrow ? w * 0.85 : s ? w * 0.42 : w * 0.9;
     const availH = narrow ? (s ? h * 0.38 : h * 0.8) : h * 0.72;
     let ids: string[] | null = null;
-    let lo = 0.6;
+    let lo = 0.28; // the whole sky may be much wider than the screen, so fit is allowed to go a long way back
     let hi = 1.5;
     if (s && followRef.current) {
       const eff = effRef.current;
@@ -767,7 +1312,7 @@ export default function DreamMap() {
     const x1 = Math.max(...pts.map((n) => n.x + n.r));
     const y0 = Math.min(...pts.map((n) => n.y - n.r));
     const y1 = Math.max(...pts.map((n) => n.y + n.r));
-    const k = clamp(Math.min(availW / (x1 - x0 + 140), availH / (y1 - y0 + 140)), lo, hi);
+    const k = clamp(Math.min(availW / (x1 - x0 + 220), availH / (y1 - y0 + 220)), lo, hi);
     return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k, ax, ay, rot };
   }
 
@@ -886,7 +1431,7 @@ export default function DreamMap() {
           scale: (Math.max(w, h) / 2 / 0.83) * (0.8 + 0.12 * Math.log2(1 + cam.k)),
         },
         t,
-        { bright: backdropRef.current.starBright, size: backdropRef.current.starSize, magLimit: backdropRef.current.magLimit }
+        { bright: backdropRef.current.starBright, size: backdropRef.current.starSize, magLimit: backdropRef.current.magLimit, lines: consRef.current, labels: clamp((cam.k - 1.3) / 0.9, 0, 1) }
       );
     };
 
@@ -1009,6 +1554,7 @@ export default function DreamMap() {
       if (!reduce) orbit.flowT += dt * (0.05 + orbit.e * 0.3);
       const flowT = orbit.flowT;
       const breath = reduce ? 1 : 0.92 + 0.08 * Math.sin(t * 0.55); // the whole field slowly breathes
+      const pushers = stirRef.current.length ? [...blobs, ...stirRef.current] : blobs;
       const cu = cursorRef.current;
       cu.vx *= 0.94;
       cu.vy *= 0.94;
@@ -1024,7 +1570,7 @@ export default function DreamMap() {
         for (let x = ox0 - GS; x < w + GS; x += GS) {
           let near = 0;
           if (!reduce) {
-            for (const b of blobs) {
+            for (const b of pushers) {
               const R = b.r * 2.2 + 60;
               const dx = x - b.x;
               const dy = y - b.y;
@@ -1062,7 +1608,7 @@ export default function DreamMap() {
         let wy = 0;
         let wt = 0;
         if (!reduce) {
-          for (const b of blobs) {
+          for (const b of pushers) {
             const R = b.r * 2.2 + 60;
             const dx = X - b.x;
             const dy = Y - b.y;
@@ -1752,6 +2298,7 @@ export default function DreamMap() {
   return (
     <div
       ref={rootRef}
+      data-map-root
       style={{
         position: 'fixed',
         inset: 0,
@@ -2023,14 +2570,14 @@ export default function DreamMap() {
           })}
 
         {/* top bar */}
-        <div data-ui style={{ position: 'absolute', top: 16, left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
+        <div data-ui style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
             <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none' }}>
               <PixelIcon name="back" />
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
-            {skyStatus === 'reading' && <span style={{ ...hand, fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
+            {skyStatus === 'reading' && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
             {skyStatus === 'error' && (
               <button style={bevelText()} onClick={retry}>
                 couldn’t read the sky, try again
@@ -2057,22 +2604,25 @@ export default function DreamMap() {
             drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 18 : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+          <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
           {menuOpen && (
             <>
               {hasSamples && (
-                <button title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+                <button className="mm-btn" title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
                   <PixelIcon name="eraser" />
                 </button>
               )}
-              <button title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
-              <button title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
-              <button aria-label="zoom in" style={bevel(false)} onClick={() => zoomButton(1.4)}><PixelIcon name="plus" /></button>
-              <button aria-label="zoom out" style={bevel(false)} onClick={() => zoomButton(1 / 1.4)}><PixelIcon name="minus" /></button>
+              <button className="mm-btn" title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
+              <button className="mm-btn" title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
+              <button className="mm-btn" title="constellations" aria-label={consOn ? 'hide the constellations' : 'show the constellations'} aria-pressed={consOn} style={bevel(consOn)} onClick={() => setConsOn((o) => !o)}><PixelIcon name="stars" /></button>
+              <button className="mm-btn" aria-label="zoom in" style={bevel(false)} onClick={() => zoomButton(1.4)}><PixelIcon name="plus" /></button>
+              <button className="mm-btn" aria-label="zoom out" style={bevel(false)} onClick={() => zoomButton(1 / 1.4)}><PixelIcon name="minus" /></button>
             </>
           )}
           <button
+            className="mm-btn"
             aria-label={menuOpen ? 'close the map controls' : 'open the map controls'}
             aria-expanded={menuOpen}
             title="controls"
@@ -2086,6 +2636,7 @@ export default function DreamMap() {
           </button>
           {/* One button. Each press moves to the next night sky. */}
           <button
+            className="mm-btn"
             aria-label={`change the backdrop, now ${backdrop.name}`}
             title={backdrop.name}
             onClick={(e) => {
@@ -2106,7 +2657,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', ...hand, fontSize: 18, opacity: 0.8 }}>nothing in the sky yet. interpret a dream and it shows up here.</div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (

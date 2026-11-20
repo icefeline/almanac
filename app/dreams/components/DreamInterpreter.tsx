@@ -518,7 +518,7 @@ export default function DreamInterpreter() {
           zIndex: 1,
           maxWidth: 1040,
           margin: '0 auto',
-          padding: '36px 28px 40px',
+          padding: 'calc(env(safe-area-inset-top, 0px) + 36px) 28px 40px',
           display: 'flex',
           flexDirection: 'column',
           gap: 64,
