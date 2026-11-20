@@ -2567,15 +2567,6 @@ export default function DreamMap() {
             <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none', flex: 'none' }}>
               <PixelIcon name="back" />
             </Link>
-            {hasSamples && !sel && (
-              <div style={{ maxWidth: 'min(390px, calc(100vw - 150px))', fontFamily: 'var(--font-geist)', fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.82)' }}>
-                these dreams are made up, so you can see how the map works.{' '}
-                <Link href={home} style={{ color: YELLOW, textDecoration: 'underline', textUnderlineOffset: 3 }}>
-                  interpret one of your own
-                </Link>{' '}
-                and it joins them here.
-              </div>
-            )}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
             {skyStatus === 'reading' && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
@@ -2596,13 +2587,18 @@ export default function DreamMap() {
         <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
           <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
+          {hasSamples && (
+            <div style={{ position: 'relative', display: 'flex' }}>
+              <span style={{ position: 'absolute', right: 'calc(100% + 14px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', fontFamily: 'var(--font-geist)', fontSize: 13, color: 'rgba(255,255,255,0.82)', pointerEvents: 'none' }}>
+                a sample sky, clear it
+              </span>
+              <button className="mm-btn" title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+                <PixelIcon name="eraser" />
+              </button>
+            </div>
+          )}
           {menuOpen && (
             <>
-              {hasSamples && (
-                <button className="mm-btn" title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
-                  <PixelIcon name="eraser" />
-                </button>
-              )}
               <button className="mm-btn" title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
               <button className="mm-btn" title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
               <button className="mm-btn" title="constellations" aria-label={consOn ? 'hide the constellations' : 'show the constellations'} aria-pressed={consOn} style={bevel(consOn)} onClick={() => setConsOn((o) => !o)}><PixelIcon name="stars" /></button>
