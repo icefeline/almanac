@@ -3,8 +3,9 @@ import type { PatternSet } from './patterns';
 /**
  * the reading of the six made-up sample dreams in `dreams.ts`, kept here so that opening the map costs nothing: no
  * request goes out until there are real dreams to read. the structure comes from a real reading of those dreams, and the
- * wording is written by hand to the house voice (lowercase, british spelling, a noticing prompt rather than a to-do).
- * if the sample dreams change, this has to change with them. `sampleSet` only matches the exact dreams.
+ * wording is written by hand to the interpreter's voice: a finding about the whole pattern rather than a tour of the dreams,
+ * in four moves (a claim, what proves it, the real situations it may sit on, what you might notice), calm, lowercase,
+ * british spelling. if the sample dreams change, this has to change with them. `sampleSet` only matches the exact dreams.
  */
 export const SAMPLE_PATTERNS: PatternSet | null = {
   patterns: [
@@ -17,10 +18,10 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
         { id: 's4', detail: 'The door was locked' },
         { id: 's6', detail: 'At the bottom, a door' },
       ],
-      gist: 'something you want to reach is just past a threshold',
+      gist: 'something you keep walking up to and never open',
       meaning:
-        'doors keep turning up at the exact point where a dream stops and something else begins. in one you find it, in one it is locked, in one it is simply where the steps end. there may be a decision or a conversation you know is waiting, a grief or a change you keep walking up to and not opening.',
-      watch: 'notice which conversation you walk up to all week and then step back from.',
+        "the door sits at the exact point where a dream runs out: the bottom of a staircase, the end of a hallway. when it's described at all, it's locked. maybe there's a conversation you know is waiting, or a grief you've walked up to a few times without going in. if that's near the mark, you might notice what happens in your day just before you turn back.",
+      watch: 'notice which conversation you walk up to and then step back from.',
     },
     {
       id: 'p2',
@@ -32,7 +33,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'your old home is still bigger than you thought',
       meaning:
-        "the house is yours, yet it won't hold the size or shape you remember. old ground can turn out to hold more than you gave it credit for. it might be family history, or a version of yourself you thought you'd finished with, that still has rooms you haven't walked into.",
+        "the house is yours, but it won't hold the size you remember. rooms keep going, and a hallway turns out to be the place you grew up in. old ground can hold more than you gave it credit for. maybe that's family history, or a version of yourself you thought you'd finished with. if so, you might notice which room you've never once gone into.",
       watch: 'notice which room of your past you steer around.',
     },
     {
@@ -45,7 +46,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'comfort is meeting you where you braced for threat',
       meaning:
-        'the sea could have been frightening, and instead it is warm, then warmer. your body seems to be getting used to something large and unknown, and finding it kind. there may be a loss or a feeling you used to brace against that you can now float in.',
+        "water could have been the frightening part, and here it's warm, then warmer the further in you go. that reads as a body getting used to something large and unknown, and finding it kind. maybe there's a loss, or a feeling you've braced against for a long time. if so, you might notice the first moment this week you stop bracing and let it carry you.",
       watch: 'notice the moment you stop bracing against a feeling and let it carry you.',
     },
     {
@@ -56,9 +57,9 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
         { id: 's3', detail: 'Someone below kept counting' },
         { id: 's6', detail: 'Every step I counted' },
       ],
-      gist: 'you are taking over the keeping of the pace',
+      gist: "you're taking over the keeping of the pace",
       meaning:
-        'first someone else counts while you float above, then you count your own steps down. you may be moving from being watched or timed to setting the measure yourself, perhaps with a task or a recovery that others have been keeping track of for you.',
+        "someone else does the counting from below, and later you count your own steps. that handover reads as moving from being timed to setting the measure yourself. maybe it's a task, a recovery or a stretch of life that other people have been keeping track of for you. if that's right, you might notice where you could set the pace and nobody would stop you.",
       watch: 'notice one thing this week where you could set the pace yourself.',
     },
     {
@@ -71,7 +72,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'someone you know is trying to reach you',
       meaning:
-        "in the first dream the voice can't get through. in the second it does, and it is your mother, talking about the moon as if it were an ordinary thing. there may be contact you are waiting for, from a person or from a part of yourself that has been hard to hear. calls that connect after calls that fail often follow a long silence.",
+        "a voice you know keeps trying to get through a phone that won't cooperate, and when it finally does, it talks about something ordinary. what's wanted looks more like contact than news. maybe it's a person you've been meaning to call, or a part of yourself that's been hard to hear. if so, you might notice which call or message you keep letting ring.",
       watch: 'notice which call or message you have been letting ring.',
     },
     {
@@ -84,7 +85,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'you feel a step behind something already underway',
       meaning:
-        "both dreams begin after the moment you needed to be ready. the train is already going and the exam has already started. there may be something you feel behind on that has a deadline in your head more than on any calendar, a task you feel you ought to have finished by now.",
+        "the dream starts after the moment that mattered: the train is already leaving, the exam already under way. maybe there's something you feel you ought to have finished by now, with a deadline that lives more in your head than on any calendar. if so, you might notice who set it.",
       watch: 'notice one thing you feel late for and who set that deadline.',
     },
   ],
@@ -95,5 +96,5 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
     { a: 'p6', b: 'p5', why: 'missing the train leaves the voice calling, and later it connects' },
   ],
   throughline:
-    'these dreams seem to be organised around reaching something just out of reach, whether a voice, a door or a place under the water. over the weeks the missed trains and locked doors give way to a call that connects and water that grows warmer, as if the approach is slowly working.',
+    "these dreams keep stopping you just short of something: a door, a voice, a way down to the water. they also get kinder as they go, with a call that finally connects and water that turns warm. maybe there's something real you've been circling, a conversation or a loss, that's closer to reachable than it used to be. if so, you might notice what feels different this week.",
 };
