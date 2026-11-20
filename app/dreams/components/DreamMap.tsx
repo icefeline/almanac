@@ -481,23 +481,26 @@ const bevelText = (pressed = false): CSSProperties => ({
 });
 
 /**
- * The empty sky's poem, in two settings to compare (?poem=calm or ?poem=loud, calm by default).
+ * The empty sky's poem: justified lines, the myth small and quiet, the ask larger and brighter.
  *
- * calm: small and justified, quiet until you touch it. loud: set large and overlapping with letters of roman and italic
- * mixed through each word, like a poster.
- *
- * Either way every word can be taken hold of and pulled. A word follows the hand with weight, drags its neighbours after it
+ * Every word can be taken hold of and pulled. A word follows the hand with weight, drags its neighbours after it
  * along the poem as if they were threaded on one string, throws off a spray of dots, and lets its letters tip into italic
  * serif while it is out of place. Let go and it all swings back to how it was written. The words also stir the dither dots
  * behind them while they move (see stirRef).
  */
 type Stir = { x: number; y: number; r: number; vx: number; vy: number; held: boolean };
-const POEM_CALM = ['the greeks said it was milk,', 'spilled by hera across the dark.', 'yours is still empty.', 'tell milky a dream and', 'the first pale thread appears.'];
-const POEM_LOUD = ['the greeks', 'said it was', 'milk,', 'spilled by', 'hera across', 'the dark.', 'yours is', 'still empty.', 'tell milky', 'a dream and', 'the first pale', 'thread appears.'];
+const POEM = ['the greeks said it was milk,', 'spilled by hera across the dark.', 'yours is still empty.', 'tell milky a dream and', 'the first pale thread appears.'];
+/** The myth is context, so it is small and dim. The ask is what the reader is here to do, so it is larger and full white. */
+const POEM_STYLE = [
+  { size: 17, color: 'rgba(255,255,255,0.62)' },
+  { size: 17, color: 'rgba(255,255,255,0.62)' },
+  { size: 18, color: 'rgba(255,255,255,0.85)' },
+  { size: 23, color: '#FFFFFF' },
+  { size: 23, color: '#FFFFFF' },
+];
 const SERIF = 'var(--font-instrument-serif), Georgia, serif';
-function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolean }) {
-  const lines = loud ? POEM_LOUD : POEM_CALM;
-  const flat = useMemo(() => lines.flatMap((l) => l.split(' ')), [lines]);
+function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
+  const flat = useMemo(() => POEM.flatMap((l) => l.split(' ')), []);
   const state = useRef(flat.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
   const els = useRef<(HTMLSpanElement | null)[]>([]);
   const flipped = useRef<number[]>(flat.map(() => -1));
@@ -511,7 +514,7 @@ function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolea
     rootEl.current = document.querySelector('[data-map-root]');
   }, []);
 
-  // letters tip into serif italic from the first letter on, as far as the word has been pulled; the loud setting also keeps some italic always
+  // letters tip into serif italic from the first letter on, as far as the word has been pulled
   const flip = (i: number, n: number) => {
     if (flipped.current[i] === n) return;
     flipped.current[i] = n;
@@ -519,7 +522,7 @@ function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolea
     if (!kids) return;
     for (let c = 0; c < kids.length; c++) {
       const k = kids[c] as HTMLElement;
-      const on = c < n || k.dataset.s === '1';
+      const on = c < n;
       k.style.fontFamily = on ? SERIF : '';
       k.style.fontStyle = on ? 'italic' : '';
     }
@@ -556,15 +559,15 @@ function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolea
       if (el) el.style.transform = `translate(${me.x.toFixed(2)}px, ${me.y.toFixed(2)}px)`;
       const off = Math.hypot(me.x, me.y);
       const speed = Math.hypot(me.vx, me.vy);
-      if (el) flip(i, Math.min(flat[i].length, Math.ceil((Math.min(1, off / 60) * flat[i].length))));
+      if (el) flip(i, off < 3 ? 0 : Math.min(flat[i].length, Math.ceil(Math.min(1, off / 60) * flat[i].length)));
       if (el && (off > 4 || speed > 0.4)) {
         const b = el.getBoundingClientRect();
         if (origin) stirs.push({ x: b.x + b.width / 2 - origin.x, y: b.y + b.height / 2 - origin.y, r: 16, vx: clamp(me.vx * 2, -12, 12), vy: clamp(me.vy * 2, -12, 12), held: held.current?.i === i });
         // a word in motion throws off dots, along the way it is going
-        const n = Math.min(loud ? 9 : 5, Math.floor(speed * (loud ? 1.6 : 1)));
+        const n = Math.min(5, Math.floor(speed));
         for (let q = 0; q < n && spray.length < 700; q++) {
           const max = 60 + Math.random() * 90;
-          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: (loud ? 2 : 1.5) + Math.random() * (loud ? 2 : 1) });
+          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: 1.5 + Math.random() });
         }
       }
       if (off > 0.05 || speed > 0.02) live = true;
@@ -607,10 +610,13 @@ function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolea
       for (const w of state.current) {
         w.x = w.y = w.vx = w.vy = 0;
       }
-      els.current.forEach((el) => el && (el.style.transform = ''));
+      els.current.forEach((el, q) => {
+        if (el) el.style.transform = '';
+        flip(q, 0);
+      });
       onStir([]);
     }
-  }, [onStir, flat, loud]);
+  }, [onStir, flat]);
   useEffect(
     () => () => {
       cancelAnimationFrame(raf.current);
@@ -619,37 +625,13 @@ function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolea
     [onStir]
   );
 
-  const baseSize = loud ? 'clamp(30px, min(9vw, 7.2vh), 64px)' : '15px';
   let k = -1;
   return (
     <>
       <canvas ref={canvas} style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }} />
-      <div
-        style={{
-          width: loud ? 'min(92vw, 760px)' : 'min(300px, calc(100vw - 64px))',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: loud ? 0 : 8,
-          fontFamily: 'var(--font-geist)',
-          fontWeight: loud ? 500 : 400,
-          fontSize: baseSize,
-          lineHeight: loud ? 0.84 : 1.5,
-          letterSpacing: loud ? '-0.03em' : 0,
-          color: loud ? '#F4F7FF' : 'rgba(255,255,255,0.82)',
-        }}
-      >
-        {lines.map((line, li) => (
-          <div
-            key={li}
-            style={{
-              display: 'flex',
-              justifyContent: loud ? 'flex-start' : 'space-between',
-              gap: loud ? '0.28em' : 6,
-              alignSelf: loud ? (['flex-start', 'flex-end', 'center'] as const)[(li * 7 + 1) % 3] : 'stretch',
-              marginLeft: loud ? `${((li * 37) % 9) - 4}%` : 0,
-              marginTop: loud ? '-0.06em' : 0,
-            }}
-          >
+      <div style={{ width: 'min(400px, calc(100vw - 48px))', display: 'flex', flexDirection: 'column', gap: 10, fontFamily: 'var(--font-geist)', lineHeight: 1.45 }}>
+        {POEM.map((line, li) => (
+          <div key={li} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0 8px', fontSize: POEM_STYLE[li].size, color: POEM_STYLE[li].color }}>
             {line.split(' ').map((w, wi) => {
               const i = ++k;
               return (
@@ -684,15 +666,9 @@ function EmptyPoem({ onStir, loud }: { onStir: (s: Stir[]) => void; loud: boolea
                   }}
                   style={{ display: 'inline-block', cursor: 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', willChange: 'transform', pointerEvents: 'auto' }}
                 >
-                  {w.split('').map((ch, ci) => {
-                    // the loud setting keeps about a third of its letters in italic serif from the start
-                    const it = loud && (ci * 5 + wi * 3 + li * 2) % 3 === 0;
-                    return (
-                      <span key={ci} data-s={it ? '1' : '0'} style={it ? { fontFamily: SERIF, fontStyle: 'italic' } : undefined}>
-                        {ch}
-                      </span>
-                    );
-                  })}
+                  {w.split('').map((ch, ci) => (
+                    <span key={ci}>{ch}</span>
+                  ))}
                 </span>
               );
             })}
@@ -2409,7 +2385,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} loud={new URLSearchParams(window.location.search).get('poem') === 'loud'} /></div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
