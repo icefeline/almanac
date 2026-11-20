@@ -2,9 +2,11 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import BackgroundCanvas, { BG_STYLES, type BgStyle } from './BackgroundCanvas';
 import { rememberDream } from '../lib/dreams';
+import { ditherCover } from '../lib/ditherTransition';
+import { BACKDROPS } from '../lib/backdrops';
 
 /**
  * Ported from the Claude Design canvas `Dream Interpreter v3.dc.html`.
@@ -398,6 +400,7 @@ export default function DreamInterpreter() {
 
   // the map lives at /map on the milky address and /dreams/map everywhere else
   const pathname = usePathname();
+  const router = useRouter();
   const mapHref = pathname?.startsWith('/dreams') ? '/dreams/map' : '/map';
   const onRead = view === 'read';
   const q = query.trim().toLowerCase();
@@ -527,18 +530,40 @@ export default function DreamInterpreter() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 16 }}>
           <div style={{ display: 'flex', gap: 22, fontFamily: 'var(--font-geist)', fontSize: 13, letterSpacing: 0, textTransform: 'none' }}>
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setView('read')}
               onClick={() => setView('read')}
               style={{ cursor: 'pointer', borderBottom: `1px solid ${onRead ? '#FFFFFF' : 'transparent'}`, paddingBottom: 2 }}
             >
               interpret
             </div>
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setView('index')}
               onClick={() => setView('index')}
               style={{ cursor: 'pointer', borderBottom: `1px solid ${onRead ? 'transparent' : '#FFFFFF'}`, paddingBottom: 2 }}
             >
               index
             </div>
-            <Link href={mapHref} style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}>
+            <Link
+              href={mapHref}
+              onClick={(e) => {
+                // a plain click is dithered into the map; a new-tab or modified click goes the ordinary way
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                // the map's sky is chosen now, so the page can dither into its real colours and the map can open under the same one
+                const sky = BACKDROPS[Math.floor(Math.random() * BACKDROPS.length)];
+                try {
+                  sessionStorage.setItem('milky.nextSky', sky.id);
+                } catch {
+                  /* the map will choose its own */
+                }
+                ditherCover(sky.bg, { palette: sky.palette, tint: sky.tint }, () => router.push(mapHref));
+              }}
+              style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}
+            >
               map
             </Link>
           </div>
@@ -619,6 +644,9 @@ export default function DreamInterpreter() {
                 {loading ? 'hold on' : 'cmd + enter'}
               </div>
               <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && submit()}
                 onClick={submit}
                 className="di-submit"
                 style={{
@@ -702,6 +730,9 @@ export default function DreamInterpreter() {
 
                 {(reading.lenses.length > 0 || !!reading.recurring) && (
                   <div
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setDeeper((d) => !d)}
                     onClick={() => setDeeper((d) => !d)}
                     style={{ ...navFont, cursor: 'pointer', color: YELLOW, alignSelf: 'flex-start', borderBottom: `1px solid ${YELLOW}`, paddingBottom: 2 }}
                   >
@@ -760,7 +791,7 @@ export default function DreamInterpreter() {
 
                 {reading.actions.length > 0 && <ActionsSpread actions={reading.actions} />}
 
-                <div onClick={reset} style={{ cursor: 'pointer', alignSelf: 'flex-end', fontSize: 14 }}>
+                <div role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && reset()} onClick={reset} style={{ cursor: 'pointer', alignSelf: 'flex-end', fontSize: 14 }}>
                   new dream →
                 </div>
               </div>
@@ -835,7 +866,7 @@ export default function DreamInterpreter() {
 
         {(!onRead || !!reading) && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, paddingTop: 24 }}>
-            <div onClick={toggleView} style={{ cursor: 'pointer', fontSize: 14, marginLeft: 'auto' }}>
+            <div role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleView()} onClick={toggleView} style={{ cursor: 'pointer', fontSize: 14, marginLeft: 'auto' }}>
               {onRead ? 'index →' : 'interpret →'}
             </div>
           </div>

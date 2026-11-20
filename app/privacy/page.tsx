@@ -129,10 +129,11 @@ const sections: LegalSection[] = [
           </li>
           <li>
             The dream map, at milky.slowww.garden/map, shows what your browser remembers: your dreams, their readings,
-            the patterns found between them and which night sky you chose. To find those patterns it sends your
+            the patterns found between them and whether you turned the constellations on. To find those patterns it sends your
             remembered dreams together, the latest forty, to our server and on to Anthropic in a single request, and
             keeps the result in your browser. Nothing else goes with them. Until you have interpreted dreams of your
-            own, the map shows made-up sample dreams, labelled as samples, and nothing is sent for those.
+            own, the map is empty. If you ask to see a sample sky, it shows made-up sample dreams, labelled as
+            samples, and nothing is sent for those.
           </li>
           <li>
             To forget a dream, open it on the map and choose delete, or clear this site&apos;s data in your browser. That

@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
+import { ditherReveal } from '../lib/ditherTransition';
+import { BACKDROPS, INK, NEBULA, PX, YELLOW, type Backdrop } from '../lib/backdrops';
+import { SAMPLES, loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
 import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
 import { RAD, drawSky, loadFigures, loadPlanets, loadSky, moonPhase, type SkyData } from '../lib/sky';
 
@@ -16,183 +18,11 @@ import { RAD, drawSky, loadFigures, loadPlanets, loadSky, moonPhase, type SkyDat
  * - Behind it all: ~5,000 real stars and the constellation lines. Panning the map turns the sky.
  */
 
-const YELLOW = '#F3F35C';
 const GOLD = '#FFD98A';
 const ICE = '#A8E3EE';
 const LINE_COLS = ['#A8E3EE', '#FFD98A', '#FF9B7A', '#7FE0C8', '#B7C8FF', '#FFB3D9']; // one colour per pattern thread
-const INK = '#060A15';
 const DEEP_K = 4.5; // zoom level that counts as "all the way in"
 
-/** Nebula hues, one per dream: [core, mid, edge]. */
-const NEBULA: [string, string, string][] = [
-  ['#FFF3D9', '#FF9B7A', '#D6336C'],
-  ['#E6FFFB', '#5CD9D0', '#1B7FA6'],
-  ['#FFF6D6', '#FFC85C', '#E0662B'],
-  ['#EAF2FF', '#6FA3FF', '#2B3FB5'],
-  ['#FFE9F2', '#FF7EB0', '#B02A5E'],
-];
-
-/** A backdrop is a whole night: the glow behind everything, the colours of the dreams, how the stars and stipple look. */
-interface Backdrop {
-  id: string;
-  name: string;
-  bg: string;
-  palette: [string, string, string][];
-  starBright: number;
-  starSize: number;
-  magLimit: number;
-  tint: string; // the colour of the drifting stipple
-  accent: string; // flecks and chunky dots
-  stipple: number; // how strong the stipple is
-  swatch: string;
-}
-const BACKDROPS: Backdrop[] = [
-  {
-    id: 'nebula',
-    name: 'nebula',
-    bg: `radial-gradient(ellipse at 22% 18%, rgba(20,56,196,0.78), transparent 58%), radial-gradient(ellipse at 85% 80%, rgba(210,70,110,0.3), transparent 48%), radial-gradient(ellipse at 70% 15%, rgba(20,150,165,0.28), transparent 45%), radial-gradient(ellipse at 15% 88%, rgba(235,140,50,0.2), transparent 45%), ${INK}`,
-    palette: NEBULA,
-    starBright: 1,
-    starSize: 1,
-    magLimit: 6.2,
-    tint: '#EAF2FF',
-    accent: YELLOW,
-    stipple: 1,
-    swatch: 'linear-gradient(135deg,#1B7FA6,#D6336C,#E0662B)',
-  },
-  {
-    id: 'deep',
-    name: 'deep night',
-    bg: 'radial-gradient(ellipse at 25% 15%, rgba(24,44,120,0.35), transparent 55%), radial-gradient(ellipse at 80% 90%, rgba(20,30,70,0.3), transparent 50%), #02030A',
-    palette: [['#F2F6FF', '#8FB0FF', '#2B3FB5'], ['#EAF2FF', '#9FB8E8', '#3A4A80'], ['#FFF6E0', '#E3C27A', '#7A5A22'], ['#E6FFFB', '#7FD0C8', '#1B5F78'], ['#FFF1F6', '#D49AB8', '#6A2A50']],
-    starBright: 1.45,
-    starSize: 1.15,
-    magLimit: 6.2,
-    tint: '#CFE0FF',
-    accent: '#BFD2FF',
-    stipple: 0.55,
-    swatch: 'linear-gradient(135deg,#02030A,#18307A)',
-  },
-  {
-    id: 'starry',
-    name: 'starry',
-    bg: 'linear-gradient(112deg, transparent 26%, rgba(170,185,255,0.10) 41%, rgba(255,238,215,0.22) 50%, rgba(170,185,255,0.10) 59%, transparent 74%), radial-gradient(ellipse at 20% 15%, rgba(40,60,160,0.5), transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(30,90,140,0.35), transparent 50%), #060A22',
-    palette: [['#FFFBEA', '#FFD98A', '#C9831E'], ['#FFFFFF', '#BFD6FF', '#4A63B8'], ['#FFF4D6', '#FFB870', '#B24A1A'], ['#F2FFFB', '#9EE6D6', '#2C7A74'], ['#FFF0F0', '#FFB3A6', '#A8402E']],
-    starBright: 1.9,
-    starSize: 1.4,
-    magLimit: 6.5,
-    tint: '#FFF6E0',
-    accent: '#FFE9A8',
-    stipple: 0.8,
-    swatch: 'linear-gradient(135deg,#060A22,#FFE9A8)',
-  },
-  {
-    id: 'cobalt',
-    name: 'cobalt',
-    bg: 'radial-gradient(ellipse at 50% 0%, rgba(80,120,255,0.55), transparent 62%), radial-gradient(ellipse at 20% 100%, rgba(10,20,140,0.6), transparent 55%), #1A2FD4',
-    palette: [['#FFFFFF', '#E4ECFF', '#8FA6FF'], ['#FFFFE6', '#F3F35C', '#B8B214'], ['#FFFFFF', '#CFE0FF', '#5C7DFF'], ['#FFFDE0', '#FFF07A', '#C9A91A'], ['#F5F8FF', '#BDD0FF', '#3B5CE8']],
-    starBright: 1.1,
-    starSize: 1,
-    magLimit: 5.6,
-    tint: '#FFFFFF',
-    accent: YELLOW,
-    stipple: 1.7,
-    swatch: 'linear-gradient(135deg,#1A2FD4,#F3F35C)',
-  },
-  {
-    id: 'ember',
-    name: 'ember',
-    bg: 'radial-gradient(ellipse at 20% 20%, rgba(255,90,40,0.38), transparent 55%), radial-gradient(ellipse at 85% 80%, rgba(190,30,60,0.36), transparent 50%), radial-gradient(ellipse at 60% 10%, rgba(255,170,60,0.2), transparent 45%), #0C0507',
-    palette: [['#FFF1D6', '#FF9B5C', '#C2381A'], ['#FFE9D9', '#FF7A5C', '#A52424'], ['#FFF6D6', '#FFC85C', '#D4631A'], ['#FFE8EC', '#FF8FA3', '#9C2A48'], ['#FFF3E0', '#FFB070', '#8A3A14']],
-    starBright: 1.1,
-    starSize: 1,
-    magLimit: 6.1,
-    tint: '#FFE9D6',
-    accent: '#FFB45C',
-    stipple: 1,
-    swatch: 'linear-gradient(135deg,#C2381A,#FFC85C)',
-  },
-  {
-    id: 'aurora',
-    name: 'aurora',
-    bg: 'radial-gradient(ellipse at 25% 20%, rgba(20,170,140,0.4), transparent 55%), radial-gradient(ellipse at 80% 15%, rgba(40,110,200,0.35), transparent 50%), radial-gradient(ellipse at 60% 95%, rgba(30,160,90,0.28), transparent 50%), #03100E',
-    palette: [['#EAFFF6', '#5CE6B4', '#14806A'], ['#E6FBFF', '#5CC8E6', '#1B6AA6'], ['#F2FFE8', '#B6F06A', '#3F8A1C'], ['#E6FFFB', '#7FF0D8', '#1F7A80'], ['#F0FFFB', '#8FD9FF', '#2A5FA0']],
-    starBright: 1.15,
-    starSize: 1.05,
-    magLimit: 6.2,
-    tint: '#E6FFF6',
-    accent: '#9FF2D0',
-    stipple: 0.9,
-    swatch: 'linear-gradient(135deg,#14806A,#5CC8E6)',
-  },
-  // the next two are taken from NASA's own pictures: the cosmic cliffs (webb) and the pillars of creation (hubble)
-  {
-    id: 'cliffs',
-    name: 'cosmic cliffs',
-    bg: `radial-gradient(ellipse at 50% 8%, rgba(30,100,230,0.78), transparent 62%), radial-gradient(ellipse at 12% 22%, rgba(16,52,160,0.6), transparent 50%), radial-gradient(ellipse at 78% 100%, rgba(236,150,50,0.62), transparent 62%), radial-gradient(ellipse at 20% 96%, rgba(190,80,34,0.55), transparent 55%), radial-gradient(ellipse at 52% 70%, rgba(150,60,36,0.3), transparent 55%), ${INK}`,
-    palette: [['#FFF1D6', '#F4B35C', '#B2531F'], ['#FFE2C2', '#E08A3E', '#8A3A1A'], ['#E8F1FF', '#6FA2F2', '#2250B8'], ['#FFD9A8', '#D9722F', '#7A2E18'], ['#F4F8FF', '#9CC0FF', '#3B6FD6']],
-    starBright: 1.35,
-    starSize: 1.15,
-    magLimit: 6.3,
-    tint: '#FFF0DA',
-    accent: '#F7B955',
-    stipple: 1,
-    swatch: 'linear-gradient(180deg,#2250B8,#6FA2F2 42%,#E08A3E 60%,#B2531F)',
-  },
-  {
-    id: 'pillars',
-    name: 'pillars of creation',
-    bg: `radial-gradient(ellipse at 60% 30%, rgba(34,128,170,0.72), transparent 66%), radial-gradient(ellipse at 90% 55%, rgba(24,80,150,0.55), transparent 55%), radial-gradient(ellipse at 6% 4%, rgba(70,60,110,0.34), transparent 45%), radial-gradient(ellipse at 14% 100%, rgba(176,138,40,0.55), transparent 55%), radial-gradient(ellipse at 52% 92%, rgba(150,70,34,0.42), transparent 50%), ${INK}`,
-    palette: [['#E6FBFF', '#5CC0D2', '#1F6E8E'], ['#FFF0CF', '#D9A84A', '#7A4A1C'], ['#DDEEFF', '#6C9CD8', '#2C5894'], ['#FFE2C4', '#C77A44', '#6A2E1A'], ['#EAFFF2', '#8FD0A8', '#2E7A66']],
-    starBright: 1.3,
-    starSize: 1.1,
-    magLimit: 6.3,
-    tint: '#E4F4FA',
-    accent: '#E8C25E',
-    stipple: 1,
-    swatch: 'linear-gradient(180deg,#1F6E8E,#5CC0D2 45%,#C77A44 80%,#B08A28)',
-  },
-  // from the Hubble 25th anniversary images: the crab nebula, cassiopeia a and stephan's quintet
-  {
-    id: 'crab',
-    name: 'crab nebula',
-    bg: `radial-gradient(ellipse at 52% 46%, rgba(70,200,230,0.58), transparent 50%), radial-gradient(ellipse at 84% 22%, rgba(232,112,50,0.5), transparent 54%), radial-gradient(ellipse at 18% 80%, rgba(130,176,70,0.4), transparent 52%), radial-gradient(ellipse at 8% 16%, rgba(190,82,40,0.32), transparent 46%), radial-gradient(ellipse at 90% 90%, rgba(210,100,50,0.28), transparent 44%), ${INK}`,
-    palette: [['#E6FFFF', '#58D0E8', '#1F7EA6'], ['#FFF0D8', '#F08A44', '#A8401E'], ['#F2FFD8', '#B6D86A', '#5E8A2A'], ['#FFE2C4', '#E0703A', '#8A2E18'], ['#EAFFF6', '#7FE4D0', '#2A8A86']],
-    starBright: 1.25,
-    starSize: 1.1,
-    magLimit: 6.2,
-    tint: '#E4F8FF',
-    accent: '#F0A25A',
-    stipple: 1,
-    swatch: 'radial-gradient(circle,#58D0E8 0 30%,#B6D86A 45%,#F08A44 75%,#8A2E18)',
-  },
-  {
-    id: 'cassiopeia',
-    name: 'cassiopeia a',
-    bg: `radial-gradient(ellipse at 48% 38%, rgba(226,124,124,0.36), transparent 52%), radial-gradient(ellipse at 72% 74%, rgba(234,180,94,0.32), transparent 52%), radial-gradient(ellipse at 20% 68%, rgba(196,94,104,0.26), transparent 50%), radial-gradient(ellipse at 40% 8%, rgba(52,112,84,0.34), transparent 52%), #07060A`,
-    palette: [['#FFEFE8', '#F2A8A8', '#9A4650'], ['#FFF3D6', '#EBC070', '#9A6A28'], ['#EAFFF0', '#7FC8A0', '#2E7A5A'], ['#FFE6DC', '#E58A86', '#8A3A40'], ['#FFF8EA', '#F4D9A0', '#B07A3A']],
-    starBright: 1.45,
-    starSize: 1.2,
-    magLimit: 6.4,
-    tint: '#FFF0E6',
-    accent: '#EBC070',
-    stipple: 0.9,
-    swatch: 'linear-gradient(135deg,#07060A,#9A4650 40%,#F2A8A8 62%,#EBC070)',
-  },
-  {
-    id: 'quintet',
-    name: 'stephan’s quintet',
-    bg: `radial-gradient(ellipse at 28% 26%, rgba(110,172,214,0.5), transparent 50%), radial-gradient(ellipse at 76% 22%, rgba(238,172,100,0.46), transparent 48%), radial-gradient(ellipse at 62% 62%, rgba(248,194,124,0.5), transparent 52%), radial-gradient(ellipse at 22% 92%, rgba(242,162,72,0.4), transparent 44%), ${INK}`,
-    palette: [['#EAF6FF', '#7DB8E0', '#2E6A9A'], ['#FFF3DE', '#F4C27C', '#B0662A'], ['#FFE9D0', '#EBA45E', '#8A4A1E'], ['#F2F8FF', '#A8D0F0', '#4A82B8'], ['#FFF8EC', '#F8DBA8', '#C98A44']],
-    starBright: 1.3,
-    starSize: 1.15,
-    magLimit: 6.3,
-    tint: '#FFF2E2',
-    accent: '#F4C27C',
-    stipple: 1,
-    swatch: 'linear-gradient(135deg,#2E6A9A,#7DB8E0 35%,#F4C27C 65%,#B0662A)',
-  },
-];
 
 type Sel =
   | { kind: 'dream'; id: string }
@@ -379,20 +209,6 @@ function inkPathFull(ax: number, ay: number, bx: number, by: number, seed: numbe
 
 const sentences = (t: string): string[] => (t.match(/[^.!?]+[.!?]+["”)]*|\S[^.!?]*$/g) ?? [t]).map((x) => x.trim()).filter(Boolean);
 
-/** The three colours of each backdrop, used to draw its pixel-art swatch. */
-const PX: Record<string, [string, string, string]> = {
-  nebula: ['#1B7FA6', '#D6336C', '#E0662B'],
-  deep: ['#02030A', '#18307A', '#8FB0FF'],
-  starry: ['#060A22', '#FFE9A8', '#BFD6FF'],
-  cobalt: ['#1A2FD4', '#F3F35C', '#FFFFFF'],
-  ember: ['#C2381A', '#FF7A5C', '#FFC85C'],
-  aurora: ['#14806A', '#5CC8E6', '#B6F06A'],
-  cliffs: ['#2250B8', '#6FA2F2', '#E08A3E'],
-  pillars: ['#1F6E8E', '#5CC0D2', '#C77A44'],
-  crab: ['#1F7EA6', '#58D0E8', '#F08A44'],
-  cassiopeia: ['#9A4650', '#F2A8A8', '#EBC070'],
-  quintet: ['#2E6A9A', '#7DB8E0', '#F4C27C'],
-};
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
 /** A tiny dithered circle in a backdrop's colours: the night sky, pixelated. */
@@ -515,7 +331,8 @@ type Letter = {
   locked: boolean;
   anchor: boolean; // the last letters of the poem can always be taken hold of
   shown: boolean; // is it showing as pulled (serif italic)
-  dith: number; // how far the letter has broken into dither dots, 0 whole to 1 mostly dots
+  dith: number; // how far the letter has broken into dither dots, 0 whole to 1 mostly dots, a little over 1 not there at all
+  delay: number; // when, within the arrival, this letter's turn comes
   grab: boolean; // can it be taken hold of
 };
 function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull' | 'wave' }) {
@@ -525,6 +342,12 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
   const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
   const raf = useRef(0);
   const pointer = useRef({ x: -9999, y: -9999 });
+  // when the map is dithered into, the poem is held back and then arrives letter by letter as the sky lifts
+  const holding = useRef(false);
+  const arrive = useRef<{ t0: number } | null>(null);
+  const arrivedOnce = useRef(false);
+  const arrivalGo = useRef<(() => void) | null>(null);
+  const arrivalTimer = useRef(0);
   const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   // The physics follows the typestring sketch: every letter is a point on one string that snakes through the poem (every other line
@@ -685,12 +508,32 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
     }
   };
 
+  /** How far a letter has broken into dither dots: 0 whole, 1 mostly dots, a little past 1 gone. */
+  const applyDith = (l: Letter, amt: number) => {
+    l.dith = amt;
+    if (amt < 0.05) {
+      l.el.style.maskImage = '';
+      l.el.style.webkitMaskImage = '';
+      l.el.style.opacity = '';
+    } else {
+      const edge = Math.max(0, 100 - amt * 74);
+      const m = `radial-gradient(circle at 50% 50%, #000 ${edge.toFixed(0)}%, transparent ${(edge + 7).toFixed(0)}%)`;
+      l.el.style.maskImage = m;
+      l.el.style.webkitMaskImage = m;
+      l.el.style.maskSize = '4px 4px';
+      l.el.style.webkitMaskSize = '4px 4px';
+      l.el.style.opacity = amt > 1 ? String(Math.max(0, 1 - (amt - 1) * 2.8)) : '';
+    }
+  };
+
   const frame = useRef<(now: number) => void>(() => {});
   const last = useRef(-1);
   const acc = useRef(0);
   frame.current = (now: number) => {
     const m = sim.current;
     if (!m) return;
+    const tNow = performance.now();
+    if (arrive.current && tNow - arrive.current.t0 > 1500) arrive.current = null; // every letter has arrived
     if (last.current < 0) last.current = now;
     const dt = mode === 'wave' ? 1 / 60 : 1 / 120;
     acc.current += Math.min((now - last.current) / 1000, 4 * dt);
@@ -724,24 +567,15 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
         l.el.style.fontFamily = on ? SERIF : '';
         l.el.style.fontStyle = on ? 'italic' : '';
       }
-      // as the pointer swims through the words, the letters break into the same dither dots as the sky behind, and re-form as they settle
-      if (mode === 'wave') {
-        const amt = clamp(Math.max(off / 70, sp / 5), 0, 1);
-        if (Math.abs(amt - l.dith) > 0.03 || (amt === 0 && l.dith !== 0)) {
-          l.dith = amt;
-          if (amt < 0.05) {
-            l.el.style.maskImage = '';
-            l.el.style.webkitMaskImage = '';
-          } else {
-            const edge = 100 - amt * 74;
-            const m = `radial-gradient(circle at 50% 50%, #000 ${edge.toFixed(0)}%, transparent ${(edge + 7).toFixed(0)}%)`;
-            l.el.style.maskImage = m;
-            l.el.style.webkitMaskImage = m;
-            l.el.style.maskSize = '4px 4px';
-            l.el.style.webkitMaskSize = '4px 4px';
-          }
-        }
+      // the letters break into dither dots as the pointer swims through them, and re-form as they settle; and arrive out of dots
+      let amt = mode === 'wave' ? clamp(Math.max(off / 70, sp / 5), 0, 1) : 0;
+      if (holding.current) amt = 1.35; // not there yet
+      else if (arrive.current) {
+        const r = clamp((tNow - arrive.current.t0 - l.delay) / 700, 0, 1);
+        amt = Math.max(amt, (1 - r * r * (3 - 2 * r)) * 1.35);
+        if (r < 1) active = true;
       }
+      if (Math.abs(amt - l.dith) > 0.03 || (amt === 0 && l.dith !== 0)) applyDith(l, amt);
       if (!l.locked && (off > 0.3 || sp > 0.05)) active = true;
       // in the wave setting the loop stays awake while the pointer is near the words, so the first touch has something to push
       if (mode === 'wave' && Math.hypot(l.x - pointer.current.x, l.y - pointer.current.y) < 220) active = true;
@@ -808,7 +642,7 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
       const r = el.getBoundingClientRect();
       const cx = r.x + r.width / 2;
       const cy = r.y + r.height / 2;
-      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, dith: 0, grab: false };
+      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, dith: 0, delay: 0, grab: false };
     });
     const lines: number[][] = [];
     els.forEach((el, i) => {
@@ -831,6 +665,29 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
       l.el.style.cursor = l.grab ? 'grab' : '';
     });
     sim.current = { S, rest, byIdx, drags: new Map(), running: false };
+    // arriving through the dither from the interpreter: stay out of sight until the sky starts to lift, then dither in with it
+    // (this can run twice in development, so it picks the hold back up rather than assuming it is the first time)
+    if (!reduce && (holding.current || (!arrivedOnce.current && document.getElementById('milky-dither')))) {
+      arrivedOnce.current = true;
+      holding.current = true;
+      S.forEach((l) => {
+        l.delay = Math.random() * 650;
+        applyDith(l, 1.35);
+      });
+      if (arrivalGo.current) window.removeEventListener('milky-dither-reveal', arrivalGo.current);
+      window.clearTimeout(arrivalTimer.current);
+      const go = () => {
+        window.removeEventListener('milky-dither-reveal', go);
+        window.clearTimeout(arrivalTimer.current);
+        arrivalGo.current = null;
+        holding.current = false;
+        arrive.current = { t0: performance.now() };
+        wake();
+      };
+      arrivalGo.current = go;
+      window.addEventListener('milky-dither-reveal', go);
+      arrivalTimer.current = window.setTimeout(go, 3000); // if the sky never signals, don't leave the poem hidden
+    }
   }, [mode]);
 
   useEffect(() => {
@@ -874,6 +731,8 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
     return () => {
       alive = false;
       cancelAnimationFrame(raf.current);
+      if (arrivalGo.current) window.removeEventListener('milky-dither-reveal', arrivalGo.current);
+      window.clearTimeout(arrivalTimer.current);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onHover);
       document.removeEventListener('mouseleave', onLeave);
@@ -1023,9 +882,23 @@ export default function DreamMap() {
     const st = process.env.NODE_ENV === 'production' ? 0 : Number(new URLSearchParams(window.location.search).get('stress')); // the test crowd is for development only
     stressRef.current = st > 0;
     setDreams(st > 0 ? stressDreams(st) : loadDreams());
+    // every visit opens under a different night sky; the button still moves through the rest
+    let promised: string | null = null;
     try {
-      const v = localStorage.getItem('milky.backdrop');
-      if (v && BACKDROPS.some((b) => b.id === v)) setSkyId(v);
+      promised = sessionStorage.getItem('milky.nextSky'); // the page before chose it, so its dither already wore these colours
+      // cleared a moment later, not at once: React runs this effect twice in development, and a reload should choose afresh
+      window.setTimeout(() => {
+        try {
+          sessionStorage.removeItem('milky.nextSky');
+        } catch {
+          /* nothing to clear */
+        }
+      }, 4000);
+    } catch {
+      /* choose one below */
+    }
+    setSkyId((BACKDROPS.find((b) => b.id === promised) ?? BACKDROPS[Math.floor(Math.random() * BACKDROPS.length)]).id);
+    try {
       if (localStorage.getItem('milky.constellations') === '1') setConsOn(true);
     } catch {
       /* the default backdrop is fine */
@@ -1033,14 +906,47 @@ export default function DreamMap() {
     setReady(true);
     reduceRef.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   }, []);
+  // Text that scrolls fades out at the edge it is scrolling away from, instead of being cut off sharply: the fade is as long as the
+  // distance scrolled (up to a limit), so it is absent at the very top and grows as you scroll, and its shape is eased at both ends so
+  // there is no visible start or stop to it. Works on every [data-scroll] panel.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const FADE = 100;
+    const soft = (t: number) => t * t * t * (t * (t * 6 - 15) + 10); // smootherstep: no kink at either end
+    const seen = new WeakSet<Element>();
+    const refresh = (el: HTMLElement) => {
+      // the fade itself eases in as scrolling begins, so it grows rather than switching on
+      const top = FADE * soft(Math.max(0, Math.min(1, el.scrollTop / FADE)));
+      const bot = FADE * soft(Math.max(0, Math.min(1, (el.scrollHeight - el.clientHeight - el.scrollTop) / FADE)));
+      el.style.setProperty('--ft', top.toFixed(1) + 'px');
+      el.style.setProperty('--fb', bot.toFixed(1) + 'px');
+    };
+    const scan = () => {
+      root.querySelectorAll<HTMLElement>('[data-scroll]').forEach((el) => {
+        if (!seen.has(el)) {
+          seen.add(el);
+          el.addEventListener('scroll', () => refresh(el), { passive: true });
+        }
+        refresh(el);
+      });
+    };
+    scan();
+    const mo = new MutationObserver(scan);
+    mo.observe(root, { childList: true, subtree: true });
+    window.addEventListener('resize', scan);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener('resize', scan);
+    };
+  }, []);
+
+  // the way in is a dither wipe from the page before; take it down once the map is up (and its stars, or after a moment)
   useEffect(() => {
     if (!ready) return;
-    try {
-      localStorage.setItem('milky.backdrop', skyId);
-    } catch {
-      /* optional */
-    }
-  }, [skyId, ready]);
+    const t = window.setTimeout(ditherReveal, skyReady ? 80 : 1500);
+    return () => window.clearTimeout(t);
+  }, [ready, skyReady]);
   useEffect(() => {
     consRef.current = consOn;
     if (!ready) return;
@@ -2569,14 +2475,16 @@ export default function DreamMap() {
             );
           })}
 
+        <style>{`@property --ft{syntax:'<length>';inherits:false;initial-value:0px}@property --fb{syntax:'<length>';inherits:false;initial-value:0px}[data-scroll]{-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0.000) calc(var(--ft,0px) * 0.0000),rgba(0,0,0,0.002) calc(var(--ft,0px) * 0.0625),rgba(0,0,0,0.016) calc(var(--ft,0px) * 0.1250),rgba(0,0,0,0.049) calc(var(--ft,0px) * 0.1875),rgba(0,0,0,0.104) calc(var(--ft,0px) * 0.2500),rgba(0,0,0,0.180) calc(var(--ft,0px) * 0.3125),rgba(0,0,0,0.275) calc(var(--ft,0px) * 0.3750),rgba(0,0,0,0.384) calc(var(--ft,0px) * 0.4375),rgba(0,0,0,0.500) calc(var(--ft,0px) * 0.5000),rgba(0,0,0,0.616) calc(var(--ft,0px) * 0.5625),rgba(0,0,0,0.725) calc(var(--ft,0px) * 0.6250),rgba(0,0,0,0.820) calc(var(--ft,0px) * 0.6875),rgba(0,0,0,0.896) calc(var(--ft,0px) * 0.7500),rgba(0,0,0,0.951) calc(var(--ft,0px) * 0.8125),rgba(0,0,0,0.984) calc(var(--ft,0px) * 0.8750),rgba(0,0,0,0.998) calc(var(--ft,0px) * 0.9375),rgba(0,0,0,1.000) calc(var(--ft,0px) * 1.0000),rgba(0,0,0,1.000) calc(100% - var(--fb,0px) * 1.0000),rgba(0,0,0,0.998) calc(100% - var(--fb,0px) * 0.9375),rgba(0,0,0,0.984) calc(100% - var(--fb,0px) * 0.8750),rgba(0,0,0,0.951) calc(100% - var(--fb,0px) * 0.8125),rgba(0,0,0,0.896) calc(100% - var(--fb,0px) * 0.7500),rgba(0,0,0,0.820) calc(100% - var(--fb,0px) * 0.6875),rgba(0,0,0,0.725) calc(100% - var(--fb,0px) * 0.6250),rgba(0,0,0,0.616) calc(100% - var(--fb,0px) * 0.5625),rgba(0,0,0,0.500) calc(100% - var(--fb,0px) * 0.5000),rgba(0,0,0,0.384) calc(100% - var(--fb,0px) * 0.4375),rgba(0,0,0,0.275) calc(100% - var(--fb,0px) * 0.3750),rgba(0,0,0,0.180) calc(100% - var(--fb,0px) * 0.3125),rgba(0,0,0,0.104) calc(100% - var(--fb,0px) * 0.2500),rgba(0,0,0,0.049) calc(100% - var(--fb,0px) * 0.1875),rgba(0,0,0,0.016) calc(100% - var(--fb,0px) * 0.1250),rgba(0,0,0,0.002) calc(100% - var(--fb,0px) * 0.0625),rgba(0,0,0,0.000) calc(100% - var(--fb,0px) * 0.0000));mask-image:linear-gradient(to bottom,rgba(0,0,0,0.000) calc(var(--ft,0px) * 0.0000),rgba(0,0,0,0.002) calc(var(--ft,0px) * 0.0625),rgba(0,0,0,0.016) calc(var(--ft,0px) * 0.1250),rgba(0,0,0,0.049) calc(var(--ft,0px) * 0.1875),rgba(0,0,0,0.104) calc(var(--ft,0px) * 0.2500),rgba(0,0,0,0.180) calc(var(--ft,0px) * 0.3125),rgba(0,0,0,0.275) calc(var(--ft,0px) * 0.3750),rgba(0,0,0,0.384) calc(var(--ft,0px) * 0.4375),rgba(0,0,0,0.500) calc(var(--ft,0px) * 0.5000),rgba(0,0,0,0.616) calc(var(--ft,0px) * 0.5625),rgba(0,0,0,0.725) calc(var(--ft,0px) * 0.6250),rgba(0,0,0,0.820) calc(var(--ft,0px) * 0.6875),rgba(0,0,0,0.896) calc(var(--ft,0px) * 0.7500),rgba(0,0,0,0.951) calc(var(--ft,0px) * 0.8125),rgba(0,0,0,0.984) calc(var(--ft,0px) * 0.8750),rgba(0,0,0,0.998) calc(var(--ft,0px) * 0.9375),rgba(0,0,0,1.000) calc(var(--ft,0px) * 1.0000),rgba(0,0,0,1.000) calc(100% - var(--fb,0px) * 1.0000),rgba(0,0,0,0.998) calc(100% - var(--fb,0px) * 0.9375),rgba(0,0,0,0.984) calc(100% - var(--fb,0px) * 0.8750),rgba(0,0,0,0.951) calc(100% - var(--fb,0px) * 0.8125),rgba(0,0,0,0.896) calc(100% - var(--fb,0px) * 0.7500),rgba(0,0,0,0.820) calc(100% - var(--fb,0px) * 0.6875),rgba(0,0,0,0.725) calc(100% - var(--fb,0px) * 0.6250),rgba(0,0,0,0.616) calc(100% - var(--fb,0px) * 0.5625),rgba(0,0,0,0.500) calc(100% - var(--fb,0px) * 0.5000),rgba(0,0,0,0.384) calc(100% - var(--fb,0px) * 0.4375),rgba(0,0,0,0.275) calc(100% - var(--fb,0px) * 0.3750),rgba(0,0,0,0.180) calc(100% - var(--fb,0px) * 0.3125),rgba(0,0,0,0.104) calc(100% - var(--fb,0px) * 0.2500),rgba(0,0,0,0.049) calc(100% - var(--fb,0px) * 0.1875),rgba(0,0,0,0.016) calc(100% - var(--fb,0px) * 0.1250),rgba(0,0,0,0.002) calc(100% - var(--fb,0px) * 0.0625),rgba(0,0,0,0.000) calc(100% - var(--fb,0px) * 0.0000));transition:--ft 180ms ease-out,--fb 180ms ease-out}`}</style>
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
-            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none' }}>
+            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none', flex: 'none' }}>
               <PixelIcon name="back" />
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
+            {!narrow && skyReady && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>stars: Hipparcos via d3-celestial</span>}
             {skyStatus === 'reading' && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
             {skyStatus === 'error' && (
               <button style={bevelText()} onClick={retry}>
@@ -2586,34 +2494,32 @@ export default function DreamMap() {
           </div>
         </div>
 
-        {!narrow && !sel && (
-          <>
-            <div style={{ position: 'absolute', left: 20, top: '46%', ...corner }}>
-              {dreams.length} {dreams.length === 1 ? 'dream' : 'dreams'}<br />
-              {dates.length ? (dates[0] === dates[dates.length - 1] ? fmt(dates[0]) : `${fmt(dates[0])} to ${fmt(dates[dates.length - 1])}`) : ''}
-            </div>
-            <div style={{ position: 'absolute', right: 20, top: '46%', textAlign: 'right', ...corner }}>
-              {eff.patterns.length} {eff.patterns.length === 1 ? 'pattern' : 'patterns'}<br />
-              that come back
-            </div>
-          </>
-        )}
 
-        {!sel && (
-          <div style={{ position: 'absolute', left: 20, bottom: 24, ...hand, fontSize: 13, opacity: 0.6, pointerEvents: 'none', display: narrow ? 'none' : 'block' }}>
-            drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
+        {hasSamples && !sel && (
+          <div data-ui style={{ pointerEvents: 'auto', position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 26px)', width: 'max-content', maxWidth: 'calc(100vw - 150px)', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 14, lineHeight: 1.5, color: 'rgba(255,255,255,0.75)' }}>
+            made-up dreams to show you milky.{' '}
+            <button
+              onClick={() => {
+                setDreams((d) => d.filter((x) => !x.sample));
+                select(null);
+              }}
+              style={{ background: 'none', border: 0, padding: 0, color: 'rgba(255,255,255,0.95)', font: 'inherit', textDecoration: 'underline', textUnderlineOffset: 4 }}
+            >
+              clear them
+            </button>{' '}
+            and start dreaming.
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+        {!sel && (
+          <div style={{ position: 'absolute', left: 20, bottom: 24, ...hand, fontSize: 13, opacity: 0.6, pointerEvents: 'none', display: narrow ? 'none' : 'block' }}>
+            drag to pan, scroll to zoom
+          </div>
+        )}
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 24, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
           <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
           {menuOpen && (
             <>
-              {hasSamples && (
-                <button className="mm-btn" title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
-                  <PixelIcon name="eraser" />
-                </button>
-              )}
               <button className="mm-btn" title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
               <button className="mm-btn" title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
               <button className="mm-btn" title="constellations" aria-label={consOn ? 'hide the constellations' : 'show the constellations'} aria-pressed={consOn} style={bevel(consOn)} onClick={() => setConsOn((o) => !o)}><PixelIcon name="stars" /></button>
@@ -2651,13 +2557,25 @@ export default function DreamMap() {
             <PixelSky colors={PX[backdrop.id] ?? PX.nebula} />
           </button>
         </div>
-        {!narrow && (
-          <div style={{ position: 'absolute', right: 20, bottom: 24, textAlign: 'right', pointerEvents: 'none', fontFamily: 'var(--font-geist)' }}>
-            <div style={{ ...corner, fontSize: 13 }}>tonight’s moon: {moonNow.name}</div>
-            {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
+        {ready && dreams.length === 0 && (
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
+            <div style={{ display: 'grid', justifyItems: 'center', gap: 64 }}>
+              <style>{`@keyframes mmArrive{from{opacity:0}to{opacity:1}}`}</style>
+              <EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} />
+              {/* the poem is the first thing seen; a sample sky is there for anyone who wants to see what this becomes */}
+              <button
+                data-ui
+                onClick={() => {
+                  setDreams(SAMPLES);
+                  select(null);
+                }}
+                style={{ pointerEvents: 'auto', background: 'none', border: 0, padding: 0, color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-geist)', fontSize: 14, textDecoration: 'underline', textUnderlineOffset: 4, animation: typeof document !== 'undefined' && document.getElementById('milky-dither') ? 'mmArrive 1100ms ease 900ms both' : undefined }}
+              >
+                or let milky show you a sky of made-up dreams first
+              </button>
+            </div>
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
