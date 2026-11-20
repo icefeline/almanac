@@ -18,7 +18,11 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
   const [narrow, setNarrow] = useState(false);
   // milky.slowww.garden serves the dream page at '/', so the path alone can't say which app this is
   const [milkyHost, setMilkyHost] = useState(false);
-  useEffect(() => setMilkyHost(window.location.hostname.startsWith('milky.')), []);
+  const [loc, setLoc] = useState('');
+  useEffect(() => {
+    setMilkyHost(window.location.hostname.startsWith('milky.'));
+    setLoc(window.location.pathname);
+  }, [pathname]);
   useEffect(() => {
     const mq = window.matchMedia('(max-width:767px)');
     const on = () => setNarrow(mq.matches);
@@ -31,7 +35,8 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
   const onLegal = pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/reading');
   const onDreams = pathname.startsWith('/dreams') || milkyHost;
   // the dream map is a whole sky of its own: no about link and no pile of the other apps' icons on it
-  const onMap = pathname === '/dreams/map' || (milkyHost && pathname === '/map');
+  const isMapPath = (x: string) => /^\/(dreams\/)?map\/?$/.test(x);
+  const onMap = isMapPath(pathname) || isMapPath(loc);
   // the legal pages are plain documents: no menu, no charms. the home page mounts its own copy.
   if (onLegal || onMap || (pathname === '/' && !home && !milkyHost)) return null;
   return (

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
 import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
-import { RAD, drawSky, loadSky, moonPhase, type SkyData } from '../lib/sky';
+import { RAD, drawSky, loadLines, loadSky, moonPhase, type SkyData } from '../lib/sky';
 
 /**
  * /map: the sky of your dreams, over the real sky.
@@ -380,6 +380,7 @@ const ICONS: Record<string, string[]> = {
   minus: ['......K.........', '...KKKLKKK......', '..KLLLLLLLK.....', '.KLLWWLLLGGK....', '.KLWLLLLLLGK....', '.KLWLLLLLLGK....', 'KLLWKKKKKLGGK...', '.KLLLLLLLLGK....', '.KLLLLLLLLGK....', '.KLGLLLLLKKK....', '..KGGGGGGKbB....', '...KKKGKKKBbB...', '......K....BbB..', '............BbB.', '.............BbB', '..............BD'],
   fit: ['................', '................', '................', '..KKKK..KK..KK..', '..K.W.W.W.W.WK..', '...W.W.W.W.W....', '..K.W.W.W.W.WK..', '..KW.W.W.W.W.K..', '....W.W.W.W.W...', '...W.W.W.W.W....', '..K.W.W.W.W.WK..', '..KW.W.W.W.W.K..', '..KKKK..KK..KK..', '................', '................', '................'],
   sky: ['................', '................', '.....KK.........', '..W.KHHK........', '...KHOOK........', '..KHYOK.........', '.KHYYOK.........', '.KHYYOK.........', '.KHYYOK.........', '.KHYYYHK.....W..', '.KHYYYOHKKKKWWW.', '..KHYYYYHHHHKW..', '...KHYYYYYYK....', '....KHYYYYW.....', '.....KKKKK......', '................'],
+  stars: ['................', '................', '................', '.............KK.', '............KWYK', '............KYYK', '.......KK...KKK.', '......KWYK..K...', '......KYYK.K....', '.....K.KKKKK....', '...KK....KWYK...', '..KWYK...KYYK...', '..KYYK....KK....', '...KK...........', '................', '................'],
   menu: ['................', '................', '................', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '................', '................', '................'],
   close: ['................', '................', '................', '...KK.......KK..', '....KK.....KK...', '.....KK...KK....', '......KK.KK.....', '.......KKK......', '.......KKK......', '......KK.KK.....', '.....KK...KK....', '....KK.....KK...', '...KK.......KK..', '................', '................', '................'],
   back: ['................', '................', '................', '........KK......', '.......KK.......', '......KK........', '.....KK.........', '...KKKKKKKKKKK..', '...KKKKKKKKKKK..', '.....KK.........', '......KK........', '.......KK.......', '........KK......', '................', '................', '................'],
@@ -460,6 +461,8 @@ export default function DreamMap() {
   const [skyId, setSkyId] = useState('nebula');
   const [pressing, setPressing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [consOn, setConsOn] = useState(false);
+  const consRef = useRef(false);
   const [, setTick] = useState(0);
   const [size, setSize] = useState({ w: 900, h: 640 });
 
@@ -507,6 +510,7 @@ export default function DreamMap() {
     try {
       const v = localStorage.getItem('milky.backdrop');
       if (v && BACKDROPS.some((b) => b.id === v)) setSkyId(v);
+      if (localStorage.getItem('milky.constellations') === '1') setConsOn(true);
     } catch {
       /* the default backdrop is fine */
     }
@@ -521,6 +525,21 @@ export default function DreamMap() {
       /* optional */
     }
   }, [skyId, ready]);
+  useEffect(() => {
+    consRef.current = consOn;
+    if (!ready) return;
+    try {
+      localStorage.setItem('milky.constellations', consOn ? '1' : '0');
+    } catch {
+      /* optional */
+    }
+    // the figures are only fetched the first time they are asked for
+    if (consOn && skyRef.current && !skyRef.current.lines.length) {
+      loadLines().then((l) => {
+        if (skyRef.current) skyRef.current.lines = l;
+      });
+    }
+  }, [consOn, ready, skyReady]);
   useEffect(() => {
     if (ready && !stressRef.current) saveDreams(dreams);
   }, [dreams, ready]);
@@ -886,7 +905,7 @@ export default function DreamMap() {
           scale: (Math.max(w, h) / 2 / 0.83) * (0.8 + 0.12 * Math.log2(1 + cam.k)),
         },
         t,
-        { bright: backdropRef.current.starBright, size: backdropRef.current.starSize, magLimit: backdropRef.current.magLimit }
+        { bright: backdropRef.current.starBright, size: backdropRef.current.starSize, magLimit: backdropRef.current.magLimit, lines: consRef.current }
       );
     };
 
@@ -2023,14 +2042,14 @@ export default function DreamMap() {
           })}
 
         {/* top bar */}
-        <div data-ui style={{ position: 'absolute', top: 16, left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
+        <div data-ui style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
             <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none' }}>
               <PixelIcon name="back" />
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
-            {skyStatus === 'reading' && <span style={{ ...hand, fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
+            {skyStatus === 'reading' && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
             {skyStatus === 'error' && (
               <button style={bevelText()} onClick={retry}>
                 couldn’t read the sky, try again
@@ -2057,22 +2076,25 @@ export default function DreamMap() {
             drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 18 : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+          <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
           {menuOpen && (
             <>
               {hasSamples && (
-                <button title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+                <button className="mm-btn" title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
                   <PixelIcon name="eraser" />
                 </button>
               )}
-              <button title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
-              <button title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
-              <button aria-label="zoom in" style={bevel(false)} onClick={() => zoomButton(1.4)}><PixelIcon name="plus" /></button>
-              <button aria-label="zoom out" style={bevel(false)} onClick={() => zoomButton(1 / 1.4)}><PixelIcon name="minus" /></button>
+              <button className="mm-btn" title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
+              <button className="mm-btn" title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
+              <button className="mm-btn" title="constellations" aria-label={consOn ? 'hide the constellations' : 'show the constellations'} aria-pressed={consOn} style={bevel(consOn)} onClick={() => setConsOn((o) => !o)}><PixelIcon name="stars" /></button>
+              <button className="mm-btn" aria-label="zoom in" style={bevel(false)} onClick={() => zoomButton(1.4)}><PixelIcon name="plus" /></button>
+              <button className="mm-btn" aria-label="zoom out" style={bevel(false)} onClick={() => zoomButton(1 / 1.4)}><PixelIcon name="minus" /></button>
             </>
           )}
           <button
+            className="mm-btn"
             aria-label={menuOpen ? 'close the map controls' : 'open the map controls'}
             aria-expanded={menuOpen}
             title="controls"
@@ -2086,6 +2108,7 @@ export default function DreamMap() {
           </button>
           {/* One button. Each press moves to the next night sky. */}
           <button
+            className="mm-btn"
             aria-label={`change the backdrop, now ${backdrop.name}`}
             title={backdrop.name}
             onClick={(e) => {
@@ -2106,7 +2129,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', ...hand, fontSize: 18, opacity: 0.8 }}>nothing in the sky yet. interpret a dream and it shows up here.</div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: '0 32px', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 15, lineHeight: 1.5, color: 'rgba(255,255,255,0.8)', pointerEvents: 'none' }}>nothing in the sky yet. interpret a dream and it shows up here.</div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
