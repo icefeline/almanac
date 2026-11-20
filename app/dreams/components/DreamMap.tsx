@@ -511,7 +511,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
   const state = useRef(flat.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
   const els = useRef<(HTMLSpanElement | null)[]>([]);
   const flipped = useRef<number[]>(flat.map(() => -1));
-  const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number; sx: number; sy: number } | null>(null);
+  const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number; sx: number; sy: number; rest: { x: number; y: number }[]; wd: number[]; trail: { x: number; y: number; d: number }[] } | null>(null);
   const raf = useRef(0);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
@@ -537,23 +537,57 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
 
   const tick = useCallback(() => {
     const s = state.current;
-    const K = 0.0018; // how hard each word is drawn home: slowly, like something pulled back through water
+    const K = 0.0006; // how hard each word is drawn home: very slowly, like something drifting back through water
     const C = 0.06; // how hard it is carried along by its neighbours on the string
     const KD = 0.08; // how hard the hand draws the word it holds
     const CD = 0.3; // neighbours also drag on each other's speed, so the string moves as one slow thing and never wobbles
-    const DRAG = 0.9; // the water: strong, so nothing springs or overshoots
+    const DRAG = 0.95; // the water: strong, so nothing springs or overshoots
+    const KT = 0.03; // how hard a word is drawn onto the line behind the one being pulled
+    const DRAGT = 0.7;
+    const SP = 46; // how quickly a word is picked up once the trail reaches it
+    const hd = held.current;
+    // the pulled word lays a trail behind it as it goes; the rest of the poem is drawn out along that trail, one word after another
+    if (hd) {
+      const m = s[hd.i];
+      const hx = hd.rest[hd.i].x + m.x;
+      const hy = hd.rest[hd.i].y + m.y;
+      const last = hd.trail[hd.trail.length - 1];
+      const dd = Math.hypot(hx - last.x, hy - last.y);
+      if (dd > 3) hd.trail.push({ x: hx, y: hy, d: last.d + dd });
+      if (hd.trail.length > 400) hd.trail.splice(0, 100);
+    }
+    const pointAt = (want: number) => {
+      const tr = hd!.trail;
+      let q = tr.length - 1;
+      while (q > 0 && tr[q].d > want) q--;
+      const a = tr[q];
+      const b = tr[Math.min(q + 1, tr.length - 1)];
+      const span = b.d - a.d;
+      const f = span > 0 ? (want - a.d) / span : 0;
+      return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+    };
     let live = false;
     const stirs: Stir[] = [];
     const origin = rootEl.current?.getBoundingClientRect();
     const spray = dots.current;
     for (let i = 0; i < s.length; i++) {
       const me = s[i];
-      let fx = -K * me.x;
-      let fy = -K * me.y;
+      let fx = hd ? 0 : -K * me.x;
+      let fy = hd ? 0 : -K * me.y;
       for (const nb of [s[i - 1], s[i + 1]]) {
         if (!nb) continue;
-        fx += C * (nb.x - me.x) + CD * (nb.vx - me.vx);
-        fy += C * (nb.y - me.y) + CD * (nb.vy - me.vy);
+        fx += (hd ? 0 : C * (nb.x - me.x)) + CD * (nb.vx - me.vx);
+        fy += (hd ? 0 : C * (nb.y - me.y)) + CD * (nb.vy - me.vy);
+      }
+      if (hd && hd.i !== i) {
+        const total = hd.trail[hd.trail.length - 1].d;
+        // each word sits one word-width plus a gap further along the line than the one before it
+        let sd = 0;
+        for (let q = Math.min(i, hd.i); q < Math.max(i, hd.i); q++) sd += hd.wd[q] / 2 + hd.wd[q + 1] / 2 + 10;
+        const w = clamp(1 - (sd - total) / SP, 0, 1); // a word is picked up only once the trail is long enough to reach it
+        const p = pointAt(Math.max(0, total - sd));
+        fx += KT * (w * (p.x - hd.rest[i].x) - me.x);
+        fy += KT * (w * (p.y - hd.rest[i].y) - me.y);
       }
       const h = held.current;
       if (h && h.i === i) {
@@ -563,8 +597,9 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
         fx += KD * (h.sx - h.gx - me.x);
         fy += KD * (h.sy - h.gy - me.y);
       }
-      me.vx = (me.vx + fx) * DRAG;
-      me.vy = (me.vy + fy) * DRAG;
+      const dr = hd && hd.i !== i ? DRAGT : DRAG;
+      me.vx = (me.vx + fx) * dr;
+      me.vy = (me.vy + fy) * dr;
       me.x += me.vx;
       me.y += me.vy;
       const el = els.current[i];
@@ -673,7 +708,13 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
                       /* the hold still works without capture */
                     }
                     const me = state.current[i];
-                    held.current = { i, gx: e.clientX - me.x, gy: e.clientY - me.y, px: e.clientX, py: e.clientY, sx: e.clientX, sy: e.clientY };
+                    const rest = els.current.map((w, q) => {
+                      const b = w?.getBoundingClientRect();
+                      const d = state.current[q];
+                      return b ? { x: b.x + b.width / 2 - d.x, y: b.y + b.height / 2 - d.y } : { x: 0, y: 0 };
+                    });
+                    const wd = els.current.map((w) => w?.getBoundingClientRect().width ?? 40);
+                    held.current = { i, gx: e.clientX - me.x, gy: e.clientY - me.y, px: e.clientX, py: e.clientY, sx: e.clientX, sy: e.clientY, rest, wd, trail: [{ x: rest[i].x + me.x, y: rest[i].y + me.y, d: 0 }] };
                     if (!raf.current) raf.current = requestAnimationFrame(tick);
                   }}
                   onPointerMove={(e) => {
