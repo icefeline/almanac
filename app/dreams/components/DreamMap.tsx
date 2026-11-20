@@ -907,11 +907,12 @@ export default function DreamMap() {
     reduceRef.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   }, []);
   // Text that scrolls fades out at the edge it is scrolling away from, instead of being cut off sharply: the fade is as long as the
-  // distance scrolled (up to a limit), so it is absent at the very top and grows as you scroll. Works on every [data-scroll] panel.
+  // distance scrolled (up to a limit), so it is absent at the very top and grows as you scroll, and its shape is eased at both ends so
+  // there is no visible start or stop to it. Works on every [data-scroll] panel.
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const FADE = 34;
+    const FADE = 64;
     const seen = new WeakSet<Element>();
     const refresh = (el: HTMLElement) => {
       const top = Math.max(0, Math.min(FADE, el.scrollTop));
@@ -2472,7 +2473,7 @@ export default function DreamMap() {
             );
           })}
 
-        <style>{`[data-scroll]{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 var(--ft,0px),#000 calc(100% - var(--fb,0px)),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 var(--ft,0px),#000 calc(100% - var(--fb,0px)),transparent 100%)}`}</style>
+        <style>{`[data-scroll]{-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0.00) calc(var(--ft,0px) * 0.00),rgba(0,0,0,0.03) calc(var(--ft,0px) * 0.12),rgba(0,0,0,0.12) calc(var(--ft,0px) * 0.25),rgba(0,0,0,0.30) calc(var(--ft,0px) * 0.40),rgba(0,0,0,0.55) calc(var(--ft,0px) * 0.55),rgba(0,0,0,0.78) calc(var(--ft,0px) * 0.70),rgba(0,0,0,0.93) calc(var(--ft,0px) * 0.85),rgba(0,0,0,1.00) calc(var(--ft,0px) * 1.00),rgba(0,0,0,1.00) calc(100% - var(--fb,0px) * 1.00),rgba(0,0,0,0.93) calc(100% - var(--fb,0px) * 0.85),rgba(0,0,0,0.78) calc(100% - var(--fb,0px) * 0.70),rgba(0,0,0,0.55) calc(100% - var(--fb,0px) * 0.55),rgba(0,0,0,0.30) calc(100% - var(--fb,0px) * 0.40),rgba(0,0,0,0.12) calc(100% - var(--fb,0px) * 0.25),rgba(0,0,0,0.03) calc(100% - var(--fb,0px) * 0.12),rgba(0,0,0,0.00) calc(100% - var(--fb,0px) * 0.00));mask-image:linear-gradient(to bottom,rgba(0,0,0,0.00) calc(var(--ft,0px) * 0.00),rgba(0,0,0,0.03) calc(var(--ft,0px) * 0.12),rgba(0,0,0,0.12) calc(var(--ft,0px) * 0.25),rgba(0,0,0,0.30) calc(var(--ft,0px) * 0.40),rgba(0,0,0,0.55) calc(var(--ft,0px) * 0.55),rgba(0,0,0,0.78) calc(var(--ft,0px) * 0.70),rgba(0,0,0,0.93) calc(var(--ft,0px) * 0.85),rgba(0,0,0,1.00) calc(var(--ft,0px) * 1.00),rgba(0,0,0,1.00) calc(100% - var(--fb,0px) * 1.00),rgba(0,0,0,0.93) calc(100% - var(--fb,0px) * 0.85),rgba(0,0,0,0.78) calc(100% - var(--fb,0px) * 0.70),rgba(0,0,0,0.55) calc(100% - var(--fb,0px) * 0.55),rgba(0,0,0,0.30) calc(100% - var(--fb,0px) * 0.40),rgba(0,0,0,0.12) calc(100% - var(--fb,0px) * 0.25),rgba(0,0,0,0.03) calc(100% - var(--fb,0px) * 0.12),rgba(0,0,0,0.00) calc(100% - var(--fb,0px) * 0.00))}`}</style>
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
