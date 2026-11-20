@@ -424,6 +424,7 @@ export default function DreamMap() {
   const [hover, setHover] = useState<string | null>(null);
   const [skyId, setSkyId] = useState('nebula');
   const [pressing, setPressing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [, setTick] = useState(0);
   const [size, setSize] = useState({ w: 900, h: 640 });
 
@@ -2001,15 +2002,6 @@ export default function DreamMap() {
                 couldn’t read the sky, try again
               </button>
             )}
-            {hasSamples && (
-              <button style={bevelText()} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
-                clear samples
-              </button>
-            )}
-            <button style={bevelText(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}>the sky</button>
-            <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom in" onClick={() => zoomButton(1.4)}>+</button>
-            <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom out" onClick={() => zoomButton(1 / 1.4)}>−</button>
-            <button style={bevelText()} onClick={() => select(null)}>fit</button>
           </div>
         </div>
 
@@ -2031,7 +2023,35 @@ export default function DreamMap() {
             drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 28, bottom: narrow ? 18 : 74, display: narrow && sel ? 'none' : 'block', pointerEvents: 'none' }}>
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 28, bottom: narrow ? 18 : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, pointerEvents: 'none' }}>
+          {/* The main button opens the rest above it. */}
+          {menuOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, pointerEvents: 'auto' }}>
+              {hasSamples && (
+                <button style={bevelText()} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+                  clear samples
+                </button>
+              )}
+              <button style={bevelText(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}>the sky</button>
+              <button style={bevelText()} onClick={() => select(null)}>fit</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom out" onClick={() => zoomButton(1 / 1.4)}>−</button>
+                <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom in" onClick={() => zoomButton(1.4)}>+</button>
+              </div>
+            </div>
+          )}
+          <button
+            aria-label={menuOpen ? 'close the map controls' : 'open the map controls'}
+            aria-expanded={menuOpen}
+            title="controls"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((o) => !o);
+            }}
+            style={{ ...bevel(menuOpen), pointerEvents: 'auto', fontFamily: 'var(--font-vt323)', fontSize: 22, color: '#000' }}
+          >
+            {menuOpen ? '×' : '≡'}
+          </button>
           {/* One button. Each press moves to the next night sky. */}
           <button
             aria-label={`change the backdrop, now ${backdrop.name}`}
