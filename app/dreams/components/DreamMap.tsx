@@ -2448,6 +2448,7 @@ export default function DreamMap() {
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
+            {!narrow && skyReady && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>stars: Hipparcos via d3-celestial</span>}
             {skyStatus === 'reading' && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
             {skyStatus === 'error' && (
               <button style={bevelText()} onClick={retry}>
@@ -2520,11 +2521,6 @@ export default function DreamMap() {
             <PixelSky colors={PX[backdrop.id] ?? PX.nebula} />
           </button>
         </div>
-        {!narrow && (
-          <div style={{ position: 'absolute', right: 20, top: 'calc(env(safe-area-inset-top, 0px) + 56px)', textAlign: 'right', pointerEvents: 'none', fontFamily: 'var(--font-geist)' }}>
-            {skyReady && <div style={{ fontSize: 10, opacity: 0.4 }}>stars: Hipparcos via d3-celestial</div>}
-          </div>
-        )}
         {ready && dreams.length === 0 && (
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
             <div style={{ display: 'grid', justifyItems: 'center', gap: 64 }}>
