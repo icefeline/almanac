@@ -1593,7 +1593,7 @@ export default function DreamMap() {
       else if (skyStatus === 'error') items.push({ text: 'couldn’t read the sky just now.', tone: 'dim' });
       if (selPattern.watch) items.push({ text: selPattern.watch, tone: 'accent' });
       if (selPattern.meaning) {
-        blockLabel = 'what it means';
+        blockLabel = selPattern.kind === 'tag' ? 'what’s come up' : 'what it means';
         blockParas.push(...selPattern.meaning.split(/\n+/).filter(Boolean));
       }
       for (const l of eff.links.filter((q) => q.a === selPattern.id || q.b === selPattern.id)) {
