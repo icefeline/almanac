@@ -125,6 +125,33 @@ const BACKDROPS: Backdrop[] = [
     stipple: 0.9,
     swatch: 'linear-gradient(135deg,#14806A,#5CC8E6)',
   },
+  // the next two are taken from NASA's own pictures: the cosmic cliffs (webb) and the pillars of creation (hubble)
+  {
+    id: 'cliffs',
+    name: 'cosmic cliffs',
+    bg: `radial-gradient(ellipse at 50% 8%, rgba(30,100,230,0.78), transparent 62%), radial-gradient(ellipse at 12% 22%, rgba(16,52,160,0.6), transparent 50%), radial-gradient(ellipse at 78% 100%, rgba(236,150,50,0.62), transparent 62%), radial-gradient(ellipse at 20% 96%, rgba(190,80,34,0.55), transparent 55%), radial-gradient(ellipse at 52% 70%, rgba(150,60,36,0.3), transparent 55%), ${INK}`,
+    palette: [['#FFF1D6', '#F4B35C', '#B2531F'], ['#FFE2C2', '#E08A3E', '#8A3A1A'], ['#E8F1FF', '#6FA2F2', '#2250B8'], ['#FFD9A8', '#D9722F', '#7A2E18'], ['#F4F8FF', '#9CC0FF', '#3B6FD6']],
+    starBright: 1.35,
+    starSize: 1.15,
+    magLimit: 6.3,
+    tint: '#FFF0DA',
+    accent: '#F7B955',
+    stipple: 1,
+    swatch: 'linear-gradient(180deg,#2250B8,#6FA2F2 42%,#E08A3E 60%,#B2531F)',
+  },
+  {
+    id: 'pillars',
+    name: 'pillars of creation',
+    bg: `radial-gradient(ellipse at 60% 30%, rgba(34,128,170,0.72), transparent 66%), radial-gradient(ellipse at 90% 55%, rgba(24,80,150,0.55), transparent 55%), radial-gradient(ellipse at 6% 4%, rgba(70,60,110,0.34), transparent 45%), radial-gradient(ellipse at 14% 100%, rgba(176,138,40,0.55), transparent 55%), radial-gradient(ellipse at 52% 92%, rgba(150,70,34,0.42), transparent 50%), ${INK}`,
+    palette: [['#E6FBFF', '#5CC0D2', '#1F6E8E'], ['#FFF0CF', '#D9A84A', '#7A4A1C'], ['#DDEEFF', '#6C9CD8', '#2C5894'], ['#FFE2C4', '#C77A44', '#6A2E1A'], ['#EAFFF2', '#8FD0A8', '#2E7A66']],
+    starBright: 1.3,
+    starSize: 1.1,
+    magLimit: 6.3,
+    tint: '#E4F4FA',
+    accent: '#E8C25E',
+    stipple: 1,
+    swatch: 'linear-gradient(180deg,#1F6E8E,#5CC0D2 45%,#C77A44 80%,#B08A28)',
+  },
 ];
 
 type Sel =
@@ -320,6 +347,8 @@ const PX: Record<string, [string, string, string]> = {
   cobalt: ['#1A2FD4', '#F3F35C', '#FFFFFF'],
   ember: ['#C2381A', '#FF7A5C', '#FFC85C'],
   aurora: ['#14806A', '#5CC8E6', '#B6F06A'],
+  cliffs: ['#2250B8', '#6FA2F2', '#E08A3E'],
+  pillars: ['#1F6E8E', '#5CC0D2', '#C77A44'],
 };
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
