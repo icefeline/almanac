@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
 import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
-import { RAD, drawSky, loadLines, loadSky, moonPhase, type SkyData } from '../lib/sky';
+import { RAD, drawSky, loadFigures, loadPlanets, loadSky, moonPhase, type SkyData } from '../lib/sky';
 
 /**
  * /map: the sky of your dreams, over the real sky.
@@ -151,6 +151,46 @@ const BACKDROPS: Backdrop[] = [
     accent: '#E8C25E',
     stipple: 1,
     swatch: 'linear-gradient(180deg,#1F6E8E,#5CC0D2 45%,#C77A44 80%,#B08A28)',
+  },
+  // from the Hubble 25th anniversary images: the crab nebula, cassiopeia a and stephan's quintet
+  {
+    id: 'crab',
+    name: 'crab nebula',
+    bg: `radial-gradient(ellipse at 52% 46%, rgba(70,200,230,0.58), transparent 50%), radial-gradient(ellipse at 84% 22%, rgba(232,112,50,0.5), transparent 54%), radial-gradient(ellipse at 18% 80%, rgba(130,176,70,0.4), transparent 52%), radial-gradient(ellipse at 8% 16%, rgba(190,82,40,0.32), transparent 46%), radial-gradient(ellipse at 90% 90%, rgba(210,100,50,0.28), transparent 44%), ${INK}`,
+    palette: [['#E6FFFF', '#58D0E8', '#1F7EA6'], ['#FFF0D8', '#F08A44', '#A8401E'], ['#F2FFD8', '#B6D86A', '#5E8A2A'], ['#FFE2C4', '#E0703A', '#8A2E18'], ['#EAFFF6', '#7FE4D0', '#2A8A86']],
+    starBright: 1.25,
+    starSize: 1.1,
+    magLimit: 6.2,
+    tint: '#E4F8FF',
+    accent: '#F0A25A',
+    stipple: 1,
+    swatch: 'radial-gradient(circle,#58D0E8 0 30%,#B6D86A 45%,#F08A44 75%,#8A2E18)',
+  },
+  {
+    id: 'cassiopeia',
+    name: 'cassiopeia a',
+    bg: `radial-gradient(ellipse at 48% 38%, rgba(226,124,124,0.36), transparent 52%), radial-gradient(ellipse at 72% 74%, rgba(234,180,94,0.32), transparent 52%), radial-gradient(ellipse at 20% 68%, rgba(196,94,104,0.26), transparent 50%), radial-gradient(ellipse at 40% 8%, rgba(52,112,84,0.34), transparent 52%), #07060A`,
+    palette: [['#FFEFE8', '#F2A8A8', '#9A4650'], ['#FFF3D6', '#EBC070', '#9A6A28'], ['#EAFFF0', '#7FC8A0', '#2E7A5A'], ['#FFE6DC', '#E58A86', '#8A3A40'], ['#FFF8EA', '#F4D9A0', '#B07A3A']],
+    starBright: 1.45,
+    starSize: 1.2,
+    magLimit: 6.4,
+    tint: '#FFF0E6',
+    accent: '#EBC070',
+    stipple: 0.9,
+    swatch: 'linear-gradient(135deg,#07060A,#9A4650 40%,#F2A8A8 62%,#EBC070)',
+  },
+  {
+    id: 'quintet',
+    name: 'stephan’s quintet',
+    bg: `radial-gradient(ellipse at 28% 26%, rgba(110,172,214,0.5), transparent 50%), radial-gradient(ellipse at 76% 22%, rgba(238,172,100,0.46), transparent 48%), radial-gradient(ellipse at 62% 62%, rgba(248,194,124,0.5), transparent 52%), radial-gradient(ellipse at 22% 92%, rgba(242,162,72,0.4), transparent 44%), ${INK}`,
+    palette: [['#EAF6FF', '#7DB8E0', '#2E6A9A'], ['#FFF3DE', '#F4C27C', '#B0662A'], ['#FFE9D0', '#EBA45E', '#8A4A1E'], ['#F2F8FF', '#A8D0F0', '#4A82B8'], ['#FFF8EC', '#F8DBA8', '#C98A44']],
+    starBright: 1.3,
+    starSize: 1.15,
+    magLimit: 6.3,
+    tint: '#FFF2E2',
+    accent: '#F4C27C',
+    stipple: 1,
+    swatch: 'linear-gradient(135deg,#2E6A9A,#7DB8E0 35%,#F4C27C 65%,#B0662A)',
   },
 ];
 
@@ -349,6 +389,9 @@ const PX: Record<string, [string, string, string]> = {
   aurora: ['#14806A', '#5CC8E6', '#B6F06A'],
   cliffs: ['#2250B8', '#6FA2F2', '#E08A3E'],
   pillars: ['#1F6E8E', '#5CC0D2', '#C77A44'],
+  crab: ['#1F7EA6', '#58D0E8', '#F08A44'],
+  cassiopeia: ['#9A4650', '#F2A8A8', '#EBC070'],
+  quintet: ['#2E6A9A', '#7DB8E0', '#F4C27C'],
 };
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
@@ -535,8 +578,14 @@ export default function DreamMap() {
     }
     // the figures are only fetched the first time they are asked for
     if (consOn && skyRef.current && !skyRef.current.lines.length) {
-      loadLines().then((l) => {
-        if (skyRef.current) skyRef.current.lines = l;
+      loadFigures().then((f) => {
+        if (skyRef.current) {
+          skyRef.current.lines = f.lines;
+          skyRef.current.names = f.names;
+        }
+      });
+      loadPlanets().then((pl) => {
+        if (skyRef.current) skyRef.current.planets = pl;
       });
     }
   }, [consOn, ready, skyReady]);
@@ -746,7 +795,7 @@ export default function DreamMap() {
     const availW = narrow ? w * 0.85 : s ? w * 0.42 : w * 0.9;
     const availH = narrow ? (s ? h * 0.38 : h * 0.8) : h * 0.72;
     let ids: string[] | null = null;
-    let lo = 0.6;
+    let lo = 0.28; // the whole sky may be much wider than the screen, so fit is allowed to go a long way back
     let hi = 1.5;
     if (s && followRef.current) {
       const eff = effRef.current;
@@ -786,7 +835,7 @@ export default function DreamMap() {
     const x1 = Math.max(...pts.map((n) => n.x + n.r));
     const y0 = Math.min(...pts.map((n) => n.y - n.r));
     const y1 = Math.max(...pts.map((n) => n.y + n.r));
-    const k = clamp(Math.min(availW / (x1 - x0 + 140), availH / (y1 - y0 + 140)), lo, hi);
+    const k = clamp(Math.min(availW / (x1 - x0 + 220), availH / (y1 - y0 + 220)), lo, hi);
     return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k, ax, ay, rot };
   }
 
@@ -905,7 +954,7 @@ export default function DreamMap() {
           scale: (Math.max(w, h) / 2 / 0.83) * (0.8 + 0.12 * Math.log2(1 + cam.k)),
         },
         t,
-        { bright: backdropRef.current.starBright, size: backdropRef.current.starSize, magLimit: backdropRef.current.magLimit, lines: consRef.current }
+        { bright: backdropRef.current.starBright, size: backdropRef.current.starSize, magLimit: backdropRef.current.magLimit, lines: consRef.current, labels: clamp((cam.k - 1.3) / 0.9, 0, 1) }
       );
     };
 
@@ -2129,7 +2178,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: '0 32px', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 15, lineHeight: 1.5, color: 'rgba(255,255,255,0.8)', pointerEvents: 'none' }}>nothing in the sky yet. interpret a dream and it shows up here.</div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: '0 32px', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.8)', pointerEvents: 'none' }}><div style={{ maxWidth: 320 }}>the greeks said it was milk, spilled by hera across the dark.<br />yours is still empty.<br />tell milky a dream and the first pale thread appears.</div></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
