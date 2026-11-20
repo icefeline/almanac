@@ -1023,9 +1023,9 @@ export default function DreamMap() {
     const st = process.env.NODE_ENV === 'production' ? 0 : Number(new URLSearchParams(window.location.search).get('stress')); // the test crowd is for development only
     stressRef.current = st > 0;
     setDreams(st > 0 ? stressDreams(st) : loadDreams());
+    // every visit opens under a different night sky; the button still moves through the rest
+    setSkyId(BACKDROPS[Math.floor(Math.random() * BACKDROPS.length)].id);
     try {
-      const v = localStorage.getItem('milky.backdrop');
-      if (v && BACKDROPS.some((b) => b.id === v)) setSkyId(v);
       if (localStorage.getItem('milky.constellations') === '1') setConsOn(true);
     } catch {
       /* the default backdrop is fine */
@@ -1033,14 +1033,6 @@ export default function DreamMap() {
     setReady(true);
     reduceRef.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   }, []);
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      localStorage.setItem('milky.backdrop', skyId);
-    } catch {
-      /* optional */
-    }
-  }, [skyId, ready]);
   useEffect(() => {
     consRef.current = consOn;
     if (!ready) return;
@@ -2572,9 +2564,18 @@ export default function DreamMap() {
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
-            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none' }}>
+            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none', flex: 'none' }}>
               <PixelIcon name="back" />
             </Link>
+            {hasSamples && !sel && (
+              <div style={{ maxWidth: 'min(390px, calc(100vw - 150px))', fontFamily: 'var(--font-geist)', fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.82)' }}>
+                these dreams are made up, so you can see how the map works.{' '}
+                <Link href={home} style={{ color: YELLOW, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                  interpret one of your own
+                </Link>{' '}
+                and it joins them here.
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
             {skyStatus === 'reading' && <span style={{ fontFamily: 'var(--font-geist)', fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
@@ -2586,18 +2587,6 @@ export default function DreamMap() {
           </div>
         </div>
 
-        {!narrow && !sel && (
-          <>
-            <div style={{ position: 'absolute', left: 20, top: '46%', ...corner }}>
-              {dreams.length} {dreams.length === 1 ? 'dream' : 'dreams'}<br />
-              {dates.length ? (dates[0] === dates[dates.length - 1] ? fmt(dates[0]) : `${fmt(dates[0])} to ${fmt(dates[dates.length - 1])}`) : ''}
-            </div>
-            <div style={{ position: 'absolute', right: 20, top: '46%', textAlign: 'right', ...corner }}>
-              {eff.patterns.length} {eff.patterns.length === 1 ? 'pattern' : 'patterns'}<br />
-              that come back
-            </div>
-          </>
-        )}
 
         {!sel && (
           <div style={{ position: 'absolute', left: 20, bottom: 24, ...hand, fontSize: 13, opacity: 0.6, pointerEvents: 'none', display: narrow ? 'none' : 'block' }}>
