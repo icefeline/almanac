@@ -486,12 +486,16 @@ const bevelText = (pressed = false): CSSProperties => ({
  * string, and when it is let go the whole thing swings back to how it was written.
  */
 const POEM = ['the greeks said it was milk,', 'spilled by hera across the dark.', 'yours is still empty.', 'tell milky a dream and', 'the first pale thread appears.'];
-function EmptyPoem() {
+function EmptyPoem({ onStir }: { onStir: (s: { x: number; y: number; r: number; vx: number; vy: number; held: boolean }[]) => void }) {
   const words = useMemo(() => POEM.flatMap((line, li) => line.split(' ').map((w, wi) => ({ w, li, wi }))), []);
   const state = useRef(words.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
   const els = useRef<(HTMLSpanElement | null)[]>([]);
   const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number } | null>(null);
   const raf = useRef(0);
+  const rootEl = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    rootEl.current = document.querySelector('[data-map-root]');
+  }, []);
 
   const tick = useCallback(() => {
     const s = state.current;
@@ -499,6 +503,8 @@ function EmptyPoem() {
     const C = 0.07; // how hard it is pulled along by its neighbours on the string
     const KD = 0.075; // how hard the hand pulls the word it holds: low, so the word has weight
     let live = false;
+    const stirs: { x: number; y: number; r: number; vx: number; vy: number; held: boolean }[] = [];
+    const origin = rootEl.current?.getBoundingClientRect();
     for (let i = 0; i < s.length; i++) {
       const me = s[i];
       let fx = -K * me.x;
@@ -519,8 +525,14 @@ function EmptyPoem() {
       me.y += me.vy;
       const el = els.current[i];
       if (el) el.style.transform = `translate(${me.x.toFixed(2)}px, ${me.y.toFixed(2)}px)`;
+      // a word that is out of its place or moving stirs the dots it passes through
+      if (el && origin && (Math.hypot(me.x, me.y) > 4 || Math.hypot(me.vx, me.vy) > 0.4)) {
+        const b = el.getBoundingClientRect();
+        stirs.push({ x: b.x + b.width / 2 - origin.x, y: b.y + b.height / 2 - origin.y, r: 16, vx: clamp(me.vx * 2, -12, 12), vy: clamp(me.vy * 2, -12, 12), held: held.current?.i === i });
+      }
       if (Math.abs(me.x) > 0.05 || Math.abs(me.y) > 0.05 || Math.abs(me.vx) > 0.02 || Math.abs(me.vy) > 0.02) live = true;
     }
+    onStir(stirs);
     if (live || held.current) raf.current = requestAnimationFrame(tick);
     else {
       raf.current = 0;
@@ -529,8 +541,14 @@ function EmptyPoem() {
       }
       els.current.forEach((el) => el && (el.style.transform = ''));
     }
-  }, []);
-  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+  }, [onStir]);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(raf.current);
+      onStir([]);
+    },
+    [onStir]
+  );
 
   const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   let k = -1;
@@ -645,6 +663,8 @@ export default function DreamMap() {
   const typeStartRef = useRef(0);
   const fitAgeRef = useRef(0);
   const cursorRef = useRef({ x: -9999, y: -9999, vx: 0, vy: 0, active: false });
+  // words of the empty-sky poem that are being pulled across the sky: they stir the dither like a blob would
+  const stirRef = useRef<{ x: number; y: number; r: number; vx: number; vy: number; held: boolean }[]>([]);
   sizeRef.current = size;
   selRef.current = sel;
 
@@ -862,6 +882,10 @@ export default function DreamMap() {
     alphaRef.current = 1;
     if (!selRef.current) fitRef.current = true;
   }, [dreams, eff]);
+
+  const onStir = useCallback((l: typeof stirRef.current) => {
+    stirRef.current = l;
+  }, []);
 
   const select = useCallback((s: Sel | null) => {
     setSel(s);
@@ -1179,6 +1203,7 @@ export default function DreamMap() {
       if (!reduce) orbit.flowT += dt * (0.05 + orbit.e * 0.3);
       const flowT = orbit.flowT;
       const breath = reduce ? 1 : 0.92 + 0.08 * Math.sin(t * 0.55); // the whole field slowly breathes
+      const pushers = stirRef.current.length ? [...blobs, ...stirRef.current] : blobs;
       const cu = cursorRef.current;
       cu.vx *= 0.94;
       cu.vy *= 0.94;
@@ -1194,7 +1219,7 @@ export default function DreamMap() {
         for (let x = ox0 - GS; x < w + GS; x += GS) {
           let near = 0;
           if (!reduce) {
-            for (const b of blobs) {
+            for (const b of pushers) {
               const R = b.r * 2.2 + 60;
               const dx = x - b.x;
               const dy = y - b.y;
@@ -1232,7 +1257,7 @@ export default function DreamMap() {
         let wy = 0;
         let wt = 0;
         if (!reduce) {
-          for (const b of blobs) {
+          for (const b of pushers) {
             const R = b.r * 2.2 + 60;
             const dx = X - b.x;
             const dy = Y - b.y;
@@ -1922,6 +1947,7 @@ export default function DreamMap() {
   return (
     <div
       ref={rootRef}
+      data-map-root
       style={{
         position: 'fixed',
         inset: 0,
@@ -2280,7 +2306,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem /></div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
