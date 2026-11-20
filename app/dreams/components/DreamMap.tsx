@@ -497,12 +497,8 @@ const POEM = [
   { t: 'spilled by', s: 0 },
   { t: 'hera across', s: 0 },
   { t: 'the dark.', s: 0 },
-  { t: 'yours is', s: 0 },
-  { t: 'still empty.', s: 0 },
   { t: 'tell milky', s: 1 },
-  { t: 'a dream and', s: 1 },
-  { t: 'the first pale', s: 1 },
-  { t: 'thread appears.', s: 1 },
+  { t: 'a dream.', s: 1 },
 ];
 /** The myth is the setting, so it is smaller. The ask is what the reader is here to do, so it is larger and full white. */
 const STANZA = [
@@ -515,7 +511,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
   const state = useRef(flat.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
   const els = useRef<(HTMLSpanElement | null)[]>([]);
   const flipped = useRef<number[]>(flat.map(() => -1));
-  const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number } | null>(null);
+  const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number; sx: number; sy: number } | null>(null);
   const raf = useRef(0);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
@@ -541,9 +537,11 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
 
   const tick = useCallback(() => {
     const s = state.current;
-    const K = 0.012; // how hard each word is pulled home
-    const C = 0.07; // how hard it is pulled along by its neighbours on the string
-    const KD = 0.075; // how hard the hand pulls the word it holds: low, so the word has weight
+    const K = 0.0018; // how hard each word is drawn home: slowly, like something pulled back through water
+    const C = 0.06; // how hard it is carried along by its neighbours on the string
+    const KD = 0.08; // how hard the hand draws the word it holds
+    const CD = 0.3; // neighbours also drag on each other's speed, so the string moves as one slow thing and never wobbles
+    const DRAG = 0.9; // the water: strong, so nothing springs or overshoots
     let live = false;
     const stirs: Stir[] = [];
     const origin = rootEl.current?.getBoundingClientRect();
@@ -554,16 +552,19 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       let fy = -K * me.y;
       for (const nb of [s[i - 1], s[i + 1]]) {
         if (!nb) continue;
-        fx += C * (nb.x - me.x);
-        fy += C * (nb.y - me.y);
+        fx += C * (nb.x - me.x) + CD * (nb.vx - me.vx);
+        fy += C * (nb.y - me.y) + CD * (nb.vy - me.vy);
       }
       const h = held.current;
       if (h && h.i === i) {
-        fx += KD * (h.px - h.gx - me.x);
-        fy += KD * (h.py - h.gy - me.y);
+        // the hand is smoothed first, so a jerky pointer still draws a clean line
+        h.sx += (h.px - h.sx) * 0.2;
+        h.sy += (h.py - h.sy) * 0.2;
+        fx += KD * (h.sx - h.gx - me.x);
+        fy += KD * (h.sy - h.gy - me.y);
       }
-      me.vx = (me.vx + fx) * 0.9;
-      me.vy = (me.vy + fy) * 0.9;
+      me.vx = (me.vx + fx) * DRAG;
+      me.vy = (me.vy + fy) * DRAG;
       me.x += me.vx;
       me.y += me.vy;
       const el = els.current[i];
@@ -573,12 +574,12 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       if (el) flip(i, off < 3 ? 0 : Math.min(flat[i].length, Math.ceil(Math.min(1, off / 60) * flat[i].length)));
       if (el && (off > 4 || speed > 0.4)) {
         const b = el.getBoundingClientRect();
-        if (origin) stirs.push({ x: b.x + b.width / 2 - origin.x, y: b.y + b.height / 2 - origin.y, r: 16, vx: clamp(me.vx * 2, -12, 12), vy: clamp(me.vy * 2, -12, 12), held: held.current?.i === i });
+        if (origin) stirs.push({ x: b.x + b.width / 2 - origin.x, y: b.y + b.height / 2 - origin.y, r: 26, vx: clamp(me.vx * 2, -12, 12), vy: clamp(me.vy * 2, -12, 12), held: held.current?.i === i });
         // a word in motion throws off dots, along the way it is going
-        const n = Math.min(9, Math.floor(speed * 1.6));
+        const n = Math.min(3, Math.floor(speed * 0.7));
         for (let q = 0; q < n && spray.length < 700; q++) {
           const max = 60 + Math.random() * 90;
-          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: 2 + Math.random() * 2 });
+          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: 1.5 + Math.random() * 1.5 });
         }
       }
       if (off > 0.05 || speed > 0.02) live = true;
@@ -672,7 +673,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
                       /* the hold still works without capture */
                     }
                     const me = state.current[i];
-                    held.current = { i, gx: e.clientX - me.x, gy: e.clientY - me.y, px: e.clientX, py: e.clientY };
+                    held.current = { i, gx: e.clientX - me.x, gy: e.clientY - me.y, px: e.clientX, py: e.clientY, sx: e.clientX, sy: e.clientY };
                     if (!raf.current) raf.current = requestAnimationFrame(tick);
                   }}
                   onPointerMove={(e) => {
