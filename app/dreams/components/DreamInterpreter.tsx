@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import BackgroundCanvas, { BG_STYLES, type BgStyle } from './BackgroundCanvas';
+import { rememberDream } from '../lib/dreams';
 
 /**
  * Ported from the Claude Design canvas `Dream Interpreter v3.dc.html`.
@@ -393,6 +396,9 @@ export default function DreamInterpreter() {
   const [bgStyle, setBgStyle] = useState<BgStyle>('marble drift');
   const [motionOn, setMotionOn] = useState(true);
 
+  // the map lives at /map on the milky address and /dreams/map everywhere else
+  const pathname = usePathname();
+  const mapHref = pathname?.startsWith('/dreams') ? '/dreams/map' : '/map';
   const onRead = view === 'read';
   const q = query.trim().toLowerCase();
   const filtered = q ? INDEX.filter((e) => e.name.includes(q) || e.note.toLowerCase().includes(q)) : INDEX;
@@ -435,6 +441,7 @@ export default function DreamInterpreter() {
         care: data.care ?? '',
       });
       setSymbols(Array.isArray(data.symbols) ? data.symbols : []);
+      rememberDream(text, data); // kept on this device, so the dream can appear on the map
     } catch {
       setError("reading didn't come back. try again.");
     } finally {
@@ -531,6 +538,9 @@ export default function DreamInterpreter() {
             >
               index
             </div>
+            <Link href={mapHref} style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}>
+              map
+            </Link>
           </div>
         </div>
 

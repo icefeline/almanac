@@ -48,6 +48,12 @@ const dreamsLimiter = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 h'), prefix: 'sl:dreams', analytics: false })
   : null;
 
+// The map reads a whole journal in one go, so each call is heavier than a single reading. A person opens the
+// map now and then; a script looping on it is the only thing this stops.
+const patternsLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(20, '1 h'), prefix: 'sl:patterns', analytics: false })
+  : null;
+
 function getIp(request: NextRequest): string {
   // x-real-ip is set by Vercel's edge network and cannot be spoofed by clients
   return (
@@ -65,6 +71,7 @@ export async function middleware(request: NextRequest) {
   else if (pathname === '/api/welcome-insight') limiter = welcomeLimiter;
   else if (pathname === '/api/geocode-check') limiter = geocodeLimiter;
   else if (pathname === '/api/dreams/interpret') limiter = dreamsLimiter;
+  else if (pathname === '/api/dreams/patterns') limiter = patternsLimiter;
 
   if (!limiter) return NextResponse.next();
 
@@ -117,5 +124,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/calculate-transit', '/api/welcome-insight', '/api/geocode-check', '/api/dreams/interpret'],
+  matcher: ['/api/calculate-transit', '/api/welcome-insight', '/api/geocode-check', '/api/dreams/interpret', '/api/dreams/patterns'],
 };

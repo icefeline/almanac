@@ -117,14 +117,26 @@ const sections: LegalSection[] = [
         </p>
         <UL>
           <li>
-            The dream you type is sent to our server and on to Anthropic, who write the reading. It is the
-            only thing sent. The dream page doesn&apos;t ask for your name or your birth details, and there is no
-            account. Because it goes to a third party, please don&apos;t write anything you wouldn&apos;t want an AI
-            service to see.
+            When you ask for a reading, the dream you type is sent to our server and on to Anthropic, who write the
+            reading. It is the only thing sent. The dream page doesn&apos;t ask for your name or your birth details, and
+            there is no account. Because it goes to a third party, please don&apos;t write anything you wouldn&apos;t want
+            an AI service to see.
           </li>
           <li>
-            We don&apos;t keep it. Neither the dream nor the reading is stored on our servers, and the page
-            doesn&apos;t save them in your browser either, so closing or reloading the page clears them.
+            We don&apos;t keep it. Neither the dream nor the reading is stored on our servers. After a reading, milky
+            remembers the dream and its reading in your browser, on this device only, so it can appear on your dream
+            map. A dream that touches on abuse or assault is the exception: it is never remembered.
+          </li>
+          <li>
+            The dream map, at milky.slowww.garden/map, shows what your browser remembers: your dreams, their readings,
+            the patterns found between them and which night sky you chose. To find those patterns it sends your
+            remembered dreams together, the latest forty, to our server and on to Anthropic in a single request, and
+            keeps the result in your browser. Nothing else goes with them. Until you have interpreted dreams of your
+            own, the map shows made-up sample dreams, labelled as samples, and nothing is sent for those.
+          </li>
+          <li>
+            To forget a dream, open it on the map and choose delete, or clear this site&apos;s data in your browser. That
+            removes everything milky remembers.
           </li>
           <li>
             The rate limiter and hosting described above apply here too, and Anthropic&apos;s own policy covers what
