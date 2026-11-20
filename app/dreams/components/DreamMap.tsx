@@ -538,7 +538,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
   const tick = useCallback(() => {
     const s = state.current;
     const K = 0.0006; // how hard each word is drawn home: very slowly, like something drifting back through water
-    const C = 0.06; // how hard it is carried along by its neighbours on the string
+    const C = 0.01; // how hard it is carried along by its neighbours on the string. Kept small: a stiffer string runs away once let go
     const KD = 0.08; // how hard the hand draws the word it holds
     const CD = 0.3; // neighbours also drag on each other's speed, so the string moves as one slow thing and never wobbles
     const DRAG = 0.95; // the water: strong, so nothing springs or overshoots
@@ -563,7 +563,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       const a = tr[q];
       const b = tr[Math.min(q + 1, tr.length - 1)];
       const span = b.d - a.d;
-      const f = span > 0 ? (want - a.d) / span : 0;
+      const f = span > 0 ? clamp((want - a.d) / span, 0, 1) : 0; // never look past either end of the trail
       return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
     };
     let live = false;
@@ -602,6 +602,8 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
       me.vy = (me.vy + fy) * dr;
       me.x += me.vx;
       me.y += me.vy;
+      // safety net: a word that ever runs away is simply sent home
+      if (!Number.isFinite(me.x + me.y) || Math.abs(me.x) > 3000 || Math.abs(me.y) > 3000) me.x = me.y = me.vx = me.vy = 0;
       const el = els.current[i];
       if (el) el.style.transform = `translate(${me.x.toFixed(2)}px, ${me.y.toFixed(2)}px)`;
       const off = Math.hypot(me.x, me.y);
