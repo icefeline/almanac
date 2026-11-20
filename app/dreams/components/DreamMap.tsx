@@ -372,6 +372,38 @@ function PixelSky({ colors, n = 10, cell = 3 }: { colors: [string, string, strin
   );
 }
 
+/** Pixel icons in the style of the old paint toolbox: a 16 by 16 grid, a few flat colours. */
+const ICON_PAL: Record<string, string> = { K: '#000000', W: '#FFFFFF', G: '#808080', L: '#C0C0C0', Y: '#FFFF55', B: '#0000A8' };
+const ICONS: Record<string, string[]> = {
+  eraser: ['................', '................', '..........KKKK..', '.........KYYYWK.', '........KYYYWWK.', '.......KYYYWWK..', '......KYYYWWK...', '.....KYYYWWK....', '....KKKKKKK.....', '...KLLLLLLGK....', '...KLLLLLLGK....', '...KGGGGGGGK....', '....KKKKKKK.....', '................', '................', '................'],
+  plus: ['................', '....KKKKK.......', '...KLLLLLK......', '..KLWLLLLLK.....', '.KLWLLKLLLLK....', '.KLWLLKLLLLK....', '.KLLKKKKKLLK....', '.KLLLLKLLLLK....', '.KLLLLKLLLLK....', '..KLLLLLLLB.....', '...KLLLLLKBB....', '....KKKKK.BBB...', '...........BBB..', '............BBB.', '.............B..', '................'],
+  minus: ['................', '....KKKKK.......', '...KLLLLLK......', '..KLWLLLLLK.....', '.KLWLLLLLLLK....', '.KLWLLLLLLLK....', '.KLLKKKKKLLK....', '.KLLLLLLLLLK....', '.KLLLLLLLLLK....', '..KLLLLLLLB.....', '...KLLLLLKBB....', '....KKKKK.BBB...', '...........BBB..', '............BBB.', '.............B..', '................'],
+  fit: ['................', '................', '................', '..KKKK..KK..KK..', '..K..........K..', '................', '..K..........K..', '..K..........K..', '................', '................', '..K..........K..', '..K..........K..', '..KKKK..KK..KK..', '................', '................', '................'],
+  sky: ['................', '................', '.....KK.........', '..Y.KYYK........', '...KYYYK........', '..KYYYK.........', '.KYYYYK.........', '.KYYYYK.........', '.KYYYYK.........', '.KYYYYYK.....Y..', '.KYYYYYYKKKKYYY.', '..KYYYYYYYYYKY..', '...KYYYYYYYK....', '....KYYYYYY.....', '.....KKKKK......', '................'],
+  back: ['................', '................', '................', '........KK......', '.......KK.......', '......KK........', '.....KK.........', '...KKKKKKKKKKK..', '...KKKKKKKKKKK..', '.....KK.........', '......KK........', '.......KK.......', '........KK......', '................', '................', '................'],
+  menu: ['................', '................', '................', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '...KKKKKKKKKK...', '...KKKKKKKKKK...', '................', '................', '................', '................'],
+  close: ['................', '................', '................', '...KK.......KK..', '....KK.....KK...', '.....KK...KK....', '......KK.KK.....', '.......KKK......', '.......KKK......', '......KK.KK.....', '.....KK...KK....', '....KK.....KK...', '...KK.......KK..', '................', '................', '................'],
+};
+function PixelIcon({ name }: { name: keyof typeof ICONS | string }) {
+  const rows = ICONS[name] ?? [];
+  const rects: ReactNode[] = [];
+  rows.forEach((row, y) => {
+    let x = 0;
+    while (x < row.length) {
+      const c = row[x];
+      let e = x;
+      while (e < row.length && row[e] === c) e++;
+      if (c !== '.') rects.push(<rect key={`${y}-${x}`} x={x} y={y} width={e - x} height={1} fill={ICON_PAL[c]} />);
+      x = e;
+    }
+  });
+  return (
+    <svg width={32} height={32} viewBox="0 0 16 16" shapeRendering="crispEdges" style={{ display: 'block' }} aria-hidden>
+      {rects}
+    </svg>
+  );
+}
+
 /** The interpreter page's Win98 button: raised grey, pressed in when it is the one chosen. */
 const bevel = (pressed: boolean): CSSProperties => ({
   width: 50,
@@ -1993,8 +2025,8 @@ export default function DreamMap() {
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 16, left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
-            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevelText(), width: 40, height: 40, padding: 0, fontSize: 26 }}>
-              ←
+            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevel(false), width: 40, height: 40, textDecoration: 'none' }}>
+              <PixelIcon name="back" />
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
@@ -2030,14 +2062,14 @@ export default function DreamMap() {
           {menuOpen && (
             <>
               {hasSamples && (
-                <button title="clear the sample dreams" aria-label="clear the sample dreams" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 17, color: '#000' }} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
-                  clear
+                <button title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+                  <PixelIcon name="eraser" />
                 </button>
               )}
-              <button title="the sky" aria-label="read the whole sky" style={{ ...bevel(sel?.kind === 'sky'), fontFamily: 'var(--font-vt323)', fontSize: 20, color: '#000' }} onClick={() => select({ kind: 'sky' })}>sky</button>
-              <button title="fit everything in view" aria-label="fit everything in view" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 20, color: '#000' }} onClick={() => select(null)}>fit</button>
-              <button aria-label="zoom in" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 28, color: '#000' }} onClick={() => zoomButton(1.4)}>+</button>
-              <button aria-label="zoom out" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 28, color: '#000' }} onClick={() => zoomButton(1 / 1.4)}>−</button>
+              <button title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
+              <button title="fit everything in view" aria-label="fit everything in view" style={bevel(false)} onClick={() => select(null)}><PixelIcon name="fit" /></button>
+              <button aria-label="zoom in" style={bevel(false)} onClick={() => zoomButton(1.4)}><PixelIcon name="plus" /></button>
+              <button aria-label="zoom out" style={bevel(false)} onClick={() => zoomButton(1 / 1.4)}><PixelIcon name="minus" /></button>
             </>
           )}
           <button
@@ -2048,9 +2080,9 @@ export default function DreamMap() {
               e.stopPropagation();
               setMenuOpen((o) => !o);
             }}
-            style={{ ...bevel(menuOpen), fontFamily: 'var(--font-vt323)', fontSize: 28, color: '#000' }}
+            style={bevel(menuOpen)}
           >
-            {menuOpen ? '×' : '≡'}
+            <PixelIcon name={menuOpen ? 'close' : 'menu'} />
           </button>
           {/* One button. Each press moves to the next night sky. */}
           <button
