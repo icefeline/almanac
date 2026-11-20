@@ -231,6 +231,8 @@ export function ditherReveal(): void {
   }
   const cv = cover;
   reseed();
+  // tell the page underneath that the sky is lifting, so what it holds back (the empty-sky poem) can dither in alongside it
+  window.dispatchEvent(new Event('milky-dither-reveal'));
   run(cv, MAX, 0, 1100, () => {
     cv.c.remove();
     if (cover === cv) cover = null;

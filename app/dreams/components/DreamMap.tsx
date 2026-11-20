@@ -331,7 +331,8 @@ type Letter = {
   locked: boolean;
   anchor: boolean; // the last letters of the poem can always be taken hold of
   shown: boolean; // is it showing as pulled (serif italic)
-  dith: number; // how far the letter has broken into dither dots, 0 whole to 1 mostly dots
+  dith: number; // how far the letter has broken into dither dots, 0 whole to 1 mostly dots, a little over 1 not there at all
+  delay: number; // when, within the arrival, this letter's turn comes
   grab: boolean; // can it be taken hold of
 };
 function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull' | 'wave' }) {
@@ -341,6 +342,12 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
   const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
   const raf = useRef(0);
   const pointer = useRef({ x: -9999, y: -9999 });
+  // when the map is dithered into, the poem is held back and then arrives letter by letter as the sky lifts
+  const holding = useRef(false);
+  const arrive = useRef<{ t0: number } | null>(null);
+  const arrivedOnce = useRef(false);
+  const arrivalGo = useRef<(() => void) | null>(null);
+  const arrivalTimer = useRef(0);
   const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   // The physics follows the typestring sketch: every letter is a point on one string that snakes through the poem (every other line
@@ -501,12 +508,32 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
     }
   };
 
+  /** How far a letter has broken into dither dots: 0 whole, 1 mostly dots, a little past 1 gone. */
+  const applyDith = (l: Letter, amt: number) => {
+    l.dith = amt;
+    if (amt < 0.05) {
+      l.el.style.maskImage = '';
+      l.el.style.webkitMaskImage = '';
+      l.el.style.opacity = '';
+    } else {
+      const edge = Math.max(0, 100 - amt * 74);
+      const m = `radial-gradient(circle at 50% 50%, #000 ${edge.toFixed(0)}%, transparent ${(edge + 7).toFixed(0)}%)`;
+      l.el.style.maskImage = m;
+      l.el.style.webkitMaskImage = m;
+      l.el.style.maskSize = '4px 4px';
+      l.el.style.webkitMaskSize = '4px 4px';
+      l.el.style.opacity = amt > 1 ? String(Math.max(0, 1 - (amt - 1) * 2.8)) : '';
+    }
+  };
+
   const frame = useRef<(now: number) => void>(() => {});
   const last = useRef(-1);
   const acc = useRef(0);
   frame.current = (now: number) => {
     const m = sim.current;
     if (!m) return;
+    const tNow = performance.now();
+    if (arrive.current && tNow - arrive.current.t0 > 1500) arrive.current = null; // every letter has arrived
     if (last.current < 0) last.current = now;
     const dt = mode === 'wave' ? 1 / 60 : 1 / 120;
     acc.current += Math.min((now - last.current) / 1000, 4 * dt);
@@ -540,24 +567,15 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
         l.el.style.fontFamily = on ? SERIF : '';
         l.el.style.fontStyle = on ? 'italic' : '';
       }
-      // as the pointer swims through the words, the letters break into the same dither dots as the sky behind, and re-form as they settle
-      if (mode === 'wave') {
-        const amt = clamp(Math.max(off / 70, sp / 5), 0, 1);
-        if (Math.abs(amt - l.dith) > 0.03 || (amt === 0 && l.dith !== 0)) {
-          l.dith = amt;
-          if (amt < 0.05) {
-            l.el.style.maskImage = '';
-            l.el.style.webkitMaskImage = '';
-          } else {
-            const edge = 100 - amt * 74;
-            const m = `radial-gradient(circle at 50% 50%, #000 ${edge.toFixed(0)}%, transparent ${(edge + 7).toFixed(0)}%)`;
-            l.el.style.maskImage = m;
-            l.el.style.webkitMaskImage = m;
-            l.el.style.maskSize = '4px 4px';
-            l.el.style.webkitMaskSize = '4px 4px';
-          }
-        }
+      // the letters break into dither dots as the pointer swims through them, and re-form as they settle; and arrive out of dots
+      let amt = mode === 'wave' ? clamp(Math.max(off / 70, sp / 5), 0, 1) : 0;
+      if (holding.current) amt = 1.35; // not there yet
+      else if (arrive.current) {
+        const r = clamp((tNow - arrive.current.t0 - l.delay) / 700, 0, 1);
+        amt = Math.max(amt, (1 - r * r * (3 - 2 * r)) * 1.35);
+        if (r < 1) active = true;
       }
+      if (Math.abs(amt - l.dith) > 0.03 || (amt === 0 && l.dith !== 0)) applyDith(l, amt);
       if (!l.locked && (off > 0.3 || sp > 0.05)) active = true;
       // in the wave setting the loop stays awake while the pointer is near the words, so the first touch has something to push
       if (mode === 'wave' && Math.hypot(l.x - pointer.current.x, l.y - pointer.current.y) < 220) active = true;
@@ -624,7 +642,7 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
       const r = el.getBoundingClientRect();
       const cx = r.x + r.width / 2;
       const cy = r.y + r.height / 2;
-      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, dith: 0, grab: false };
+      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, dith: 0, delay: 0, grab: false };
     });
     const lines: number[][] = [];
     els.forEach((el, i) => {
@@ -647,6 +665,29 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
       l.el.style.cursor = l.grab ? 'grab' : '';
     });
     sim.current = { S, rest, byIdx, drags: new Map(), running: false };
+    // arriving through the dither from the interpreter: stay out of sight until the sky starts to lift, then dither in with it
+    // (this can run twice in development, so it picks the hold back up rather than assuming it is the first time)
+    if (!reduce && (holding.current || (!arrivedOnce.current && document.getElementById('milky-dither')))) {
+      arrivedOnce.current = true;
+      holding.current = true;
+      S.forEach((l) => {
+        l.delay = Math.random() * 650;
+        applyDith(l, 1.35);
+      });
+      if (arrivalGo.current) window.removeEventListener('milky-dither-reveal', arrivalGo.current);
+      window.clearTimeout(arrivalTimer.current);
+      const go = () => {
+        window.removeEventListener('milky-dither-reveal', go);
+        window.clearTimeout(arrivalTimer.current);
+        arrivalGo.current = null;
+        holding.current = false;
+        arrive.current = { t0: performance.now() };
+        wake();
+      };
+      arrivalGo.current = go;
+      window.addEventListener('milky-dither-reveal', go);
+      arrivalTimer.current = window.setTimeout(go, 3000); // if the sky never signals, don't leave the poem hidden
+    }
   }, [mode]);
 
   useEffect(() => {
@@ -690,6 +731,8 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
     return () => {
       alive = false;
       cancelAnimationFrame(raf.current);
+      if (arrivalGo.current) window.removeEventListener('milky-dither-reveal', arrivalGo.current);
+      window.clearTimeout(arrivalTimer.current);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onHover);
       document.removeEventListener('mouseleave', onLeave);
@@ -2432,10 +2475,10 @@ export default function DreamMap() {
         )}
         {!sel && (
           <div style={{ position: 'absolute', left: 20, bottom: 24, ...hand, fontSize: 13, opacity: 0.6, pointerEvents: 'none', display: narrow ? 'none' : 'block' }}>
-            drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
+            drag to pan, scroll to zoom
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 36, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
           <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
           {menuOpen && (
@@ -2478,14 +2521,14 @@ export default function DreamMap() {
           </button>
         </div>
         {!narrow && (
-          <div style={{ position: 'absolute', right: 20, bottom: 24, textAlign: 'right', pointerEvents: 'none', fontFamily: 'var(--font-geist)' }}>
-            <div style={{ ...corner, fontSize: 13 }}>tonight’s moon: {moonNow.name}</div>
-            {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
+          <div style={{ position: 'absolute', right: 20, bottom: 14, textAlign: 'right', pointerEvents: 'none', fontFamily: 'var(--font-geist)' }}>
+            {skyReady && <div style={{ fontSize: 10, opacity: 0.4 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
         {ready && dreams.length === 0 && (
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
             <div style={{ display: 'grid', justifyItems: 'center', gap: 64 }}>
+              <style>{`@keyframes mmArrive{from{opacity:0}to{opacity:1}}`}</style>
               <EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} />
               {/* the poem is the first thing seen; a sample sky is there for anyone who wants to see what this becomes */}
               <button
@@ -2494,7 +2537,7 @@ export default function DreamMap() {
                   setDreams(SAMPLES);
                   select(null);
                 }}
-                style={{ pointerEvents: 'auto', background: 'none', border: 0, padding: 0, color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-geist)', fontSize: 14, textDecoration: 'underline', textUnderlineOffset: 4 }}
+                style={{ pointerEvents: 'auto', background: 'none', border: 0, padding: 0, color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-geist)', fontSize: 14, textDecoration: 'underline', textUnderlineOffset: 4, animation: typeof document !== 'undefined' && document.getElementById('milky-dither') ? 'mmArrive 1100ms ease 900ms both' : undefined }}
               >
                 or let milky show you a sky of made-up dreams first
               </button>
