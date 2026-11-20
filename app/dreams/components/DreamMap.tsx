@@ -480,6 +480,108 @@ const bevelText = (pressed = false): CSSProperties => ({
   whiteSpace: 'nowrap',
 });
 
+/**
+ * The empty sky's poem. Every line is justified to the same width, and every word can be taken hold of and pulled. A word
+ * follows the finger with weight, drags its neighbours after it along the line of the poem as if they were threaded on one
+ * string, and when it is let go the whole thing swings back to how it was written.
+ */
+const POEM = ['the greeks said it was milk,', 'spilled by hera across the dark.', 'yours is still empty.', 'tell milky a dream and', 'the first pale thread appears.'];
+function EmptyPoem() {
+  const words = useMemo(() => POEM.flatMap((line, li) => line.split(' ').map((w, wi) => ({ w, li, wi }))), []);
+  const state = useRef(words.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
+  const els = useRef<(HTMLSpanElement | null)[]>([]);
+  const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number } | null>(null);
+  const raf = useRef(0);
+
+  const tick = useCallback(() => {
+    const s = state.current;
+    const K = 0.012; // how hard each word is pulled home
+    const C = 0.07; // how hard it is pulled along by its neighbours on the string
+    const KD = 0.075; // how hard the hand pulls the word it holds: low, so the word has weight
+    let live = false;
+    for (let i = 0; i < s.length; i++) {
+      const me = s[i];
+      let fx = -K * me.x;
+      let fy = -K * me.y;
+      for (const nb of [s[i - 1], s[i + 1]]) {
+        if (!nb) continue;
+        fx += C * (nb.x - me.x);
+        fy += C * (nb.y - me.y);
+      }
+      const h = held.current;
+      if (h && h.i === i) {
+        fx += KD * (h.px - h.gx - me.x);
+        fy += KD * (h.py - h.gy - me.y);
+      }
+      me.vx = (me.vx + fx) * 0.9;
+      me.vy = (me.vy + fy) * 0.9;
+      me.x += me.vx;
+      me.y += me.vy;
+      const el = els.current[i];
+      if (el) el.style.transform = `translate(${me.x.toFixed(2)}px, ${me.y.toFixed(2)}px)`;
+      if (Math.abs(me.x) > 0.05 || Math.abs(me.y) > 0.05 || Math.abs(me.vx) > 0.02 || Math.abs(me.vy) > 0.02) live = true;
+    }
+    if (live || held.current) raf.current = requestAnimationFrame(tick);
+    else {
+      raf.current = 0;
+      for (const w of state.current) {
+        w.x = w.y = w.vx = w.vy = 0;
+      }
+      els.current.forEach((el) => el && (el.style.transform = ''));
+    }
+  }, []);
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+
+  const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  let k = -1;
+  return (
+    <div style={{ width: 'min(300px, calc(100vw - 64px))', display: 'flex', flexDirection: 'column', gap: 8, fontFamily: 'var(--font-geist)', fontSize: 15, lineHeight: 1.5, color: 'rgba(255,255,255,0.82)' }}>
+      {POEM.map((line, li) => (
+        <div key={li} style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+          {line.split(' ').map((w, wi) => {
+            const i = ++k;
+            return (
+              <span
+                key={wi}
+                data-ui
+                ref={(el) => {
+                  els.current[i] = el;
+                }}
+                onPointerDown={(e) => {
+                  if (reduce) return;
+                  try {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  } catch {
+                    /* the hold still works without capture */
+                  }
+                  const me = state.current[i];
+                  held.current = { i, gx: e.clientX - me.x, gy: e.clientY - me.y, px: e.clientX, py: e.clientY };
+                  if (!raf.current) raf.current = requestAnimationFrame(tick);
+                }}
+                onPointerMove={(e) => {
+                  if (held.current?.i === i) {
+                    held.current.px = e.clientX;
+                    held.current.py = e.clientY;
+                  }
+                }}
+                onPointerUp={() => {
+                  if (held.current?.i === i) held.current = null;
+                }}
+                onPointerCancel={() => {
+                  if (held.current?.i === i) held.current = null;
+                }}
+                style={{ display: 'inline-block', cursor: 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', willChange: 'transform', pointerEvents: 'auto' }}
+              >
+                {w}
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MoonGlyph({ phase, size = 22 }: { phase: number; size?: number }) {
   const R = size / 2 - 1;
   const c = size / 2;
@@ -2178,7 +2280,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: '0 32px', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.8)', pointerEvents: 'none' }}><div style={{ maxWidth: 320 }}>the greeks said it was milk, spilled by hera across the dark.<br />yours is still empty.<br />tell milky a dream and the first pale thread appears.</div></div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
