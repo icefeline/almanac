@@ -484,10 +484,9 @@ const bevelText = (pressed = false): CSSProperties => ({
  * The empty sky's poem, set large and overlapping like a poster, in two stanzas: the myth, then the ask, the ask bigger and
  * set apart. About a third of the letters are italic serif from the start.
  *
- * Every word can be taken hold of and pulled. A word follows the hand with weight, drags its neighbours after it
- * along the poem as if they were threaded on one string, throws off a spray of dots, and lets its letters tip into italic
- * serif while it is out of place. Let go and it all swings back to how it was written. The words also stir the dither dots
- * behind them while they move (see stirRef).
+ * It is a string of letters, after the typestring sketch: take hold of the last word and pull, and the poem is drawn out behind
+ * it letter by letter. Pulled letters tip into serif italic, throw off a few dots, and stir the dither they pass through (see
+ * stirRef). Let go and the string slowly settles back to how it was written.
  */
 type Stir = { x: number; y: number; r: number; vx: number; vy: number; held: boolean };
 const POEM = [
@@ -506,124 +505,190 @@ const STANZA = [
   { size: 'clamp(34px, min(9.5vw, 6.6vh), 72px)', color: '#FFFFFF' },
 ];
 const SERIF = 'var(--font-instrument-serif), Georgia, serif';
+type Letter = {
+  el: HTMLElement;
+  size: number;
+  italic: boolean; // italic from the start
+  ox: number; oy: number; // where it is written (the centre of the letter, on screen)
+  x: number; y: number; px: number; py: number;
+  locked: boolean;
+  anchor: boolean; // the last letters of the poem can always be taken hold of
+  shown: boolean; // is it showing as pulled (serif italic)
+  grab: boolean; // can it be taken hold of
+};
 function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
-  const flat = useMemo(() => POEM.flatMap((l) => l.t.split(' ')), []);
-  const state = useRef(flat.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 })));
-  const els = useRef<(HTMLSpanElement | null)[]>([]);
-  const flipped = useRef<number[]>(flat.map(() => -1));
-  const held = useRef<{ i: number; gx: number; gy: number; px: number; py: number; sx: number; sy: number; rest: { x: number; y: number }[]; wd: number[]; trail: { x: number; y: number; d: number }[] } | null>(null);
-  const raf = useRef(0);
+  const box = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
+  const sim = useRef<{ S: Letter[]; rest: number[]; byIdx: Letter[]; drags: Map<number, { l: Letter; ox: number; oy: number }>; running: boolean } | null>(null);
   const dots = useRef<{ x: number; y: number; vx: number; vy: number; life: number; max: number; s: number }[]>([]);
-  const rootEl = useRef<HTMLElement | null>(null);
+  const raf = useRef(0);
   const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  useEffect(() => {
-    rootEl.current = document.querySelector('[data-map-root]');
-  }, []);
 
-  // letters tip into serif italic from the first letter on, as far as the word has been pulled
-  const flip = (i: number, n: number) => {
-    if (flipped.current[i] === n) return;
-    flipped.current[i] = n;
-    const kids = els.current[i]?.children;
-    if (!kids) return;
-    for (let c = 0; c < kids.length; c++) {
-      const k = kids[c] as HTMLElement;
-      const on = c < n || k.dataset.s === '1';
-      k.style.fontFamily = on ? SERIF : '';
-      k.style.fontStyle = on ? 'italic' : '';
+  // The physics follows the typestring sketch: every letter is a point on one string that snakes through the poem (every other line
+  // reversed, so the end of a line joins the end of the next). Letters sit locked where they are written. Only the last few can
+  // be taken hold of; a letter unlocks only when its neighbour has pulled it taut, so the poem is drawn out from the end, one letter
+  // after another. There is no gravity, since this is a sky: let go and the string slowly settles back to how it was written.
+  const DAMP = 0.95;
+  const RET = 0.004; // the slow drift home
+  const UNLOCK = 1;
+  const ITER = 12;
+  const TIE = 1.15; // the string is a little longer than the gap it spans
+
+  const dragged = (l: Letter) => {
+    for (const d of sim.current!.drags.values()) if (d.l === l) return true;
+    return false;
+  };
+
+  const step = () => {
+    const m = sim.current!;
+    const { S, rest } = m;
+    // a letter unlocks when the one after it has been pulled far enough to tighten the string
+    for (let i = S.length - 2; i >= 0; i--) {
+      if (S[i].locked && !S[i + 1].locked) {
+        const a = S[i];
+        const b = S[i + 1];
+        if (Math.hypot(b.x - a.ox, b.y - a.oy) > rest[i] + UNLOCK) {
+          a.locked = false;
+          a.px = a.x;
+          a.py = a.y;
+        }
+      }
+    }
+    for (const l of S) {
+      if (l.locked || dragged(l)) continue;
+      const vx = (l.x - l.px) * DAMP;
+      const vy = (l.y - l.py) * DAMP;
+      l.px = l.x;
+      l.py = l.y;
+      l.x += vx + (l.ox - l.x) * RET;
+      l.y += vy + (l.oy - l.y) * RET;
+    }
+    // the string can't stretch, but it is free to go slack
+    for (let it = 0; it < ITER; it++) {
+      for (let i = 0; i < S.length - 1; i++) {
+        const a = S[i];
+        const b = S[i + 1];
+        if (a.locked && b.locked) continue;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy) || 0.001;
+        if (dist <= rest[i]) continue;
+        const diff = (dist - rest[i]) / dist;
+        const af = a.locked || dragged(a);
+        const bf = b.locked || dragged(b);
+        if (af && !bf) {
+          b.x -= dx * diff;
+          b.y -= dy * diff;
+        } else if (!af && bf) {
+          a.x += dx * diff;
+          a.y += dy * diff;
+        } else if (!af && !bf) {
+          a.x += dx * diff * 0.5;
+          a.y += dy * diff * 0.5;
+          b.x -= dx * diff * 0.5;
+          b.y -= dy * diff * 0.5;
+        }
+      }
+    }
+    // letters don't pass through each other
+    for (let i = 0; i < S.length; i++) {
+      const a = S[i];
+      if (a.locked) continue;
+      for (let j = i + 1; j < S.length; j++) {
+        const b = S[j];
+        if (b.locked || j === i + 1) continue;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const min = (a.size + b.size) * 0.3;
+        const d = Math.hypot(dx, dy) || 0.001;
+        if (d < min) {
+          const o = ((min - d) / d) * 0.5;
+          const ad = dragged(a);
+          const bd = dragged(b);
+          if (ad) {
+            b.x += dx * o * 2;
+            b.y += dy * o * 2;
+          } else if (bd) {
+            a.x -= dx * o * 2;
+            a.y -= dy * o * 2;
+          } else {
+            a.x -= dx * o;
+            a.y -= dy * o;
+            b.x += dx * o;
+            b.y += dy * o;
+          }
+        }
+      }
+    }
+    // the edges of the screen
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    for (const l of S) {
+      if (l.locked || dragged(l)) continue;
+      if (l.x < 0) { l.x = 0; l.px = l.x + (l.x - l.px) * 0.4; }
+      if (l.x > W) { l.x = W; l.px = l.x + (l.x - l.px) * 0.4; }
+      if (l.y < 0) { l.y = 0; l.py = l.y + (l.y - l.py) * 0.4; }
+      if (l.y > H) { l.y = H; l.py = l.y + (l.y - l.py) * 0.4; }
+    }
+    // letters that have drifted all the way home lock again, and the rest of the poem is held until it is next pulled
+    for (const l of S) {
+      if (l.locked || l.anchor || dragged(l)) continue;
+      if (Math.hypot(l.x - l.ox, l.y - l.oy) < 0.4 && Math.hypot(l.x - l.px, l.y - l.py) < 0.05) {
+        l.x = l.px = l.ox;
+        l.y = l.py = l.oy;
+        l.locked = true;
+      }
     }
   };
 
-  const tick = useCallback(() => {
-    const s = state.current;
-    const K = 0.0006; // how hard each word is drawn home: very slowly, like something drifting back through water
-    const C = 0.01; // how hard it is carried along by its neighbours on the string. Kept small: a stiffer string runs away once let go
-    const KD = 0.08; // how hard the hand draws the word it holds
-    const CD = 0.3; // neighbours also drag on each other's speed, so the string moves as one slow thing and never wobbles
-    const DRAG = 0.95; // the water: strong, so nothing springs or overshoots
-    const KT = 0.03; // how hard a word is drawn onto the line behind the one being pulled
-    const DRAGT = 0.7;
-    const SP = 46; // how quickly a word is picked up once the trail reaches it
-    const hd = held.current;
-    // the pulled word lays a trail behind it as it goes; the rest of the poem is drawn out along that trail, one word after another
-    if (hd) {
-      const m = s[hd.i];
-      const hx = hd.rest[hd.i].x + m.x;
-      const hy = hd.rest[hd.i].y + m.y;
-      const last = hd.trail[hd.trail.length - 1];
-      const dd = Math.hypot(hx - last.x, hy - last.y);
-      if (dd > 3) hd.trail.push({ x: hx, y: hy, d: last.d + dd });
-      if (hd.trail.length > 400) hd.trail.splice(0, 100);
+  const frame = useRef<(now: number) => void>(() => {});
+  const last = useRef(-1);
+  const acc = useRef(0);
+  frame.current = (now: number) => {
+    const m = sim.current;
+    if (!m) return;
+    if (last.current < 0) last.current = now;
+    acc.current += Math.min((now - last.current) / 1000, 4 / 120);
+    last.current = now;
+    while (acc.current >= 1 / 120) {
+      step();
+      acc.current -= 1 / 120;
     }
-    const pointAt = (want: number) => {
-      const tr = hd!.trail;
-      let q = tr.length - 1;
-      while (q > 0 && tr[q].d > want) q--;
-      const a = tr[q];
-      const b = tr[Math.min(q + 1, tr.length - 1)];
-      const span = b.d - a.d;
-      const f = span > 0 ? clamp((want - a.d) / span, 0, 1) : 0; // never look past either end of the trail
-      return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
-    };
-    let live = false;
+    const origin = (document.querySelector('[data-map-root]') as HTMLElement | null)?.getBoundingClientRect();
     const stirs: Stir[] = [];
-    const origin = rootEl.current?.getBoundingClientRect();
     const spray = dots.current;
-    for (let i = 0; i < s.length; i++) {
-      const me = s[i];
-      let fx = hd ? 0 : -K * me.x;
-      let fy = hd ? 0 : -K * me.y;
-      for (const nb of [s[i - 1], s[i + 1]]) {
-        if (!nb) continue;
-        fx += (hd ? 0 : C * (nb.x - me.x)) + CD * (nb.vx - me.vx);
-        fy += (hd ? 0 : C * (nb.y - me.y)) + CD * (nb.vy - me.vy);
+    let active = m.drags.size > 0;
+    let k = 0;
+    for (const l of m.S) {
+      const dx = l.x - l.ox;
+      const dy = l.y - l.oy;
+      const off = Math.hypot(dx, dy);
+      const sp = Math.hypot(l.x - l.px, l.y - l.py);
+      l.el.style.transform = off > 0.01 ? `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)` : '';
+      const grab = !l.locked || l.anchor;
+      if (grab !== l.grab) {
+        l.grab = grab;
+        l.el.style.pointerEvents = grab ? 'auto' : 'none';
+        l.el.style.cursor = grab ? 'grab' : '';
       }
-      if (hd && hd.i !== i) {
-        const total = hd.trail[hd.trail.length - 1].d;
-        // each word sits one word-width plus a gap further along the line than the one before it
-        let sd = 0;
-        for (let q = Math.min(i, hd.i); q < Math.max(i, hd.i); q++) sd += hd.wd[q] / 2 + hd.wd[q + 1] / 2 + 10;
-        const w = clamp(1 - (sd - total) / SP, 0, 1); // a word is picked up only once the trail is long enough to reach it
-        const p = pointAt(Math.max(0, total - sd));
-        fx += KT * (w * (p.x - hd.rest[i].x) - me.x);
-        fy += KT * (w * (p.y - hd.rest[i].y) - me.y);
+      const pulled = off > 5;
+      if (pulled !== l.shown) {
+        l.shown = pulled;
+        const on = pulled || l.italic;
+        l.el.style.fontFamily = on ? SERIF : '';
+        l.el.style.fontStyle = on ? 'italic' : '';
       }
-      const h = held.current;
-      if (h && h.i === i) {
-        // the hand is smoothed first, so a jerky pointer still draws a clean line
-        h.sx += (h.px - h.sx) * 0.2;
-        h.sy += (h.py - h.sy) * 0.2;
-        fx += KD * (h.sx - h.gx - me.x);
-        fy += KD * (h.sy - h.gy - me.y);
-      }
-      const dr = hd && hd.i !== i ? DRAGT : DRAG;
-      me.vx = (me.vx + fx) * dr;
-      me.vy = (me.vy + fy) * dr;
-      me.x += me.vx;
-      me.y += me.vy;
-      // safety net: a word that ever runs away is simply sent home
-      if (!Number.isFinite(me.x + me.y) || Math.abs(me.x) > 3000 || Math.abs(me.y) > 3000) me.x = me.y = me.vx = me.vy = 0;
-      const el = els.current[i];
-      if (el) el.style.transform = `translate(${me.x.toFixed(2)}px, ${me.y.toFixed(2)}px)`;
-      const off = Math.hypot(me.x, me.y);
-      const speed = Math.hypot(me.vx, me.vy);
-      if (el) flip(i, off < 3 ? 0 : Math.min(flat[i].length, Math.ceil(Math.min(1, off / 60) * flat[i].length)));
-      if (el && (off > 4 || speed > 0.4)) {
-        const b = el.getBoundingClientRect();
-        if (origin) stirs.push({ x: b.x + b.width / 2 - origin.x, y: b.y + b.height / 2 - origin.y, r: 26, vx: clamp(me.vx * 2, -12, 12), vy: clamp(me.vy * 2, -12, 12), held: held.current?.i === i });
-        // a word in motion throws off dots, along the way it is going
-        const n = Math.min(3, Math.floor(speed * 0.7));
-        for (let q = 0; q < n && spray.length < 700; q++) {
+      if (!l.locked && (off > 0.3 || sp > 0.05)) active = true;
+      if (!l.locked && (off > 4 || sp > 0.4)) {
+        // a letter in motion stirs the dots it passes through, and throws a few
+        if (origin && k++ % 2 === 0 && stirs.length < 30) stirs.push({ x: l.x - origin.x, y: l.y - origin.y, r: 24, vx: clamp((l.x - l.px) * 2, -12, 12), vy: clamp((l.y - l.py) * 2, -12, 12), held: dragged(l) });
+        if (sp > 1.2 && Math.random() < 0.25 && spray.length < 700) {
           const max = 60 + Math.random() * 90;
-          spray.push({ x: b.x + Math.random() * b.width, y: b.y + Math.random() * b.height, vx: me.vx * 0.45 + (Math.random() - 0.5) * 1.6, vy: me.vy * 0.45 + (Math.random() - 0.5) * 1.6, life: max, max, s: 1.5 + Math.random() * 1.5 });
+          spray.push({ x: l.x, y: l.y, vx: (l.x - l.px) * 0.4 + (Math.random() - 0.5) * 1.4, vy: (l.y - l.py) * 0.4 + (Math.random() - 0.5) * 1.4, life: max, max, s: 1.5 + Math.random() * 1.5 });
         }
       }
-      if (off > 0.05 || speed > 0.02) live = true;
     }
     onStir(stirs);
-
-    // the spray: small dots that drift on, slow down and fade
     const cv = canvas.current;
     if (cv) {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -638,8 +703,7 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
         ctx.fillStyle = '#EAF1FF';
         for (let q = spray.length - 1; q >= 0; q--) {
           const d = spray[q];
-          d.life--;
-          if (d.life <= 0) {
+          if (--d.life <= 0) {
             spray.splice(q, 1);
             continue;
           }
@@ -653,32 +717,117 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
         ctx.globalAlpha = 1;
       }
     }
-    if (live || held.current || spray.length) raf.current = requestAnimationFrame(tick);
+    if (active || spray.length) raf.current = requestAnimationFrame(frame.current);
     else {
       raf.current = 0;
-      for (const w of state.current) {
-        w.x = w.y = w.vx = w.vy = 0;
-      }
-      els.current.forEach((el, q) => {
-        if (el) el.style.transform = '';
-        flip(q, 0);
-      });
+      last.current = -1;
       onStir([]);
     }
-  }, [onStir, flat]);
-  useEffect(
-    () => () => {
-      cancelAnimationFrame(raf.current);
-      onStir([]);
-    },
-    [onStir]
-  );
+  };
+  const wake = () => {
+    if (!raf.current) {
+      last.current = -1;
+      raf.current = requestAnimationFrame((t) => frame.current(t));
+    }
+  };
 
-  let k = -1;
+  // read the poem off the page: where every letter sits, and the one string that threads them
+  const build = useCallback(() => {
+    const root = box.current;
+    if (!root) return;
+    const els = [...root.querySelectorAll<HTMLElement>('[data-ch]')];
+    if (!els.length) return;
+    els.forEach((e) => (e.style.transform = ''));
+    const byIdx: Letter[] = els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const cx = r.x + r.width / 2;
+      const cy = r.y + r.height / 2;
+      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, locked: true, anchor: false, shown: false, grab: false };
+    });
+    const lines: number[][] = [];
+    els.forEach((el, i) => {
+      const li = Number(el.dataset.li);
+      (lines[li] ||= []).push(i);
+    });
+    const flip = (lines.length - 1) % 2 === 1;
+    const order = lines.flatMap((idx, li) => ((flip ? li % 2 === 0 : li % 2 === 1) ? [...idx].reverse() : idx));
+    const S = order.map((i) => byIdx[i]);
+    const rest = S.slice(0, -1).map((a, i) => Math.hypot(S[i + 1].ox - a.ox, S[i + 1].oy - a.oy) * TIE);
+    for (let q = S.length - 1; q > S.length - 7 && q >= 0; q--) {
+      S[q].locked = false;
+      S[q].anchor = true;
+    }
+    S.forEach((l) => {
+      l.grab = !l.locked;
+      l.el.style.pointerEvents = l.grab ? 'auto' : 'none';
+      l.el.style.cursor = l.grab ? 'grab' : '';
+    });
+    sim.current = { S, rest, byIdx, drags: new Map(), running: false };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    const go = () => alive && build();
+    go();
+    document.fonts?.ready.then(() => {
+      if (alive && sim.current && !sim.current.drags.size && !sim.current.S.some((l) => !l.locked && !l.anchor)) build();
+    });
+    const onResize = () => {
+      if (sim.current && !sim.current.drags.size && !sim.current.S.some((l) => !l.locked && !l.anchor)) build();
+    };
+    window.addEventListener('resize', onResize);
+    const onMove = (e: PointerEvent) => {
+      const d = sim.current?.drags.get(e.pointerId);
+      if (!d) return;
+      d.l.x = e.clientX - d.ox;
+      d.l.y = e.clientY - d.oy;
+      d.l.px = d.l.x;
+      d.l.py = d.l.y;
+      d.l.locked = false;
+      wake();
+    };
+    const onUp = (e: PointerEvent) => {
+      sim.current?.drags.delete(e.pointerId);
+      wake();
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf.current);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      onStir([]);
+    };
+  }, [build, onStir]);
+
+  const start = (idx: number, e: React.PointerEvent) => {
+    const m = sim.current;
+    if (!m || reduce) return;
+    const l = m.byIdx[idx];
+    if (!l || (l.locked && !l.anchor)) return;
+    for (const d of m.drags.values()) if (d.l === l) return;
+    m.drags.set(e.pointerId, { l, ox: e.clientX - l.x, oy: e.clientY - l.y });
+    l.locked = false;
+    l.px = l.x;
+    l.py = l.y;
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* the hold still works without capture */
+    }
+    e.preventDefault();
+    wake();
+  };
+
+  let n = -1;
   return (
     <>
       <canvas ref={canvas} style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }} />
-      <div style={{ width: 'min(92vw, 760px)', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-geist)', fontWeight: 500, lineHeight: 0.86, letterSpacing: '-0.03em' }}>
+      <div ref={box} style={{ width: 'min(92vw, 760px)', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-geist)', fontWeight: 500, lineHeight: 0.86, letterSpacing: '-0.03em' }}>
         {POEM.map((line, li) => (
           <div
             key={li}
@@ -693,57 +842,28 @@ function EmptyPoem({ onStir }: { onStir: (s: Stir[]) => void }) {
               marginTop: li > 0 && line.s !== POEM[li - 1].s ? '1.2em' : '-0.06em', // the ask is its own paragraph
             }}
           >
-            {line.t.split(' ').map((w, wi) => {
-              const i = ++k;
-              return (
-                <span
-                  key={wi}
-                  data-ui
-                  ref={(el) => {
-                    els.current[i] = el;
-                  }}
-                  onPointerDown={(e) => {
-                    if (reduce) return;
-                    try {
-                      e.currentTarget.setPointerCapture(e.pointerId);
-                    } catch {
-                      /* the hold still works without capture */
-                    }
-                    const me = state.current[i];
-                    const rest = els.current.map((w, q) => {
-                      const b = w?.getBoundingClientRect();
-                      const d = state.current[q];
-                      return b ? { x: b.x + b.width / 2 - d.x, y: b.y + b.height / 2 - d.y } : { x: 0, y: 0 };
-                    });
-                    const wd = els.current.map((w) => w?.getBoundingClientRect().width ?? 40);
-                    held.current = { i, gx: e.clientX - me.x, gy: e.clientY - me.y, px: e.clientX, py: e.clientY, sx: e.clientX, sy: e.clientY, rest, wd, trail: [{ x: rest[i].x + me.x, y: rest[i].y + me.y, d: 0 }] };
-                    if (!raf.current) raf.current = requestAnimationFrame(tick);
-                  }}
-                  onPointerMove={(e) => {
-                    if (held.current?.i === i) {
-                      held.current.px = e.clientX;
-                      held.current.py = e.clientY;
-                    }
-                  }}
-                  onPointerUp={() => {
-                    if (held.current?.i === i) held.current = null;
-                  }}
-                  onPointerCancel={() => {
-                    if (held.current?.i === i) held.current = null;
-                  }}
-                  style={{ display: 'inline-block', cursor: 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', willChange: 'transform', pointerEvents: 'auto' }}
-                >
-                  {w.split('').map((ch, ci) => {
-                    const it = (ci * 5 + wi * 3 + li * 2) % 3 === 0;
-                    return (
-                      <span key={ci} data-s={it ? '1' : '0'} style={it ? { fontFamily: SERIF, fontStyle: 'italic' } : undefined}>
-                        {ch}
-                      </span>
-                    );
-                  })}
-                </span>
-              );
-            })}
+            {line.t.split(' ').map((w, wi) => (
+              <span key={wi} style={{ display: 'inline-block' }}>
+                {w.split('').map((ch, ci) => {
+                  const idx = ++n;
+                  // about a third of the letters are italic serif from the start
+                  const it = (ci * 5 + wi * 3 + li * 2) % 3 === 0;
+                  return (
+                    <span
+                      key={ci}
+                      data-ch
+                      data-ui
+                      data-li={li}
+                      data-s={it ? '1' : '0'}
+                      onPointerDown={(e) => start(idx, e)}
+                      style={{ display: 'inline-block', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', willChange: 'transform', pointerEvents: 'none', ...(it ? { fontFamily: SERIF, fontStyle: 'italic' } : null) }}
+                    >
+                      {ch}
+                    </span>
+                  );
+                })}
+              </span>
+            ))}
           </div>
         ))}
       </div>
