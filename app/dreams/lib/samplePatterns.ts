@@ -3,9 +3,9 @@ import type { PatternSet } from './patterns';
 /**
  * the reading of the six made-up sample dreams in `dreams.ts`, kept here so that opening the map costs nothing: no
  * request goes out until there are real dreams to read. the structure comes from a real reading of those dreams, and the
- * wording is written by hand to the interpreter's voice: a finding about the whole pattern rather than a tour of the dreams,
- * in four moves (a claim, what proves it, the real situations it may sit on, what you might notice), calm, lowercase,
- * british spelling. if the sample dreams change, this has to change with them. `sampleSet` only matches the exact dreams.
+ * wording is written by hand to the voice in the patterns route: one specific paragraph per pattern, built from the dreams'
+ * own objects, how the thing changes between appearances, what is missing, and one attributed idea. lowercase, british
+ * spelling. if the sample dreams change, this has to change with them. `sampleSet` only matches the exact dreams.
  */
 export const SAMPLE_PATTERNS: PatternSet | null = {
   patterns: [
@@ -20,7 +20,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'something you keep walking up to and never open',
       meaning:
-        "the door sits at the exact point where a dream runs out: the bottom of a staircase, the end of a hallway. when it's described at all, it's locked. maybe there's a conversation you know is waiting, or a grief you've walked up to a few times without going in. if that's near the mark, you might notice what happens in your day just before you turn back.",
+        "the door has been to three places. it opened onto still, deep water in the house where you'd never noticed it before, it stood locked at the end of a hallway that was your old home, and it waited at the bottom of the stairs you counted down one by one. the same door gave you a different reason to stop each time, and by the last one the water around you had already gone warm. researchers who study repeating dreams often say a mind goes back to what it hasn't finished, and the order here fits that: something you couldn't see, then couldn't open, then walked a whole staircase towards. the part worth watching is who you were counting for, because a few dreams earlier someone else was doing it for you.",
       watch: 'notice which conversation you walk up to and then step back from.',
     },
     {
@@ -33,7 +33,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'your old home is still bigger than you thought',
       meaning:
-        "the house is yours, but it won't hold the size you remember. rooms keep going, and a hallway turns out to be the place you grew up in. old ground can hold more than you gave it credit for. maybe that's family history, or a version of yourself you thought you'd finished with. if so, you might notice which room you've never once gone into.",
+        "the house refuses to stay the size you remember. in one dream the rooms go on past where any house could end, and three weeks on, the school hallway you're sent down for an exam you haven't studied for turns out to be your old home. dream readers often treat the house as the mind's default picture of the self, so extra rooms tend to read as extra history. nothing in either dream says you went into any of them. the exam arrives inside the house, which puts the unprepared feeling where you grew up, and what stays unexplained is the one door in that hallway that was locked.",
       watch: 'notice which room of your past you steer around.',
     },
     {
@@ -46,7 +46,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'comfort is meeting you where you braced for threat',
       meaning:
-        "water could have been the frightening part, and here it's warm, then warmer the further in you go. that reads as a body getting used to something large and unknown, and finding it kind. maybe there's a loss, or a feeling you've braced against for a long time. if so, you might notice the first moment this week you stop bracing and let it carry you.",
+        "the water is the one thing in these dreams that was allowed to frighten you and didn't. it starts out still and very deep behind a door you'd never noticed, turns warm under a moon hung too close over the sea, and gets warmer with every step on the stairs inside the ocean. the direction never changes: the further in you go, the kinder it gets. dream readers commonly take water for feeling, and temperature is the easy way to tell which feeling it is. maybe that's a loss, or something you've braced against for years. the odd detail is that nobody is in the water with you, only a voice somewhere keeping count.",
       watch: 'notice the moment you stop bracing against a feeling and let it carry you.',
     },
     {
@@ -59,7 +59,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: "you're taking over the keeping of the pace",
       meaning:
-        "someone else does the counting from below, and later you count your own steps. that handover reads as moving from being timed to setting the measure yourself. maybe it's a task, a recovery or a stretch of life that other people have been keeping track of for you. if that's right, you might notice where you could set the pace and nobody would stop you.",
+        "the counting changes hands. over the sea someone below keeps the count while you float, and in the stairs inside the ocean it's you, step by step, with the water warming each time you say a number. dream readers often link counting to timing, a wait that has an end. what's missing is the figure: in neither dream do you say what you're counting towards, and the second one stops at a door. so you may be moving from being timed to setting the pace, or taking over a count someone else was keeping for you. there may be something in your week with a number on it that nobody says out loud.",
       watch: 'notice one thing this week where you could set the pace yourself.',
     },
     {
@@ -72,7 +72,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'someone you know is trying to reach you',
       meaning:
-        "a voice you know keeps trying to get through a phone that won't cooperate, and when it finally does, it talks about something ordinary. what's wanted looks more like contact than news. maybe it's a person you've been meaning to call, or a part of yourself that's been hard to hear. if so, you might notice which call or message you keep letting ring.",
+        "the voice reaches you through a bad line first and a stranger's hand second. on the platform you can hear someone you know and can't get a signal, and three weeks later the phone is already ringing when it's handed to you, and it's your mother, and she talks about the moon. nothing urgent, no message to carry. people who have lost someone often report exactly this kind of dream, an ordinary talk, and say they're the ones that stay. the moon was hanging too close over the sea more than two weeks before, so the conversation may have been on its way for a while. the part nobody explains is the stranger who passed you the phone.",
       watch: 'notice which call or message you have been letting ring.',
     },
     {
@@ -85,7 +85,7 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
       ],
       gist: 'you feel a step behind something already underway',
       meaning:
-        "the dream starts after the moment that mattered: the train is already leaving, the exam already under way. maybe there's something you feel you ought to have finished by now, with a deadline that lives more in your head than on any calendar. if so, you might notice who set it.",
+        "both dreams start after the moment that could have gone right. the train is already leaving while you run for it, and the exam is already in front of you with nothing studied. neither one shows the instant you decided anything, only you arriving in the middle of a consequence. surveys of common dreams keep putting being late and unprepared near the top, so the shape is shared, but the furnishings are yours. on the platform there's a voice you know, and in the exam hall the corridor is your old house. the lateness comes with company, which is the detail to watch, because a deadline with someone fond waiting inside it is hardly an emergency.",
       watch: 'notice one thing you feel late for and who set that deadline.',
     },
   ],
@@ -96,5 +96,5 @@ export const SAMPLE_PATTERNS: PatternSet | null = {
     { a: 'p6', b: 'p5', why: 'missing the train leaves the voice calling, and later it connects' },
   ],
   throughline:
-    "these dreams keep stopping you just short of something: a door, a voice, a way down to the water. they also get kinder as they go, with a call that finally connects and water that turns warm. maybe there's something real you've been circling, a conversation or a loss, that's closer to reachable than it used to be. if so, you might notice what feels different this week.",
+    "across six dreams, from the second of october to the eleventh of november, you keep arriving at the edge of something: a train already gone, a door that's locked, a call with no signal, an exam already under way. but the edges change as they go. the water turns from still and deep to warm, the counting passes from someone else to you, and the phone that wouldn't connect becomes an ordinary conversation about the moon. researchers who study dreams often say a mind works at what it hasn't finished until it can be handled, and these read like something unfinished becoming handleable. the last dream ends at the bottom of the stairs, at a door you haven't opened, and it's the first time you walked all the way down on your own.",
 };

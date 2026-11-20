@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
-import { KIND_LABEL, dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
+import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
 import { RAD, drawSky, loadSky, moonPhase, type SkyData } from '../lib/sky';
 
 /**
@@ -1582,7 +1582,7 @@ export default function DreamMap() {
   if (!deep) {
     if (selPattern) {
       title = selPattern.name;
-      kicker = `${KIND_LABEL[selPattern.kind]}, in ${selPattern.dreams.length} ${selPattern.dreams.length === 1 ? 'dream' : 'dreams'}`;
+      kicker = `in ${selPattern.dreams.length} ${selPattern.dreams.length === 1 ? 'dream' : 'dreams'}`;
       if (sel?.kind === 'edge' && edgeDetail) {
         const d0 = edgeDetail.replace(/[.!?"”]+$/, '').replace(/^["“]/, '');
         items.push({ text: `in the ${byId.get(sel.dream) ? fmt(byId.get(sel.dream)!.date) : ''} dream, ${/^I[ '’]/.test(d0) ? d0 : d0.charAt(0).toLowerCase() + d0.slice(1)}.`, tone: 'quote' });

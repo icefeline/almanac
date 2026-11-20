@@ -67,7 +67,7 @@ export function tagPatterns(dreams: Dream[]): PatternSet {
   return { patterns, links: [], throughline: '' };
 }
 
-const CACHE = 'milky.patterns.v4';
+const CACHE = 'milky.patterns.v5';
 
 export function loadCachedPatterns(key: string): PatternSet | null {
   try {
