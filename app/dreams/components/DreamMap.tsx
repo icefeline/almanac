@@ -1993,7 +1993,6 @@ export default function DreamMap() {
             <Link href={home} aria-label="back to the dream interpreter" style={bevelText()}>
               ← interpret
             </Link>
-            <span style={{ fontFamily: 'var(--font-doto)', fontWeight: 900, fontSize: 20, color: YELLOW, textTransform: 'uppercase' }}>dream map</span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
             {skyStatus === 'reading' && <span style={{ ...hand, fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
