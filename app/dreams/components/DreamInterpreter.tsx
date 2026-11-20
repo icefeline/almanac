@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import BackgroundCanvas, { BG_STYLES, type BgStyle } from './BackgroundCanvas';
 import { rememberDream } from '../lib/dreams';
 import { ditherCover } from '../lib/ditherTransition';
+import { BACKDROPS } from '../lib/backdrops';
 
 /**
  * Ported from the Claude Design canvas `Dream Interpreter v3.dc.html`.
@@ -552,7 +553,14 @@ export default function DreamInterpreter() {
                 // a plain click is dithered into the map; a new-tab or modified click goes the ordinary way
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
                 e.preventDefault();
-                ditherCover(() => router.push(mapHref));
+                // the map's sky is chosen now, so the page can dither into its real colours and the map can open under the same one
+                const sky = BACKDROPS[Math.floor(Math.random() * BACKDROPS.length)];
+                try {
+                  sessionStorage.setItem('milky.nextSky', sky.id);
+                } catch {
+                  /* the map will choose its own */
+                }
+                ditherCover(sky.bg, () => router.push(mapHref));
               }}
               style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}
             >

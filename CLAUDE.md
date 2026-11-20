@@ -155,6 +155,7 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
 | `milky.dreams.v1` | `Dream[]` | the dreams milky remembers on this device (`app/dreams/lib/dreams.ts`): date, text, an optional saved reading, and a `sample` flag on the made-up ones, which are only loaded when the reader asks to see a sample sky. written after each reading by `rememberDream`, never for a dream that got the care note. read by the map. |
 | `milky.patterns.v5` | `{ key, set }` | the last pattern reading for the remembered dreams, keyed by a hash of their text so it is reused until they change. the sample dreams ship with theirs in `samplePatterns.ts` instead |
 | `milky.constellations` | `'1'` or `'0'` | whether the map draws the constellation figures over the stars |
+| `milky.nextSky` (sessionStorage) | `string` | the night sky the interpreter page chose just before dithering into the map, so the map opens under it. read once and removed |
 
 ---
 
