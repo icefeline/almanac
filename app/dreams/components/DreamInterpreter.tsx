@@ -2,9 +2,10 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import BackgroundCanvas, { BG_STYLES, type BgStyle } from './BackgroundCanvas';
 import { rememberDream } from '../lib/dreams';
+import { ditherCover } from '../lib/ditherTransition';
 
 /**
  * Ported from the Claude Design canvas `Dream Interpreter v3.dc.html`.
@@ -398,6 +399,7 @@ export default function DreamInterpreter() {
 
   // the map lives at /map on the milky address and /dreams/map everywhere else
   const pathname = usePathname();
+  const router = useRouter();
   const mapHref = pathname?.startsWith('/dreams') ? '/dreams/map' : '/map';
   const onRead = view === 'read';
   const q = query.trim().toLowerCase();
@@ -544,7 +546,16 @@ export default function DreamInterpreter() {
             >
               index
             </div>
-            <Link href={mapHref} style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}>
+            <Link
+              href={mapHref}
+              onClick={(e) => {
+                // a plain click is dithered into the map; a new-tab or modified click goes the ordinary way
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                ditherCover(() => router.push(mapHref));
+              }}
+              style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}
+            >
               map
             </Link>
           </div>

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { ditherReveal } from '../lib/ditherTransition';
 import { SAMPLES, loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
 import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
 import { RAD, drawSky, loadFigures, loadPlanets, loadSky, moonPhase, type SkyData } from '../lib/sky';
@@ -1033,6 +1034,12 @@ export default function DreamMap() {
     setReady(true);
     reduceRef.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   }, []);
+  // the way in is a dither wipe from the page before; take it down once the map is up (and its stars, or after a moment)
+  useEffect(() => {
+    if (!ready) return;
+    const t = window.setTimeout(ditherReveal, skyReady ? 80 : 1500);
+    return () => window.clearTimeout(t);
+  }, [ready, skyReady]);
   useEffect(() => {
     consRef.current = consOn;
     if (!ready) return;
@@ -2579,6 +2586,21 @@ export default function DreamMap() {
         </div>
 
 
+        {hasSamples && !sel && (
+          <div data-ui style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 26px)', width: 'max-content', maxWidth: 'calc(100vw - 150px)', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 14, lineHeight: 1.5, color: 'rgba(255,255,255,0.75)' }}>
+            a sample sky.{' '}
+            <button
+              onClick={() => {
+                setDreams((d) => d.filter((x) => !x.sample));
+                select(null);
+              }}
+              style={{ background: 'none', border: 0, padding: 0, color: 'rgba(255,255,255,0.95)', font: 'inherit', textDecoration: 'underline', textUnderlineOffset: 4 }}
+            >
+              clear it
+            </button>{' '}
+            to start your own.
+          </div>
+        )}
         {!sel && (
           <div style={{ position: 'absolute', left: 20, bottom: 24, ...hand, fontSize: 13, opacity: 0.6, pointerEvents: 'none', display: narrow ? 'none' : 'block' }}>
             drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
@@ -2587,16 +2609,6 @@ export default function DreamMap() {
         <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
           <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
-          {hasSamples && (
-            <div style={{ position: 'relative', display: 'flex' }}>
-              <span style={{ position: 'absolute', right: 'calc(100% + 14px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', fontFamily: 'var(--font-geist)', fontSize: 13, color: 'rgba(255,255,255,0.82)', pointerEvents: 'none' }}>
-                a sample sky, clear it
-              </span>
-              <button className="mm-btn" title="clear the sample dreams" aria-label="clear the sample dreams" style={bevel(false)} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
-                <PixelIcon name="eraser" />
-              </button>
-            </div>
-          )}
           {menuOpen && (
             <>
               <button className="mm-btn" title="the sky" aria-label="read the whole sky" style={bevel(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}><PixelIcon name="sky" /></button>
