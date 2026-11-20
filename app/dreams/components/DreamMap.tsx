@@ -515,6 +515,7 @@ type Letter = {
   locked: boolean;
   anchor: boolean; // the last letters of the poem can always be taken hold of
   shown: boolean; // is it showing as pulled (serif italic)
+  dith: number; // how far the letter has broken into dither dots, 0 whole to 1 mostly dots
   grab: boolean; // can it be taken hold of
 };
 function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull' | 'wave' }) {
@@ -530,11 +531,11 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
   // reversed, so the end of a line joins the end of the next). Letters sit locked where they are written. Only the last few can
   // be taken hold of; a letter unlocks only when its neighbour has pulled it taut, so the poem is drawn out from the end, one letter
   // after another. There is no gravity, since this is a sky: let go and the string slowly settles back to how it was written.
-  const DAMP = 0.95;
-  const RET = 0.004; // the slow drift home
-  const UNLOCK = 1;
+  const DAMP = 0.97; // the same values as the typestring sketch: heavy damping and a very gentle pull home, so nothing swings
+  const RET = 0.0002; // the slow drift home
+  const UNLOCK = 1; // how far a letter has to move before the one behind it joins in
   const ITER = 12;
-  const TIE = 1.15; // the string is a little longer than the gap it spans
+  const TIE = 1.0; // the string is exactly as long as the gap it spans, so a pull reaches every letter of the poem at once
 
   const dragged = (l: Letter) => {
     for (const d of sim.current!.drags.values()) if (d.l === l) return true;
@@ -544,12 +545,12 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
   const step = () => {
     const m = sim.current!;
     const { S, rest } = m;
-    // a letter unlocks when the one after it has been pulled far enough to tighten the string
+    // a letter unlocks as soon as the one after it has been moved, so the pull is passed back along the whole string
     for (let i = S.length - 2; i >= 0; i--) {
       if (S[i].locked && !S[i + 1].locked) {
         const a = S[i];
         const b = S[i + 1];
-        if (Math.hypot(b.x - a.ox, b.y - a.oy) > rest[i] + UNLOCK) {
+        if (Math.hypot(b.x - b.ox, b.y - b.oy) > UNLOCK) {
           a.locked = false;
           a.px = a.x;
           a.py = a.y;
@@ -633,9 +634,12 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
       if (l.y > H) { l.y = H; l.py = l.y + (l.y - l.py) * 0.4; }
     }
     // letters that have drifted all the way home lock again, and the rest of the poem is held until it is next pulled
-    for (const l of S) {
+    const calm = (k: number) => !S[k] || S[k].locked || Math.hypot(S[k].x - S[k].ox, S[k].y - S[k].oy) < 2.5; // is the letter next door at rest
+    for (let i = 0; i < S.length; i++) {
+      const l = S[i];
       if (l.locked || l.anchor || dragged(l)) continue;
-      if (Math.hypot(l.x - l.ox, l.y - l.oy) < 0.4 && Math.hypot(l.x - l.px, l.y - l.py) < 0.05) {
+      // not while a neighbour is still away from home: it may be about to pull this one along
+      if (Math.hypot(l.x - l.ox, l.y - l.oy) < 2.5 && Math.hypot(l.x - l.px, l.y - l.py) < 0.15 && calm(i - 1) && calm(i + 1)) {
         l.x = l.px = l.ox;
         l.y = l.py = l.oy;
         l.locked = true;
@@ -720,7 +724,27 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
         l.el.style.fontFamily = on ? SERIF : '';
         l.el.style.fontStyle = on ? 'italic' : '';
       }
+      // as the pointer swims through the words, the letters break into the same dither dots as the sky behind, and re-form as they settle
+      if (mode === 'wave') {
+        const amt = clamp(Math.max(off / 70, sp / 5), 0, 1);
+        if (Math.abs(amt - l.dith) > 0.03 || (amt === 0 && l.dith !== 0)) {
+          l.dith = amt;
+          if (amt < 0.05) {
+            l.el.style.maskImage = '';
+            l.el.style.webkitMaskImage = '';
+          } else {
+            const edge = 100 - amt * 74;
+            const m = `radial-gradient(circle at 50% 50%, #000 ${edge.toFixed(0)}%, transparent ${(edge + 7).toFixed(0)}%)`;
+            l.el.style.maskImage = m;
+            l.el.style.webkitMaskImage = m;
+            l.el.style.maskSize = '4px 4px';
+            l.el.style.webkitMaskSize = '4px 4px';
+          }
+        }
+      }
       if (!l.locked && (off > 0.3 || sp > 0.05)) active = true;
+      // in the wave setting the loop stays awake while the pointer is near the words, so the first touch has something to push
+      if (mode === 'wave' && Math.hypot(l.x - pointer.current.x, l.y - pointer.current.y) < 220) active = true;
       if (!l.locked && (off > 4 || sp > 0.4)) {
         // a letter in motion stirs the dots it passes through, and throws a few
         if (origin && k++ % 2 === 0 && stirs.length < 30) stirs.push({ x: l.x - origin.x, y: l.y - origin.y, r: 24, vx: clamp((l.x - l.px) * 2, -12, 12), vy: clamp((l.y - l.py) * 2, -12, 12), held: dragged(l) });
@@ -784,7 +808,7 @@ function EmptyPoem({ onStir, mode }: { onStir: (s: Stir[]) => void; mode: 'pull'
       const r = el.getBoundingClientRect();
       const cx = r.x + r.width / 2;
       const cy = r.y + r.height / 2;
-      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, grab: false };
+      return { el, size: parseFloat(getComputedStyle(el).fontSize) || 20, italic: el.dataset.s === '1', ox: cx, oy: cy, x: cx, y: cy, px: cx, py: cy, vx: 0, vy: 0, locked: mode === 'pull', anchor: false, shown: false, dith: 0, grab: false };
     });
     const lines: number[][] = [];
     els.forEach((el, i) => {
@@ -2633,7 +2657,7 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'wave' ? 'wave' : 'pull'} /></div>}
+        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} /></div>}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
