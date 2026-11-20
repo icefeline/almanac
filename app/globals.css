@@ -367,6 +367,7 @@ input.rounded-3xl:focus-within {
 button:not(:disabled),
 a[href],
 [role='button'],
+[style*='cursor: pointer'],
 select,
 summary,
 label[for],

@@ -2459,7 +2459,7 @@ export default function DreamMap() {
 
 
         {hasSamples && !sel && (
-          <div data-ui style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 26px)', width: 'max-content', maxWidth: 'calc(100vw - 150px)', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 14, lineHeight: 1.5, color: 'rgba(255,255,255,0.75)' }}>
+          <div data-ui style={{ pointerEvents: 'auto', position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 26px)', width: 'max-content', maxWidth: 'calc(100vw - 150px)', textAlign: 'center', fontFamily: 'var(--font-geist)', fontSize: 14, lineHeight: 1.5, color: 'rgba(255,255,255,0.75)' }}>
             made-up dreams to show you milky.{' '}
             <button
               onClick={() => {
@@ -2478,7 +2478,7 @@ export default function DreamMap() {
             drag to pan, scroll to zoom
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 36, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : 24, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
           <style>{`.mm-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.mm-btn:active{border-color:#0A0A0A #FFFFFF #FFFFFF #0A0A0A!important;box-shadow:inset 1px 1px 0 #808080!important;background:#BFBBB2!important}.mm-btn:active svg{transform:translate(1px,1px)}`}</style>
           {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
           {menuOpen && (
@@ -2521,7 +2521,7 @@ export default function DreamMap() {
           </button>
         </div>
         {!narrow && (
-          <div style={{ position: 'absolute', right: 20, bottom: 14, textAlign: 'right', pointerEvents: 'none', fontFamily: 'var(--font-geist)' }}>
+          <div style={{ position: 'absolute', right: 20, top: 'calc(env(safe-area-inset-top, 0px) + 56px)', textAlign: 'right', pointerEvents: 'none', fontFamily: 'var(--font-geist)' }}>
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
