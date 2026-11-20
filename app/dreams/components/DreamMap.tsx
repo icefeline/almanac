@@ -372,18 +372,21 @@ function PixelSky({ colors, n = 10, cell = 3 }: { colors: [string, string, strin
   );
 }
 
-/** A raised grey button in the old operating-system style; pressed in when it is the one chosen. */
+/** The interpreter page's Win98 button: raised grey, pressed in when it is the one chosen. */
 const bevel = (pressed: boolean): CSSProperties => ({
-  width: 46,
-  height: 46,
+  width: 50,
+  height: 50,
   padding: 0,
-  display: 'grid',
-  placeItems: 'center',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   cursor: 'pointer',
   background: '#D4D0C8',
-  border: '2px solid',
-  borderColor: pressed ? '#404040 #FFFFFF #FFFFFF #404040' : '#FFFFFF #404040 #404040 #FFFFFF',
-  boxShadow: pressed ? 'inset 1px 1px 0 #808080' : 'inset -1px -1px 0 #808080, inset 1px 1px 0 #DFDFDF',
+  borderStyle: 'solid',
+  borderWidth: 2,
+  borderRadius: 0,
+  borderColor: pressed ? '#0A0A0A #FFFFFF #FFFFFF #0A0A0A' : '#FFFFFF #808080 #808080 #FFFFFF',
+  boxShadow: pressed ? 'none' : '1px 1px 0 #0A0A0A, inset -1px -1px 0 #A9A69D',
 });
 
 /** The same raised button, sized for a word or a sign instead of a picture. */
@@ -1990,8 +1993,8 @@ export default function DreamMap() {
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 16, left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
-            <Link href={home} aria-label="back to the dream interpreter" style={bevelText()}>
-              ← interpret
+            <Link href={home} aria-label="back to the dream interpreter" title="back to interpret" style={{ ...bevelText(), width: 40, height: 40, padding: 0, fontSize: 26 }}>
+              ←
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
@@ -2022,22 +2025,20 @@ export default function DreamMap() {
             drag to pan the sky, scroll to zoom, tap a dream, a circle or a thread
           </div>
         )}
-        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 28, bottom: narrow ? 18 : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, pointerEvents: 'none' }}>
-          {/* The main button opens the rest above it. */}
+        <div data-ui style={{ position: 'absolute', right: narrow ? 18 : 20, bottom: narrow ? 18 : 74, display: narrow && sel ? 'none' : 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0', pointerEvents: 'auto' }}>
+          {/* The same stack as the interpreter page. The controls button opens the rest above it. */}
           {menuOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, pointerEvents: 'auto' }}>
+            <>
               {hasSamples && (
-                <button style={bevelText()} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
-                  clear samples
+                <button title="clear the sample dreams" aria-label="clear the sample dreams" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 17, color: '#000' }} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+                  clear
                 </button>
               )}
-              <button style={bevelText(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}>the sky</button>
-              <button style={bevelText()} onClick={() => select(null)}>fit</button>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom out" onClick={() => zoomButton(1 / 1.4)}>−</button>
-                <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom in" onClick={() => zoomButton(1.4)}>+</button>
-              </div>
-            </div>
+              <button title="the sky" aria-label="read the whole sky" style={{ ...bevel(sel?.kind === 'sky'), fontFamily: 'var(--font-vt323)', fontSize: 20, color: '#000' }} onClick={() => select({ kind: 'sky' })}>sky</button>
+              <button title="fit everything in view" aria-label="fit everything in view" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 20, color: '#000' }} onClick={() => select(null)}>fit</button>
+              <button aria-label="zoom in" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 28, color: '#000' }} onClick={() => zoomButton(1.4)}>+</button>
+              <button aria-label="zoom out" style={{ ...bevel(false), fontFamily: 'var(--font-vt323)', fontSize: 28, color: '#000' }} onClick={() => zoomButton(1 / 1.4)}>−</button>
+            </>
           )}
           <button
             aria-label={menuOpen ? 'close the map controls' : 'open the map controls'}
@@ -2047,7 +2048,7 @@ export default function DreamMap() {
               e.stopPropagation();
               setMenuOpen((o) => !o);
             }}
-            style={{ ...bevel(menuOpen), pointerEvents: 'auto', fontFamily: 'var(--font-vt323)', fontSize: 22, color: '#000' }}
+            style={{ ...bevel(menuOpen), fontFamily: 'var(--font-vt323)', fontSize: 28, color: '#000' }}
           >
             {menuOpen ? '×' : '≡'}
           </button>
@@ -2062,7 +2063,7 @@ export default function DreamMap() {
             onPointerDown={() => setPressing(true)}
             onPointerUp={() => setPressing(false)}
             onPointerLeave={() => setPressing(false)}
-            style={{ ...bevel(pressing), pointerEvents: 'auto' }}
+            style={bevel(pressing)}
           >
             <PixelSky colors={PX[backdrop.id] ?? PX.nebula} />
           </button>
