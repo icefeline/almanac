@@ -560,7 +560,7 @@ export default function DreamInterpreter() {
                 } catch {
                   /* the map will choose its own */
                 }
-                ditherCover(sky.bg, () => router.push(mapHref));
+                ditherCover(sky.bg, { palette: sky.palette, tint: sky.tint }, () => router.push(mapHref));
               }}
               style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid transparent', paddingBottom: 2 }}
             >
