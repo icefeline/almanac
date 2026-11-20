@@ -386,6 +386,21 @@ const bevel = (pressed: boolean): CSSProperties => ({
   boxShadow: pressed ? 'inset 1px 1px 0 #808080' : 'inset -1px -1px 0 #808080, inset 1px 1px 0 #DFDFDF',
 });
 
+/** The same raised button, sized for a word or a sign instead of a picture. */
+const bevelText = (pressed = false): CSSProperties => ({
+  ...bevel(pressed),
+  width: 'auto',
+  height: 30,
+  minWidth: 30,
+  padding: '0 12px',
+  fontFamily: 'var(--font-vt323)',
+  fontSize: 18,
+  lineHeight: 1,
+  color: '#000',
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+});
+
 function MoonGlyph({ phase, size = 22 }: { phase: number; size?: number }) {
   const R = size / 2 - 1;
   const c = size / 2;
@@ -1973,28 +1988,28 @@ export default function DreamMap() {
 
         {/* top bar */}
         <div data-ui style={{ position: 'absolute', top: 16, left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', pointerEvents: 'auto' }}>
-            <span style={{ fontFamily: 'var(--font-doto)', fontWeight: 900, fontSize: 20, color: YELLOW, textTransform: 'uppercase' }}>dream map</span>
-            <Link href={home} style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none', fontSize: 13 }}>
-              interpret
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', pointerEvents: 'auto' }}>
+            <Link href={home} aria-label="back to the dream interpreter" style={bevelText()}>
+              ← interpret
             </Link>
+            <span style={{ fontFamily: 'var(--font-doto)', fontWeight: 900, fontSize: 20, color: YELLOW, textTransform: 'uppercase' }}>dream map</span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', pointerEvents: 'auto', flexWrap: 'wrap' }}>
             {skyStatus === 'reading' && <span style={{ ...hand, fontSize: 13, color: GOLD, animation: 'mapPulse 1.6s ease-in-out infinite' }}>reading the sky…</span>}
             {skyStatus === 'error' && (
-              <button style={{ ...ghost, borderColor: 'rgba(255,217,138,0.5)', color: GOLD }} onClick={retry}>
+              <button style={bevelText()} onClick={retry}>
                 couldn’t read the sky, try again
               </button>
             )}
             {hasSamples && (
-              <button style={ghost} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
+              <button style={bevelText()} onClick={() => { setDreams((d) => d.filter((x) => !x.sample)); select(null); }}>
                 clear samples
               </button>
             )}
-            <button style={ghost} onClick={() => select({ kind: 'sky' })}>the sky</button>
-            <button style={{ ...ghost, padding: '6px 12px' }} aria-label="zoom in" onClick={() => zoomButton(1.4)}>+</button>
-            <button style={{ ...ghost, padding: '6px 12px' }} aria-label="zoom out" onClick={() => zoomButton(1 / 1.4)}>−</button>
-            <button style={ghost} onClick={() => select(null)}>fit</button>
+            <button style={bevelText(sel?.kind === 'sky')} onClick={() => select({ kind: 'sky' })}>the sky</button>
+            <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom in" onClick={() => zoomButton(1.4)}>+</button>
+            <button style={{ ...bevelText(), padding: 0, width: 30 }} aria-label="zoom out" onClick={() => zoomButton(1 / 1.4)}>−</button>
+            <button style={bevelText()} onClick={() => select(null)}>fit</button>
           </div>
         </div>
 
