@@ -61,9 +61,9 @@ export function loadDreams(): Dream[] {
       if (Array.isArray(parsed)) return parsed as Dream[];
     }
   } catch {
-    /* private mode / corrupt value: fall through to samples */
+    /* private mode / corrupt value: fall through to an empty journal */
   }
-  return SAMPLES;
+  return []; // the made-up samples are only shown when the reader asks for them
 }
 
 export function saveDreams(dreams: Dream[]): void {

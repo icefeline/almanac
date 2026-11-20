@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
+import { SAMPLES, loadDreams, readingFromInterpretation, saveDreams, stressDreams, type Dream } from '../lib/dreams';
 import { dreamsKey, loadCachedPatterns, sampleSet, saveCachedPatterns, tagPatterns, type Pattern, type PatternSet } from '../lib/patterns';
 import { RAD, drawSky, loadFigures, loadPlanets, loadSky, moonPhase, type SkyData } from '../lib/sky';
 
@@ -2646,7 +2646,24 @@ export default function DreamMap() {
             {skyReady && <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>stars: Hipparcos via d3-celestial</div>}
           </div>
         )}
-        {ready && dreams.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} /></div>}
+        {ready && dreams.length === 0 && (
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
+            <div style={{ display: 'grid', justifyItems: 'center', gap: 64 }}>
+              <EmptyPoem onStir={onStir} mode={new URLSearchParams(window.location.search).get('poem') === 'pull' ? 'pull' : 'wave'} />
+              {/* the poem is the first thing seen; a sample sky is there for anyone who wants to see what this becomes */}
+              <button
+                data-ui
+                onClick={() => {
+                  setDreams(SAMPLES);
+                  select(null);
+                }}
+                style={{ pointerEvents: 'auto', background: 'none', border: 0, padding: 0, color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-geist)', fontSize: 14, textDecoration: 'underline', textUnderlineOffset: 4 }}
+              >
+                or see a sample sky first
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ---- the writing ---- */}
         {!deep && title && !titleInColumn && (
