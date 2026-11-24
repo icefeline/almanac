@@ -301,6 +301,34 @@ export default function AboutDesktop() {
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
+  // /about?debug prints what each window measures on this device, for finding why one can't be seen
+  const [dbg, setDbg] = useState('');
+  useEffect(() => {
+    if (!/[?&]debug\b/.test(window.location.search)) return;
+    const t = setInterval(() => {
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;visibility:hidden;height:100dvh;width:100vw';
+      document.body.appendChild(probe);
+      const dvh = probe.getBoundingClientRect();
+      probe.remove();
+      const r = document.querySelector('.ad-root') as HTMLElement | null;
+      const rr = r?.getBoundingClientRect();
+      const lines = [
+        `inner ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} dvh ${Math.round(dvh.height)} vw ${Math.round(dvh.width)}`,
+        `phone ${matchMedia('(max-width:767px)').matches} wide ${matchMedia('(min-width:768px)').matches} standalone ${matchMedia('(display-mode: standalone)').matches}`,
+        `root ${rr ? Math.round(rr.width) + 'x' + Math.round(rr.height) : '-'} z ${r ? getComputedStyle(r).getPropertyValue('--z') : '-'}`,
+      ];
+      document.querySelectorAll<HTMLElement>('.ad-wrap').forEach((w) => {
+        const b = w.getBoundingClientRect();
+        const win = w.querySelector('.ad-win') as HTMLElement | null;
+        const wb = win?.getBoundingClientRect();
+        const c = getComputedStyle(w);
+        lines.push(`${w.textContent?.slice(0, 8)} @${Math.round(b.left)},${Math.round(b.top)} ${Math.round(b.width)}x${Math.round(b.height)} win ${wb ? Math.round(wb.width) + 'x' + Math.round(wb.height) : '-'} ${c.display} z${c.zIndex} x=${c.left} y=${c.top}`);
+      });
+      setDbg(lines.join('\n'));
+    }, 600);
+    return () => clearInterval(t);
+  }, []);
   const [milky, setMilky] = useState(false);
   const [lists, setLists] = useState<Record<string, boolean>>({}); // folders shown as a list rather than large icons
   const root = useRef<HTMLDivElement>(null);
@@ -781,6 +809,7 @@ export default function AboutDesktop() {
         </div>
       )}
 
+      {dbg && <pre style={{ position: 'fixed', left: 0, right: 0, top: 'calc(env(safe-area-inset-top, 0px) + 4px)', zIndex: 2147483000, margin: 0, padding: 6, background: 'rgba(0,0,0,.8)', color: '#7CFC7C', font: '10px/1.3 monospace', whiteSpace: 'pre-wrap', pointerEvents: 'none' }}>{dbg}</pre>}
       <div ref={setMiniHost} className="ad-mini-host" />
 
       <div className="ad-taskbar" role="toolbar" aria-label="taskbar">
