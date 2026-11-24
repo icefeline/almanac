@@ -381,7 +381,7 @@ export default function AboutDesktop() {
   const activeId = live.length ? live.reduce((a, b) => (b.z > a.z ? b : a)).id : null;
   // the small bar shows whenever the player isn't the window on show
   const musicWin = wins.find((w) => w.id === 'music');
-  const showMini = phone && !!musicWin && (musicWin.min || activeId !== 'music');
+  const showMini = phone && !!musicWin && musicWin.min;
 
   const raise = (id: string) => {
     const next = ++z.current;
@@ -402,9 +402,9 @@ export default function AboutDesktop() {
       const below = par && NODES[par.id].scatter ? (NODES[par.id].h ?? 150) + 52 : 112;
       const want = par ? { x: par.x + 50 * k, y: par.y + below * k } : { x: 70 * k + n * 22 * k, y: 28 * k + n * 22 * k };
       // a new window opens whole on the screen; only dragging may carry it partly off
-      const wPx = NODES[id].w * k;
+      const wPx = wide() ? NODES[id].w * k : window.innerWidth - 30;
       const dock = NODES[id].dock === 'bottom-right';
-      const x = dock ? Math.max(8, window.innerWidth - wPx - 16 * k) : Math.max(8, Math.min(want.x, window.innerWidth - wPx - 8));
+      const x = dock ? (wide() ? Math.max(8, window.innerWidth - wPx - 16 * k) : Math.round((window.innerWidth - wPx) / 2)) : Math.max(8, Math.min(want.x, window.innerWidth - wPx - 8));
       const y = dock
         ? Math.max(8, window.innerHeight - 28 * k - (NODES[id].estH ?? 300) * k - 14 * k) // flush above the taskbar
         : Math.max(8, Math.min(want.y, window.innerHeight - 28 * k - 90 * k));
@@ -454,7 +454,7 @@ export default function AboutDesktop() {
   }, [startOpen, ctx]);
 
   const startDrag = (e: ReactPointerEvent<HTMLDivElement>, w: Win) => {
-    if (!wide() || w.max || (e.target as Element).closest('.ad-tbtns')) return;
+    if (w.max || (e.target as Element).closest('.ad-tbtns')) return;
     const box = (e.currentTarget.closest('.ad-wrap') as HTMLElement).getBoundingClientRect();
     drag.current = { id: w.id, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, w: box.width };
     e.currentTarget.setPointerCapture(e.pointerId);

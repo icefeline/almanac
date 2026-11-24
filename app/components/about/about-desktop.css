@@ -533,23 +533,16 @@
   }
 }
 
-/* phones: the newest window fills the width and sits alone; the taskbar brings the others back */
+/* phones: windows cascade like on a desktop, a little narrower than the screen so each shows its edge; drag them by the title bar */
 @media (max-width: 767px) {
-  .ad-wrap {
-    left: 6px !important;
-    top: calc(var(--sat, 0px) + 8px) !important;
+  .ad-win {
+    width: calc((100vw - 30px) / var(--z));
   }
-  .ad-wrap:not([data-active]) {
-    display: none;
-  }
-  /* the player opens low, just above the taskbar, where a thumb reaches it */
-  .ad-wrap[data-player] {
-    top: auto !important;
-    bottom: calc(var(--bar) * var(--z) + var(--sab, 0px) + 6px);
-  }
-  .ad-win,
   .ad-wrap.is-max .ad-win {
-    width: calc((100vw - 12px) / var(--z));
+    width: calc(100vw / var(--z));
+  }
+  .ad-titlebar {
+    touch-action: none;
   }
   .ad-files {
     justify-content: center;
