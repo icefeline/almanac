@@ -168,8 +168,11 @@ export default function MediaPlayer({
     if (!a || !track) return;
     ensureGraph();
     try {
-      await actx.current?.resume();
-      await a.play();
+      // start the song straight from the tap: a browser only allows play() inside the gesture, and waiting on the
+      // audio graph first (as this used to) is exactly what made the buttons do nothing in Safari
+      const started = a.play();
+      void actx.current?.resume();
+      await started;
       setProblem('');
     } catch {
       setProblem("can't play this file");
