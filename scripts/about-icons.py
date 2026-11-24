@@ -391,6 +391,26 @@ def tarot32():
     return v
 
 
+def cd32():
+    """A compact disc, for the media player: a silver face with a rainbow sheen, a clear ring and a hole."""
+    v = Cv()
+    disc = v.ell(2, 2, 29, 29)
+    v.grad(disc, [S1, S2, S3, S2, S1], 'd')
+    v.bevel(disc, WHITE, S5)
+    # the rainbow a disc throws: bands of colour across two opposite sectors
+    ring = v.ell(5, 5, 26, 26) & ~v.ell(11, 11, 20, 20)
+    sheen_a = ring & (v.poly([(16, 16), (2, 6), (14, 1), (22, 1)]))
+    sheen_b = ring & (v.poly([(16, 16), (30, 26), (18, 31), (10, 31)]))
+    v.grad(sheen_a, [c('7fe8ff'), c('b89cff'), c('ff9ad0')], 'x', False)
+    v.grad(sheen_b, [c('ffe27a'), c('9cff9c'), c('7fe8ff')], 'x', False)
+    label = v.ell(10, 10, 21, 21)
+    v.grad(label, [P1, P2, P3], 'd', False)
+    v.bevel(label, WHITE, S4)
+    v.p[v.ell(14, 14, 17, 17)] = (0, 0, 0, 0)  # the hole
+    v.outline()
+    return v
+
+
 # ── the four app icons, built from the apps' own artwork ──────────────────────
 # These are not drawn: each is cut out of what the app really uses and shrunk to pixels, so it looks as it does on
 # enter.slowww.garden. Sources: the silver spiral's SVG (enter), the swirl card's texture (almanac), milky's and root's
@@ -722,6 +742,18 @@ def tarot16():
     return v
 
 
+def cd16():
+    v = Cv(16)
+    disc = v.ell(1, 1, 14, 14)
+    v.grad(disc, [S1, S2, S3], 'd', False)
+    v.bevel(disc, WHITE, S4)
+    v.paint(v.dots([(3, 5), (4, 3), (12, 10), (11, 12)]), c('9cc8ff'))
+    v.paint(v.dots([(5, 3), (10, 12)]), c('ffb0d8'))
+    v.p[v.rect(7, 7, 8, 8)] = (0, 0, 0, 0)
+    v.outline(shadow=False)
+    return v
+
+
 def shortcut(n):
     """The little arrow a shortcut wears in its corner, on its own sheet so CSS can lay it over any icon."""
     v = Cv(n)
@@ -745,7 +777,7 @@ DRAW = {
         'folder': folder32, 'doc': doc32, 'terms': terms32, 'lock': lock32,
         'question': lambda: bubble32('q'), 'info': lambda: bubble32('i'),
         'coffee': coffee32, 'sprout': sprout32, 'monitor': monitor32,
-        'gift': gift32, 'diary': diary32, 'tarot': tarot32,
+        'gift': gift32, 'diary': diary32, 'tarot': tarot32, 'cd': cd32,
         'enter': enter32, 'almanac': almanac32, 'milky': milky32, 'root': root32,
         'shortcut': lambda: shortcut(32),
     },
@@ -753,7 +785,7 @@ DRAW = {
         'folder': folder16, 'doc': doc16, 'terms': terms16, 'lock': lock16,
         'question': lambda: bubble16('q'), 'info': lambda: bubble16('i'),
         'coffee': coffee16, 'sprout': sprout16, 'monitor': monitor16, 'moon': moon16,
-        'gift': gift16, 'diary': diary16, 'tarot': tarot16,
+        'gift': gift16, 'diary': diary16, 'tarot': tarot16, 'cd': cd16,
         'shortcut': lambda: shortcut(16),
     },
 }

@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { ABOUT, APPS } from '../AboutMenu';
+import { glyph } from './pixels';
+import MediaPlayer from './MediaPlayer';
+import VizLayer from './VizLayer';
+import { MenuBar } from './WinMenu';
 import './about-desktop.css';
 
 /*
@@ -15,28 +19,6 @@ import './about-desktop.css';
  */
 
 const icon = (name: string, size: 16 | 32 = 32) => `/about/icons/${name}-${size}.png`;
-
-/** A tiny pixel glyph (an arrow, a check, the window buttons' marks) as an image the CSS can use as a background. */
-function glyph(rows: string[]) {
-  const h = rows.length;
-  const w = rows[0].length;
-  let rects = '';
-  rows.forEach((row, y) => {
-    let x = 0;
-    while (x < w) {
-      if (row[x] !== 'X') {
-        x++;
-        continue;
-      }
-      let n = 1;
-      while (row[x + n] === 'X') n++;
-      rects += `<rect x="${x}" y="${y}" width="${n}" height="1"/>`;
-      x += n;
-    }
-  });
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" fill="#000">${rects}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
 
 const GLYPHS: Record<string, string> = {
   close: glyph(['XX....XX', '.XX..XX.', '..XXXX..', '...XX...', '..XXXX..', '.XX..XX.', 'XX....XX']),
@@ -55,13 +37,17 @@ interface Entry {
   title: string;
   /** Icon file name, without size or extension. */
   icon: string;
-  kind: 'folder' | 'text' | 'answer' | 'link' | 'display';
+  kind: 'folder' | 'text' | 'answer' | 'link' | 'display' | 'player';
   /** Window width at the original size, before scaling. */
   w: number;
   children?: string[];
   /** A folder's icons are strewn about, not lined up: where each sits (left, then top in px), and how tall the room is. */
   scatter?: Record<string, [string, number]>;
   h?: number;
+  /** Opens tucked into a corner of the desktop, out of the way of the icons, rather than cascading from the top left. */
+  dock?: 'bottom-right';
+  /** How tall the window is, before scaling, so it can be docked flush with the bottom. */
+  estH?: number;
   body?: ReactNode;
   href?: string;
   /** Wears the little shortcut arrow: it leads somewhere else. */
@@ -132,6 +118,7 @@ const NODES: Record<string, Entry> = {
     scatter: { why: ['5%', 8], coffee: ['58%', 14], privacy: ['20%', 82], terms: ['64%', 88] },
   },
   display: { title: 'display properties', icon: 'monitor', kind: 'display', w: 330 },
+  music: { title: 'media player', icon: 'cd', kind: 'player', w: 350, dock: 'bottom-right', estH: 335 },
   // the questions, then the two policies: a policy is just one more thing people ask about
   faq: {
     title: ABOUT.faq.label,
@@ -197,12 +184,13 @@ const DESK: { id: string; x: number; y: number }[] = [
   { id: 'faq', x: 24, y: 64 },
   { id: 'app-enter', x: 47, y: 15 },
   { id: 'app-almanac', x: 51, y: 46 },
-  { id: 'app-milky', x: 64, y: 77 },
+  { id: 'app-milky', x: 42, y: 80 },
   { id: 'app-root', x: 10, y: 84 },
+  { id: 'music', x: 80, y: 30 },
 ];
 
 /** The Start menu, top to bottom. null is a divider. */
-const START: (string | null)[] = ['faq', 'info', null, 'app-almanac', 'app-milky', 'app-root', 'app-enter', null, 'display', null, 'home'];
+const START: (string | null)[] = ['faq', 'info', 'music', null, 'app-almanac', 'app-milky', 'app-root', 'app-enter', null, 'display', null, 'home'];
 
 interface Win {
   id: string;
@@ -211,79 +199,6 @@ interface Win {
   z: number;
   min: boolean;
   max: boolean;
-}
-
-/** Underlines the first letter, as a menu does for its keyboard shortcut. */
-const Mn = ({ text }: { text: string }) => (
-  <>
-    <u>{text[0]}</u>
-    {text.slice(1)}
-  </>
-);
-
-interface MenuItem {
-  label: string;
-  onSelect?: () => void;
-  disabled?: boolean;
-  checked?: boolean;
-  sep?: boolean;
-}
-
-function MenuBar({ menus }: { menus: { label: string; items: MenuItem[] }[] }) {
-  const [open, setOpen] = useState<number | null>(null);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (open === null) return;
-    const away = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(null);
-    };
-    document.addEventListener('pointerdown', away);
-    return () => document.removeEventListener('pointerdown', away);
-  }, [open]);
-  return (
-    <div ref={ref} className="ad-menubar" role="menubar">
-      {menus.map((m, i) => (
-        <div key={m.label} className="ad-mwrap">
-          <button
-            type="button"
-            role="menuitem"
-            aria-haspopup="true"
-            aria-expanded={open === i}
-            className="ad-mi"
-            data-pressed={open === i ? '' : undefined}
-            onClick={() => setOpen(open === i ? null : i)}
-            onPointerEnter={() => open !== null && setOpen(i)}
-          >
-            <Mn text={m.label} />
-          </button>
-          {open === i && (
-            <div className="ad-pop" role="menu">
-              {m.items.map((it, j) =>
-                it.sep ? (
-                  <div key={j} className="ad-psep" role="separator" />
-                ) : (
-                  <button
-                    key={it.label}
-                    type="button"
-                    role="menuitem"
-                    className="ad-pi"
-                    disabled={it.disabled}
-                    onClick={() => {
-                      setOpen(null);
-                      it.onSelect?.();
-                    }}
-                  >
-                    {it.checked && <span className="ad-chk" aria-hidden="true" />}
-                    {it.label}
-                  </button>
-                ),
-              )}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
 }
 
 function Pic({ name, size = 32, shortcut }: { name: string; size?: 16 | 32; shortcut?: boolean }) {
@@ -376,6 +291,16 @@ function useClock() {
 export default function AboutDesktop() {
   const [wins, setWins] = useState<Win[]>([]);
   const [startOpen, setStartOpen] = useState(false);
+  // on a phone the media player lives as a small bar along the bottom (see MediaPlayer's `mini`)
+  const [miniHost, setMiniHost] = useState<HTMLElement | null>(null);
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width:767px)');
+    const on = () => setPhone(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const [milky, setMilky] = useState(false);
   const [lists, setLists] = useState<Record<string, boolean>>({}); // folders shown as a list rather than large icons
   const root = useRef<HTMLDivElement>(null);
@@ -454,6 +379,9 @@ export default function AboutDesktop() {
 
   const live = wins.filter((w) => !w.min);
   const activeId = live.length ? live.reduce((a, b) => (b.z > a.z ? b : a)).id : null;
+  // the small bar shows whenever the player isn't the window on show
+  const musicWin = wins.find((w) => w.id === 'music');
+  const showMini = phone && !!musicWin && (musicWin.min || activeId !== 'music');
 
   const raise = (id: string) => {
     const next = ++z.current;
@@ -475,11 +403,22 @@ export default function AboutDesktop() {
       const want = par ? { x: par.x + 50 * k, y: par.y + below * k } : { x: 70 * k + n * 22 * k, y: 28 * k + n * 22 * k };
       // a new window opens whole on the screen; only dragging may carry it partly off
       const wPx = NODES[id].w * k;
-      const x = Math.max(8, Math.min(want.x, window.innerWidth - wPx - 8));
-      const y = Math.max(8, Math.min(want.y, window.innerHeight - 28 * k - 90 * k));
+      const dock = NODES[id].dock === 'bottom-right';
+      const x = dock ? Math.max(8, window.innerWidth - wPx - 16 * k) : Math.max(8, Math.min(want.x, window.innerWidth - wPx - 8));
+      const y = dock
+        ? Math.max(8, window.innerHeight - 28 * k - (NODES[id].estH ?? 300) * k - 14 * k) // flush above the taskbar
+        : Math.max(8, Math.min(want.y, window.innerHeight - 28 * k - 90 * k));
       return [...ws, { id, x, y, z: next, min: false, max: false }];
     });
   };
+
+  // the media player is already there: tucked into the bottom right on a wide screen, as a small bar on a phone
+  useEffect(() => {
+    open('music');
+    // on a phone it starts put away, as the small bar, so it doesn't cover the icons
+    if (!window.matchMedia('(min-width:768px)').matches) setWins((ws) => ws.map((w) => (w.id === 'music' ? { ...w, min: true } : w)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const close = (id: string) => {
     setWins((ws) => ws.filter((w) => w.id !== id));
@@ -618,6 +557,7 @@ export default function AboutDesktop() {
         </div>
       );
     }
+    if (n.kind === 'player') return <MediaPlayer onClose={() => close(w.id)} miniHost={phone ? miniHost : null} showMini={showMini} onExpand={() => raise('music')} />;
     if (n.kind === 'display') return <DisplayProps committed={scene} onApply={applyScene} onClose={() => close(w.id)} />;
     if (n.kind === 'folder') {
       const asList = !!lists[w.id];
@@ -695,7 +635,8 @@ export default function AboutDesktop() {
   const resizable = (n: Entry) => n.kind === 'folder' || n.kind === 'text';
 
   return (
-    <div ref={root} className="ad-root" data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
+    <div ref={root} className={showMini ? 'ad-root has-mini' : 'ad-root'} data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
+      <VizLayer />
       <div
         ref={desk}
         className="ad-desk"
@@ -748,12 +689,14 @@ export default function AboutDesktop() {
         const n = NODES[w.id];
         const isActive = w.id === activeId;
         const canMax = resizable(n);
+        const canMin = canMax || n.kind === 'player'; // a player can be put away while it plays
         return (
           <div
             key={w.id}
             className={w.max ? 'ad-wrap is-max' : 'ad-wrap'}
             data-active={isActive ? '' : undefined}
             data-min={w.min ? '' : undefined}
+            data-player={n.kind === 'player' ? '' : undefined}
             style={{ '--x': `${w.x}px`, '--y': `${w.y}px`, zIndex: w.z } as CSSProperties}
             onPointerDown={() => !isActive && raise(w.id)}
           >
@@ -770,19 +713,17 @@ export default function AboutDesktop() {
                 <img src={icon(n.icon, 16)} alt="" width={16} height={16} />
                 <span className="ad-ttl">{n.title}</span>
                 <span className="ad-tbtns">
+                  {canMin && <button type="button" className="ad-tbtn" aria-label={`minimise ${n.title}`} style={{ '--g': GLYPHS.min } as CSSProperties} onClick={() => minimise(w.id)} />}
                   {canMax && (
-                    <>
-                      <button type="button" className="ad-tbtn" aria-label={`minimise ${n.title}`} style={{ '--g': GLYPHS.min } as CSSProperties} onClick={() => minimise(w.id)} />
-                      <button
-                        type="button"
-                        className="ad-tbtn"
-                        aria-label={`${w.max ? 'restore' : 'maximise'} ${n.title}`}
-                        style={{ '--g': w.max ? GLYPHS.restore : GLYPHS.max } as CSSProperties}
-                        onClick={() => toggleMax(w.id)}
-                      />
-                    </>
+                    <button
+                      type="button"
+                      className="ad-tbtn"
+                      aria-label={`${w.max ? 'restore' : 'maximise'} ${n.title}`}
+                      style={{ '--g': w.max ? GLYPHS.restore : GLYPHS.max } as CSSProperties}
+                      onClick={() => toggleMax(w.id)}
+                    />
                   )}
-                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close } as CSSProperties} onClick={() => close(w.id)} />
+                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close } as CSSProperties} onClick={() => (n.kind === 'player' && phone ? minimise(w.id) : close(w.id))} />
                 </span>
               </div>
               {windowBody(w, n)}
@@ -821,6 +762,8 @@ export default function AboutDesktop() {
           </div>
         </div>
       )}
+
+      <div ref={setMiniHost} className="ad-mini-host" />
 
       <div className="ad-taskbar" role="toolbar" aria-label="taskbar">
         <div className="ad-tb">
