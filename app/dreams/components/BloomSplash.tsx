@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import AsciiFlower from './AsciiFlower';
+import AsciiFlower from '../../components/AsciiFlower';
 
 /**
  * The loading screen every slow garden page shares: the ascii flower blooming on the page's own ground colour.
