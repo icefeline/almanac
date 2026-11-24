@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1438C4',
+  themeColor: '#000000',
 };
 
 export default function DreamsLayout({ children }: { children: React.ReactNode }) {

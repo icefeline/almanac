@@ -32,15 +32,15 @@ export function MenuBar({ menus }: { menus: { label: string; items: MenuItem[] }
     return () => document.removeEventListener('pointerdown', away);
   }, [open]);
   return (
-    <div ref={ref} className="ad-menubar" role="menubar">
+    <div ref={ref} className="wd-menubar" role="menubar">
       {menus.map((m, i) => (
-        <div key={m.label} className="ad-mwrap">
+        <div key={m.label} className="wd-mwrap">
           <button
             type="button"
             role="menuitem"
             aria-haspopup="true"
             aria-expanded={open === i}
-            className="ad-mi"
+            className="wd-mi"
             data-pressed={open === i ? '' : undefined}
             onClick={() => setOpen(open === i ? null : i)}
             onPointerEnter={() => open !== null && setOpen(i)}
@@ -48,23 +48,23 @@ export function MenuBar({ menus }: { menus: { label: string; items: MenuItem[] }
             <Mn text={m.label} />
           </button>
           {open === i && (
-            <div className="ad-pop" role="menu">
+            <div className="wd-pop" role="menu">
               {m.items.map((it, j) =>
                 it.sep ? (
-                  <div key={j} className="ad-psep" role="separator" />
+                  <div key={j} className="wd-psep" role="separator" />
                 ) : (
                   <button
                     key={it.label}
                     type="button"
                     role="menuitem"
-                    className="ad-pi"
+                    className="wd-pi"
                     disabled={it.disabled}
                     onClick={() => {
                       setOpen(null);
                       it.onSelect?.();
                     }}
                   >
-                    {it.checked && <span className="ad-chk" aria-hidden="true" />}
+                    {it.checked && <span className="wd-chk" aria-hidden="true" />}
                     {it.label}
                   </button>
                 ),

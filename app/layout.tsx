@@ -10,7 +10,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   // the design system's background, matching the manifest's theme_color; /dreams overrides it
-  themeColor: '#172211',
+  themeColor: '#000000',
 };
 
 const reenieBeanie = Reenie_Beanie({

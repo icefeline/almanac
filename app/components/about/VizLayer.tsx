@@ -49,5 +49,5 @@ export default function VizLayer() {
     };
   }, []);
 
-  return <canvas ref={canvas} className="ad-bgviz" aria-hidden="true" />;
+  return <canvas ref={canvas} className="wd-bgviz" aria-hidden="true" />;
 }
