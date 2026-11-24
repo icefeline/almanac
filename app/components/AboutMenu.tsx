@@ -88,6 +88,8 @@ export interface AboutMenuProps {
   links?: { label: string; href: string }[];
   /** A solid ground behind the menu while it is open, on phones only: the type needs it over a busy page, and on wide screens it sits clear. */
   panelBackground?: string;
+  /** When set, "about" is a plain link to this page (the desktop of folders) instead of opening the little list. */
+  aboutHref?: string;
 }
 
 export default function AboutMenu({
@@ -108,6 +110,7 @@ export default function AboutMenu({
   appsTop = 16,
   appsLeft,
   panelBackground,
+  aboutHref,
 }: AboutMenuProps) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab | null>(null);
@@ -212,19 +215,25 @@ export default function AboutMenu({
       )}
 
 
-      <button
-        type="button"
-        className="sg-about-link"
-        onClick={() => {
-          setOpen((o) => !o);
-          setTab(null);
-        }}
-        aria-expanded={open}
-        style={{ display: 'flex', gap: 6, letterSpacing: '.12em' }}
-      >
-        <span>about</span>
-        <span aria-hidden="true">{open ? '−' : '+'}</span>
-      </button>
+      {aboutHref ? (
+        <a href={aboutHref} className="sg-about-link" style={{ display: 'flex', gap: 6, letterSpacing: '.12em' }}>
+          <span>about</span>
+        </a>
+      ) : (
+        <button
+          type="button"
+          className="sg-about-link"
+          onClick={() => {
+            setOpen((o) => !o);
+            setTab(null);
+          }}
+          aria-expanded={open}
+          style={{ display: 'flex', gap: 6, letterSpacing: '.12em' }}
+        >
+          <span>about</span>
+          <span aria-hidden="true">{open ? '−' : '+'}</span>
+        </button>
+      )}
     </div>
       {showApps && (
         <nav aria-label="the other slow garden apps" className={fan ? 'sg-about-apps sg-fan' : 'sg-about-apps'} style={{ position: 'fixed', left: appsLeft ?? left, top: typeof appsTop === 'number' ? `calc(env(safe-area-inset-top, 0px) + ${appsTop}px)` : appsTop, zIndex, display: 'flex', flexDirection: 'column', gap: 0, pointerEvents: ready ? 'auto' : 'none' }}>

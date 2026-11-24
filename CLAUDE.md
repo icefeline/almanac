@@ -151,6 +151,7 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
 | `slow-garden-reading-days` | `string[]` | every day a reading was generated — unbounded; used only to trigger the one-time thank-you-and-ask screen at day 8 |
 | `slow-garden-use-location`, `slow-garden-here` | — | location consent + resolved place |
 | `slow-garden-webview-noticed` | `'true'` | the in-app-browser notice has been dismissed |
+| `slow-garden-desktop` | `{ wall, color }` | the wallpaper id and desktop colour the reader picked in display properties on `/about` (`app/components/about/AboutDesktop.tsx`). Cosmetic only; the privacy page's "settings" bullet covers it |
 | `slow-garden-backup-last`, `slow-garden-backup-draws` | timestamp / count | when the reader last made a backup copy and how many draws it held, for the corner note's checkpoint nudge (`app/components/SaveStatus.tsx`, `lib/utils/backup.ts`). Bookkeeping only — never included in a backup |
 | `milky.dreams.v1` | `Dream[]` | the dreams milky remembers on this device (`app/dreams/lib/dreams.ts`): date, text, an optional saved reading, and a `sample` flag on the made-up ones, which are only loaded when the reader asks to see a sample sky. written after each reading by `rememberDream`, never for a dream that got the care note. read by the map. |
 | `milky.patterns.v5` | `{ key, set }` | the last pattern reading for the remembered dreams, keyed by a hash of their text so it is reused until they change. the sample dreams ship with theirs in `samplePatterns.ts` instead |
