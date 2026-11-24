@@ -203,7 +203,7 @@ interface Win {
 
 function Pic({ name, size = 32, shortcut }: { name: string; size?: 16 | 32; shortcut?: boolean }) {
   return (
-    <span className={shortcut ? 'ad-ico is-shortcut' : 'ad-ico'}>
+    <span className={shortcut ? 'wd-ico is-shortcut' : 'wd-ico'}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={icon(name, size)} alt="" width={32} height={32} />
     </span>
@@ -214,32 +214,32 @@ function Pic({ name, size = 32, shortcut }: { name: string; size?: 16 | 32; shor
 function DisplayProps({ committed, onApply, onClose }: { committed: Scene; onApply: (s: Scene) => void; onClose: () => void }) {
   const [draft, setDraft] = useState<Scene>(committed);
   return (
-    <div className="ad-dlg ad-dp">
-      <div className="ad-mon" aria-hidden="true">
-        <div className="ad-mon-body">
-          <div className="ad-mon-screen" style={sceneStyle(draft, '0.5')}>
-            <span className="ad-mon-ico" style={{ left: 8, top: 8 }} />
-            <span className="ad-mon-ico" style={{ left: 8, top: 30 }} />
-            <span className="ad-mon-ico" style={{ right: 10, top: 14 }} />
-            <span className="ad-mon-bar" />
+    <div className="wd-dlg wd-dp">
+      <div className="wd-mon" aria-hidden="true">
+        <div className="wd-mon-body">
+          <div className="wd-mon-screen" style={sceneStyle(draft, '0.5')}>
+            <span className="wd-mon-ico" style={{ left: 8, top: 8 }} />
+            <span className="wd-mon-ico" style={{ left: 8, top: 30 }} />
+            <span className="wd-mon-ico" style={{ right: 10, top: 14 }} />
+            <span className="wd-mon-bar" />
           </div>
         </div>
-        <div className="ad-mon-neck" />
-        <div className="ad-mon-base" />
+        <div className="wd-mon-neck" />
+        <div className="wd-mon-base" />
       </div>
-      <fieldset className="ad-grp">
+      <fieldset className="wd-grp">
         <legend>wallpaper</legend>
-        <div className="ad-lb" role="listbox" aria-label="wallpaper">
+        <div className="wd-lb" role="listbox" aria-label="wallpaper">
           {WALLS.map((w) => (
-            <button key={w.id} type="button" role="option" aria-selected={draft.wall === w.id} className="ad-opt" onClick={() => setDraft((d) => ({ ...d, wall: w.id }))}>
+            <button key={w.id} type="button" role="option" aria-selected={draft.wall === w.id} className="wd-opt" onClick={() => setDraft((d) => ({ ...d, wall: w.id }))}>
               {w.label}
             </button>
           ))}
         </div>
       </fieldset>
-      <fieldset className="ad-grp">
+      <fieldset className="wd-grp">
         <legend>colour</legend>
-        <div className="ad-sw" role="radiogroup" aria-label="desktop colour">
+        <div className="wd-sw" role="radiogroup" aria-label="desktop colour">
           {COLORS.map((col) => (
             <button
               key={col.id}
@@ -248,17 +248,17 @@ function DisplayProps({ committed, onApply, onClose }: { committed: Scene; onApp
               aria-checked={draft.color === col.id}
               aria-label={col.label}
               title={col.label}
-              className="ad-swatch"
+              className="wd-swatch"
               style={{ '--c': col.id } as CSSProperties}
               onClick={() => setDraft((d) => ({ ...d, color: col.id }))}
             />
           ))}
         </div>
       </fieldset>
-      <div className="ad-dlg-btns">
+      <div className="wd-dlg-btns">
         <button
           type="button"
-          className="ad-btn is-default"
+          className="wd-btn is-default"
           onClick={() => {
             onApply(draft);
             onClose();
@@ -266,10 +266,10 @@ function DisplayProps({ committed, onApply, onClose }: { committed: Scene; onApp
         >
           ok
         </button>
-        <button type="button" className="ad-btn" onClick={onClose}>
+        <button type="button" className="wd-btn" onClick={onClose}>
           cancel
         </button>
-        <button type="button" className="ad-btn" onClick={() => onApply(draft)}>
+        <button type="button" className="wd-btn" onClick={() => onApply(draft)}>
           apply
         </button>
       </div>
@@ -338,24 +338,6 @@ export default function AboutDesktop() {
     setIcons(kept);
     setReady(true);
   }, []);
-  // the colour reaches behind the phone's status bar and the browser's bar too: the page background and the theme colour follow it
-  useEffect(() => {
-    if (!ready) return;
-    const el = document.documentElement;
-    el.style.setProperty('--ad-page', scene.color);
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'theme-color';
-      document.head.appendChild(meta);
-    }
-    const before = meta.content;
-    meta.content = scene.color;
-    return () => {
-      el.style.removeProperty('--ad-page');
-      if (meta) meta.content = before;
-    };
-  }, [ready, scene.color]);
   // remember the look and the icons' places, once the reader has let go of an icon rather than on every pixel of a drag
   useEffect(() => {
     if (!ready || dragId) return;
@@ -463,7 +445,7 @@ export default function AboutDesktop() {
   useEffect(() => {
     if (!startOpen && !ctx) return;
     const away = (e: PointerEvent) => {
-      if ((e.target as Element).closest('.ad-sm, .ad-start, .ad-ctx')) return;
+      if ((e.target as Element).closest('.wd-sm, .wd-start, .wd-ctx')) return;
       setStartOpen(false);
       setCtx(null);
     };
@@ -472,8 +454,8 @@ export default function AboutDesktop() {
   }, [startOpen, ctx]);
 
   const startDrag = (e: ReactPointerEvent<HTMLDivElement>, w: Win) => {
-    if (w.max || (e.target as Element).closest('.ad-tbtns')) return;
-    const box = (e.currentTarget.closest('.ad-wrap') as HTMLElement).getBoundingClientRect();
+    if (w.max || (e.target as Element).closest('.wd-tbtns')) return;
+    const box = (e.currentTarget.closest('.wd-wrap') as HTMLElement).getBoundingClientRect();
     drag.current = { id: w.id, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, w: box.width };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
@@ -525,9 +507,9 @@ export default function AboutDesktop() {
     const n = NODES[id];
     const [x, y] = icons[id] ?? [dx, dy];
     const inner = (
-      <span className="ad-icon-in">
+      <span className="wd-icon-in">
         <Pic name={n.icon} shortcut={n.shortcut} />
-        <span className="ad-lbl">{n.title}</span>
+        <span className="wd-lbl">{n.title}</span>
       </span>
     );
     const style = { '--x': `${x}%`, '--y': `${y}%` } as CSSProperties;
@@ -537,7 +519,7 @@ export default function AboutDesktop() {
       onPointerUp: iconUp,
       onPointerCancel: iconUp,
       onDragStart: (e: React.DragEvent) => e.preventDefault(),
-      className: dragId === id ? 'ad-icon is-dragging' : 'ad-icon',
+      className: dragId === id ? 'wd-icon is-dragging' : 'wd-icon',
     };
     return n.kind === 'link' ? (
       <a
@@ -570,8 +552,8 @@ export default function AboutDesktop() {
   const windowBody = (w: Win, n: Entry) => {
     if (n.kind === 'answer') {
       return (
-        <div className="ad-client">
-          <div className="ad-note is-answer">{n.body}</div>
+        <div className="wd-client">
+          <div className="wd-note is-answer">{n.body}</div>
         </div>
       );
     }
@@ -594,9 +576,9 @@ export default function AboutDesktop() {
               { label: 'help', items: [{ label: 'about slow garden', onSelect: () => open('why') }] },
             ]}
           />
-          <div className="ad-client">
+          <div className="wd-client">
             <div
-              className={asList ? 'ad-files is-list' : n.scatter ? 'ad-files is-scatter' : 'ad-files'}
+              className={asList ? 'wd-files is-list' : n.scatter ? 'wd-files is-scatter' : 'wd-files'}
               style={!asList && n.scatter ? ({ '--h': `${n.h ?? 150}px` } as CSSProperties) : undefined}
             >
               {n.children!.map((cid) => {
@@ -610,20 +592,20 @@ export default function AboutDesktop() {
                   </>
                 );
                 return c.kind === 'link' ? (
-                  <a key={cid} className="ad-item" style={place} href={c.href} target="_blank" rel="noopener noreferrer">
+                  <a key={cid} className="wd-item" style={place} href={c.href} target="_blank" rel="noopener noreferrer">
                     {inner}
                   </a>
                 ) : (
-                  <button key={cid} type="button" className="ad-item" style={place} onClick={() => open(cid, w.id)}>
+                  <button key={cid} type="button" className="wd-item" style={place} onClick={() => open(cid, w.id)}>
                     {inner}
                   </button>
                 );
               })}
             </div>
           </div>
-          <div className="ad-status">
-            <div className="ad-sf">{n.children!.length} object(s)</div>
-            <div className="ad-sf">
+          <div className="wd-status">
+            <div className="wd-sf">{n.children!.length} object(s)</div>
+            <div className="wd-sf">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={icon('sprout', 16)} alt="" width={16} height={16} />
               slow garden
@@ -641,8 +623,8 @@ export default function AboutDesktop() {
               { label: 'help', items: [{ label: 'about slow garden', onSelect: () => raise('why') }] },
             ]}
           />
-          <div className="ad-client">
-            <div className="ad-note">{n.body}</div>
+          <div className="wd-client">
+            <div className="wd-note">{n.body}</div>
           </div>
         </>
       );
@@ -653,14 +635,14 @@ export default function AboutDesktop() {
   const resizable = (n: Entry) => n.kind === 'folder' || n.kind === 'text';
 
   return (
-    <div ref={root} className={showMini ? 'ad-root has-mini' : 'ad-root'} data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
+    <div ref={root} className={showMini ? 'wd-root has-mini' : 'wd-root'} data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
       <VizLayer />
       <div
         ref={desk}
-        className="ad-desk"
+        className="wd-desk"
         onContextMenu={(e) => {
           // a right-click on bare desktop offers display properties; on an icon it is left alone
-          if ((e.target as Element).closest('.ad-icon')) return;
+          if ((e.target as Element).closest('.wd-icon')) return;
           e.preventDefault();
           const k = scale();
           setStartOpen(false);
@@ -671,12 +653,12 @@ export default function AboutDesktop() {
       </div>
 
       {ctx && (
-        <div className="ad-ctx" role="menu" style={{ left: ctx.x, top: ctx.y }}>
-          <div className="ad-ctx-in">
+        <div className="wd-ctx" role="menu" style={{ left: ctx.x, top: ctx.y }}>
+          <div className="wd-ctx-in">
             <button
               type="button"
               role="menuitem"
-              className="ad-pi"
+              className="wd-pi"
               onClick={() => {
                 setCtx(null);
                 setIcons({});
@@ -687,7 +669,7 @@ export default function AboutDesktop() {
             <button
               type="button"
               role="menuitem"
-              className="ad-pi"
+              className="wd-pi"
               onClick={() => {
                 setCtx(null);
                 open('display');
@@ -695,8 +677,8 @@ export default function AboutDesktop() {
             >
               display properties…
             </button>
-            <div className="ad-psep" role="separator" />
-            <a href={back} role="menuitem" className="ad-pi">
+            <div className="wd-psep" role="separator" />
+            <a href={back} role="menuitem" className="wd-pi">
               go back
             </a>
           </div>
@@ -711,37 +693,37 @@ export default function AboutDesktop() {
         return (
           <div
             key={w.id}
-            className={w.max ? 'ad-wrap is-max' : 'ad-wrap'}
+            className={w.max ? 'wd-wrap is-max' : 'wd-wrap'}
             data-active={isActive ? '' : undefined}
             data-min={w.min ? '' : undefined}
             data-player={n.kind === 'player' ? '' : undefined}
             style={{ '--x': `${w.x}px`, '--y': `${w.y}px`, zIndex: w.z } as CSSProperties}
             onPointerDown={() => !isActive && raise(w.id)}
           >
-            <div role="dialog" aria-label={n.title} tabIndex={-1} className="ad-win" style={{ '--w': `${n.w}px` } as CSSProperties}>
+            <div role="dialog" aria-label={n.title} tabIndex={-1} className="wd-win" style={{ '--w': `${n.w}px` } as CSSProperties}>
               <div
-                className="ad-titlebar"
+                className="wd-titlebar"
                 onPointerDown={(e) => startDrag(e, w)}
                 onPointerMove={moveDrag}
                 onPointerUp={endDrag}
                 onPointerCancel={endDrag}
-                onDoubleClick={(e) => canMax && !(e.target as Element).closest('.ad-tbtns') && toggleMax(w.id)}
+                onDoubleClick={(e) => canMax && !(e.target as Element).closest('.wd-tbtns') && toggleMax(w.id)}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={icon(n.icon, 16)} alt="" width={16} height={16} />
-                <span className="ad-ttl">{n.title}</span>
-                <span className="ad-tbtns">
-                  {canMin && <button type="button" className="ad-tbtn" aria-label={`minimise ${n.title}`} style={{ '--g': GLYPHS.min, '--gp': '4px 9px', '--gpa': '5px 10px' } as CSSProperties} onClick={() => minimise(w.id)} />}
+                <span className="wd-ttl">{n.title}</span>
+                <span className="wd-tbtns">
+                  {canMin && <button type="button" className="wd-tbtn" aria-label={`minimise ${n.title}`} style={{ '--g': GLYPHS.min, '--gp': '4px 9px', '--gpa': '5px 10px' } as CSSProperties} onClick={() => minimise(w.id)} />}
                   {canMax && (
                     <button
                       type="button"
-                      className="ad-tbtn"
+                      className="wd-tbtn"
                       aria-label={`${w.max ? 'restore' : 'maximise'} ${n.title}`}
                       style={{ '--g': w.max ? GLYPHS.restore : GLYPHS.max, '--gp': '3px 2px', '--gpa': '4px 3px' } as CSSProperties}
                       onClick={() => toggleMax(w.id)}
                     />
                   )}
-                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close, '--gp': '4px 3px', '--gpa': '5px 4px' } as CSSProperties} onClick={() => (n.kind === 'player' && phone ? minimise(w.id) : close(w.id))} />
+                  <button type="button" className="wd-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close, '--gp': '4px 3px', '--gpa': '5px 4px' } as CSSProperties} onClick={() => (n.kind === 'player' && phone ? minimise(w.id) : close(w.id))} />
                 </span>
               </div>
               {windowBody(w, n)}
@@ -751,26 +733,26 @@ export default function AboutDesktop() {
       })}
 
       {startOpen && (
-        <div className="ad-sm" role="menu" aria-label="start menu">
-          <div className="ad-sm-in">
-            <div className="ad-sm-list">
+        <div className="wd-sm" role="menu" aria-label="start menu">
+          <div className="wd-sm-in">
+            <div className="wd-sm-list">
               {START.map((id, i) => {
-                if (id === null) return <div key={i} className="ad-smsep" role="separator" />;
+                if (id === null) return <div key={i} className="wd-smsep" role="separator" />;
                 if (id === 'home')
                   return (
-                    <a key={id} href={back} className="ad-smi" role="menuitem">
+                    <a key={id} href={back} className="wd-smi" role="menuitem">
                       <Pic name="sprout" />
                       go back
                     </a>
                   );
                 const n = NODES[id];
                 return n.kind === 'link' ? (
-                  <a key={id} href={hrefOf(id)} className="ad-smi" role="menuitem">
+                  <a key={id} href={hrefOf(id)} className="wd-smi" role="menuitem">
                     <Pic name={n.icon} shortcut={n.shortcut} />
                     {n.title}
                   </a>
                 ) : (
-                  <button key={id} type="button" className="ad-smi" role="menuitem" onClick={() => open(id)}>
+                  <button key={id} type="button" className="wd-smi" role="menuitem" onClick={() => open(id)}>
                     <Pic name={n.icon} />
                     {n.title}
                   </button>
@@ -781,21 +763,21 @@ export default function AboutDesktop() {
         </div>
       )}
 
-      <div ref={setMiniHost} className="ad-mini-host" />
+      <div ref={setMiniHost} className="wd-mini-host" />
 
-      <div className="ad-taskbar" role="toolbar" aria-label="taskbar">
-        <div className="ad-tb">
-          <button type="button" className="ad-start" aria-expanded={startOpen} aria-haspopup="menu" onClick={() => setStartOpen((s) => !s)}>
+      <div className="wd-taskbar" role="toolbar" aria-label="taskbar">
+        <div className="wd-tb">
+          <button type="button" className="wd-start" aria-expanded={startOpen} aria-haspopup="menu" onClick={() => setStartOpen((s) => !s)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={icon('sprout', 16)} alt="" width={16} height={16} />
             start
           </button>
-          <span className="ad-grip" aria-hidden="true" />
-          <div className="ad-tasks">
+          <span className="wd-grip" aria-hidden="true" />
+          <div className="wd-tasks">
             {wins.map((w) => {
               const n = NODES[w.id];
               return (
-                <button key={w.id} type="button" className="ad-task" aria-pressed={w.id === activeId} title={n.title} onClick={() => task(w.id)}>
+                <button key={w.id} type="button" className="wd-task" aria-pressed={w.id === activeId} title={n.title} onClick={() => task(w.id)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={icon(n.icon, 16)} alt="" width={16} height={16} />
                   <span>{n.title}</span>
@@ -803,7 +785,7 @@ export default function AboutDesktop() {
               );
             })}
           </div>
-          <div className="ad-tray" aria-hidden="true">
+          <div className="wd-tray" aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={icon('moon', 16)} alt="" width={16} height={16} />
             <span>{clock}</span>

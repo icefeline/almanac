@@ -426,25 +426,25 @@ export default function MediaPlayer({
 
   const shortName = track ? `${track.artist ? `${track.artist} - ` : ''}${track.title}` : 'no music yet';
   const mini = (
-    <div className="ad-mini" role="region" aria-label="media player">
-      <div className="ad-mini-prog" style={{ width: dur ? `${Math.min(100, (time / dur) * 100)}%` : '0%' }} />
+    <div className="wd-mini" role="region" aria-label="media player">
+      <div className="wd-mini-prog" style={{ width: dur ? `${Math.min(100, (time / dur) * 100)}%` : '0%' }} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/about/icons/cd-16.png" alt="" width={16} height={16} />
-      <button type="button" className="ad-mini-ttl" onClick={onExpand} title="open the player">
-        <span key={problem || shortName} className={`ad-mini-run${playing ? ' is-on' : ''}`}>
+      <button type="button" className="wd-mini-ttl" onClick={onExpand} title="open the player">
+        <span key={problem || shortName} className={`wd-mini-run${playing ? ' is-on' : ''}`}>
           <span>{problem || shortName}</span>
           <span aria-hidden="true">{problem || shortName}</span>
         </span>
       </button>
-      <button type="button" className="ad-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
-      <button type="button" className="ad-mpb" aria-label={playing ? 'pause' : 'play'} disabled={!track} style={{ '--g': playing ? G.pause : G.play } as React.CSSProperties} onClick={toggle} />
-      <button type="button" className="ad-mpb" aria-label="next" disabled={tracks.length < 2} style={{ '--g': G.next } as React.CSSProperties} onClick={() => go(index + 1)} />
-      <button type="button" className="ad-mpb" aria-label="open the player" style={{ '--g': G.win } as React.CSSProperties} onClick={onExpand} />
+      <button type="button" className="wd-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
+      <button type="button" className="wd-mpb" aria-label={playing ? 'pause' : 'play'} disabled={!track} style={{ '--g': playing ? G.pause : G.play } as React.CSSProperties} onClick={toggle} />
+      <button type="button" className="wd-mpb" aria-label="next" disabled={tracks.length < 2} style={{ '--g': G.next } as React.CSSProperties} onClick={() => go(index + 1)} />
+      <button type="button" className="wd-mpb" aria-label="open the player" style={{ '--g': G.win } as React.CSSProperties} onClick={onExpand} />
     </div>
   );
   return (
     <>
-    <div className="ad-mp" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
+    <div className="wd-mp" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
       <MenuBar
         menus={[
           {
@@ -471,19 +471,19 @@ export default function MediaPlayer({
           },
         ]}
       />
-      <div className="ad-mp-screen" title={`visualisation: ${viz}`} onClick={() => setViz((v) => VIZ[(VIZ.indexOf(v) + 1) % VIZ.length])}>
+      <div className="wd-mp-screen" title={`visualisation: ${viz}`} onClick={() => setViz((v) => VIZ[(VIZ.indexOf(v) + 1) % VIZ.length])}>
         <canvas ref={glCanvas} width={480} height={270} className={showGL ? undefined : 'is-off'} aria-label="music visualiser" />
         <canvas ref={canvas} width={W} height={H} className={showGL ? 'is-off' : undefined} aria-hidden="true" />
       </div>
-      <div className="ad-status">
-        <div className="ad-sf">{status}</div>
-        <div className="ad-sf ad-mp-time">
+      <div className="wd-status">
+        <div className="wd-sf">{status}</div>
+        <div className="wd-sf wd-mp-time">
           {fmt(time)} / {fmt(dur)}
         </div>
       </div>
       <input
         type="range"
-        className="ad-range"
+        className="wd-range"
         aria-label="seek"
         min={0}
         max={dur || 1}
@@ -496,17 +496,17 @@ export default function MediaPlayer({
           setTime(v);
         }}
       />
-      <div className="ad-mp-ctrls">
-        <button type="button" className="ad-mpb is-big" aria-label={playing ? 'pause' : 'play'} disabled={!track} style={{ '--g': playing ? G.pause : G.play } as React.CSSProperties} onClick={toggle} />
-        <button type="button" className="ad-mpb" aria-label="stop" disabled={!track} style={{ '--g': G.stop } as React.CSSProperties} onClick={stop} />
-        <button type="button" className="ad-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
-        <button type="button" className="ad-mpb" aria-label="next" disabled={tracks.length < 2} style={{ '--g': G.next } as React.CSSProperties} onClick={() => go(index + 1)} />
-        <span className="ad-mp-gap" />
-        <button type="button" className="ad-mpb" aria-label="fill the desktop" aria-pressed={fill} title="fill the desktop" style={{ '--g': G.expand } as React.CSSProperties} onClick={() => setFill((x) => !x)} />
-        <button type="button" className="ad-mpb" aria-label={muted ? 'unmute' : 'mute'} style={{ '--g': muted ? G.mute : G.speaker } as React.CSSProperties} onClick={() => setMuted((m) => !m)} />
+      <div className="wd-mp-ctrls">
+        <button type="button" className="wd-mpb is-big" aria-label={playing ? 'pause' : 'play'} disabled={!track} style={{ '--g': playing ? G.pause : G.play } as React.CSSProperties} onClick={toggle} />
+        <button type="button" className="wd-mpb" aria-label="stop" disabled={!track} style={{ '--g': G.stop } as React.CSSProperties} onClick={stop} />
+        <button type="button" className="wd-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
+        <button type="button" className="wd-mpb" aria-label="next" disabled={tracks.length < 2} style={{ '--g': G.next } as React.CSSProperties} onClick={() => go(index + 1)} />
+        <span className="wd-mp-gap" />
+        <button type="button" className="wd-mpb" aria-label="fill the desktop" aria-pressed={fill} title="fill the desktop" style={{ '--g': G.expand } as React.CSSProperties} onClick={() => setFill((x) => !x)} />
+        <button type="button" className="wd-mpb" aria-label={muted ? 'unmute' : 'mute'} style={{ '--g': muted ? G.mute : G.speaker } as React.CSSProperties} onClick={() => setMuted((m) => !m)} />
         <input
           type="range"
-          className="ad-range ad-mp-vol"
+          className="wd-range wd-mp-vol"
           aria-label="volume"
           min={0}
           max={1}

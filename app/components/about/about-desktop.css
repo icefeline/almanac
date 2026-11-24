@@ -11,21 +11,21 @@
  */
 
 @font-face {
-  font-family: 'ad-sans';
+  font-family: 'wd-sans';
   src: url('/about/fonts/ms_sans_serif.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
-  font-family: 'ad-sans';
+  font-family: 'wd-sans';
   src: url('/about/fonts/ms_sans_serif_bold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
 }
 
-.ad-root {
+.wd-root {
   --z: 1.333; /* on a phone: three device pixels to a pixel of the original at 4x */
-  --ad-ground: #0a6b6b;
+  --wd-ground: #0a6b6b;
   --bar: 28px; /* the taskbar, before scaling */
   --sf: #c0c0c0;
   --hi: #ffffff;
@@ -46,9 +46,9 @@
   inset: 0;
   z-index: 5;
   overflow: hidden;
-  background: var(--ad-ground);
+  background: var(--wd-ground);
   color: #000;
-  font-family: 'ad-sans', 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'wd-sans', 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 11px;
   line-height: 1.25;
   -webkit-font-smoothing: none;
@@ -58,26 +58,26 @@
   -webkit-user-select: none;
 }
 @media (min-width: 768px) {
-  .ad-root {
+  .wd-root {
     --z: 1.5; /* on a laptop at 2x: three device pixels to each pixel of the original */
   }
 }
-.ad-root button,
-.ad-root a {
+.wd-root button,
+.wd-root a {
   font: inherit;
   color: inherit;
 }
-.ad-root img {
+.wd-root img {
   image-rendering: pixelated;
   display: block;
 }
 
 /* ── the desktop and its icons ─────────────────────────────────────────── */
-.ad-desk {
+.wd-desk {
   position: absolute;
   inset: 0 0 calc(var(--bar) * var(--z) + var(--sab, 0px)) 0;
 }
-.ad-root .ad-icon {
+.wd-root .wd-icon {
   position: absolute;
   left: var(--x);
   top: var(--y);
@@ -90,7 +90,7 @@
   text-decoration: none;
   text-align: center;
 }
-.ad-icon-in {
+.wd-icon-in {
   zoom: var(--z);
   display: flex;
   flex-direction: column;
@@ -99,39 +99,39 @@
   width: 78px;
   padding: 2px 0;
 }
-.ad-ico {
+.wd-ico {
   position: relative;
   width: 32px;
   height: 32px;
   flex: none;
 }
-.ad-ico img {
+.wd-ico img {
   width: 32px;
   height: 32px;
 }
-.ad-ico.is-shortcut::after {
+.wd-ico.is-shortcut::after {
   content: '';
   position: absolute;
   inset: 0;
   background: url('/about/icons/shortcut-32.png') 0 0 / 32px 32px no-repeat;
   image-rendering: pixelated;
 }
-.ad-lbl {
+.wd-lbl {
   padding: 1px 3px 2px;
   line-height: 1.15;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
-.ad-icon:hover .ad-lbl,
-.ad-item:hover span {
+.wd-icon:hover .wd-lbl,
+.wd-item:hover span {
   text-decoration: underline;
 }
-.ad-icon:focus-visible,
-.ad-item:focus-visible {
+.wd-icon:focus-visible,
+.wd-item:focus-visible {
   outline: none;
 }
-.ad-icon:focus-visible .ad-lbl,
-.ad-icon:active .ad-lbl {
+.wd-icon:focus-visible .wd-lbl,
+.wd-icon:active .wd-lbl {
   background: var(--navy);
   color: #fff;
   outline: 1px dotted #ffff80;
@@ -139,7 +139,7 @@
 }
 
 @media (max-width: 767px) {
-  .ad-desk {
+  .wd-desk {
     overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -147,7 +147,7 @@
     gap: 14px 0;
     padding: calc(var(--sat, 0px) + 18px) 6px 24px;
   }
-  .ad-icon {
+  .wd-icon {
     position: static;
     transform: none;
     justify-self: center;
@@ -155,15 +155,15 @@
 }
 
 /* ── windows ───────────────────────────────────────────────────────────── */
-.ad-wrap {
+.wd-wrap {
   position: absolute;
   left: var(--x);
   top: var(--y);
 }
-.ad-wrap[data-min] {
+.wd-wrap[data-min] {
   display: none;
 }
-.ad-win {
+.wd-win {
   zoom: var(--z);
   display: flex;
   flex-direction: column;
@@ -174,17 +174,17 @@
   box-shadow: var(--window);
   outline: none;
 }
-.ad-wrap.is-max {
+.wd-wrap.is-max {
   left: 0 !important;
   top: 0 !important;
 }
-.ad-wrap.is-max .ad-win {
+.wd-wrap.is-max .wd-win {
   width: calc(100vw / var(--z));
   height: calc((100dvh - var(--bar) * var(--z) - var(--sab, 0px)) / var(--z));
   max-height: none;
 }
 
-.ad-titlebar {
+.wd-titlebar {
   flex: none;
   display: flex;
   align-items: center;
@@ -197,27 +197,27 @@
   touch-action: none;
   cursor: default;
 }
-.ad-wrap:not([data-active]) .ad-titlebar {
+.wd-wrap:not([data-active]) .wd-titlebar {
   background: linear-gradient(90deg, var(--sh), #b5b5b5);
   color: var(--sf);
 }
-.ad-titlebar > img {
+.wd-titlebar > img {
   width: 16px;
   height: 16px;
   flex: none;
 }
-.ad-ttl {
+.wd-ttl {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.ad-tbtns {
+.wd-tbtns {
   display: flex;
   flex: none;
 }
-.ad-tbtn {
+.wd-tbtn {
   width: 16px;
   height: 14px;
   padding: 0;
@@ -226,46 +226,46 @@
   box-shadow: var(--raised);
   image-rendering: pixelated;
 }
-.ad-tbtn + .ad-tbtn {
+.wd-tbtn + .wd-tbtn {
   margin-left: 0;
 }
-.ad-tbtn.is-close {
+.wd-tbtn.is-close {
   margin-left: 2px;
 }
-.ad-tbtn:active {
+.wd-tbtn:active {
   box-shadow: var(--pressed);
   background-position: var(--gpa, calc(50% + 1px) calc(50% + 1px));
 }
-.ad-tbtn:focus-visible {
+.wd-tbtn:focus-visible {
   outline: 1px dotted var(--fr);
   outline-offset: -4px;
 }
 
 /* the menu bar */
-.ad-menubar {
+.wd-menubar {
   flex: none;
   display: flex;
   padding: 2px 0 1px;
   margin-bottom: 2px;
   box-shadow: 0 1px 0 var(--sh), 0 2px 0 var(--hi);
 }
-.ad-mwrap {
+.wd-mwrap {
   position: relative;
 }
-.ad-mi {
+.wd-mi {
   padding: 2px 6px 3px;
   background: none;
   border: 0;
   box-shadow: none;
 }
-.ad-mi:hover {
+.wd-mi:hover {
   box-shadow: inset -1px -1px var(--sh), inset 1px 1px var(--hi);
 }
-.ad-mi[data-pressed] {
+.wd-mi[data-pressed] {
   box-shadow: inset 1px 1px var(--sh), inset -1px -1px var(--hi);
   padding: 3px 5px 2px 7px;
 }
-.ad-pop {
+.wd-pop {
   position: absolute;
   left: 0;
   top: 100%;
@@ -275,7 +275,7 @@
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-pi {
+.wd-pi {
   position: relative;
   display: block;
   width: 100%;
@@ -285,17 +285,17 @@
   background: none;
   border: 0;
 }
-.ad-pi:hover:not(:disabled),
-.ad-pi:focus-visible {
+.wd-pi:hover:not(:disabled),
+.wd-pi:focus-visible {
   background: var(--navy);
   color: #fff;
   outline: none;
 }
-.ad-pi:disabled {
+.wd-pi:disabled {
   color: var(--sh);
   text-shadow: 1px 1px 0 var(--hi);
 }
-.ad-chk {
+.wd-chk {
   position: absolute;
   left: 7px;
   top: 50%;
@@ -304,11 +304,11 @@
   margin-top: -3px;
   background: var(--g-check) center / contain no-repeat;
 }
-.ad-pi:hover:not(:disabled) .ad-chk,
-.ad-pi:focus-visible .ad-chk {
+.wd-pi:hover:not(:disabled) .wd-chk,
+.wd-pi:focus-visible .wd-chk {
   filter: invert(1);
 }
-.ad-psep {
+.wd-psep {
   height: 0;
   margin: 3px 1px;
   border-top: 1px solid var(--sh);
@@ -316,7 +316,7 @@
 }
 
 /* the sunken white area that holds a folder's files or a text file's text */
-.ad-client {
+.wd-client {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -324,22 +324,22 @@
   box-shadow: var(--sunken);
   padding: 2px;
 }
-.ad-note {
+.wd-note {
   padding: 4px 5px 8px;
   min-height: 120px;
   line-height: 1.35;
   user-select: text;
   -webkit-user-select: text;
 }
-.ad-note p + p {
+.wd-note p + p {
   margin-top: 1.35em;
 }
-.ad-note a,
-.ad-dlg a:not(.ad-btn) {
+.wd-note a,
+.wd-dlg a:not(.wd-btn) {
   color: #0000ff;
   text-decoration: underline;
 }
-.ad-files {
+.wd-files {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
@@ -347,12 +347,12 @@
   padding: 4px 2px;
   min-height: 118px;
 }
-.ad-files.is-list {
+.wd-files.is-list {
   flex-direction: column;
   flex-wrap: nowrap;
   gap: 0;
 }
-.ad-item {
+.wd-item {
   position: relative;
   width: 78px;
   display: flex;
@@ -366,30 +366,30 @@
   text-align: center;
   text-decoration: none;
 }
-.ad-item span {
+.wd-item span {
   padding: 1px 2px 1px;
   max-width: 100%;
   overflow-wrap: anywhere;
   line-height: 1.15;
 }
-.ad-files.is-list .ad-item {
+.wd-files.is-list .wd-item {
   width: auto;
   flex-direction: row;
   gap: 4px;
   padding: 1px 3px;
   text-align: left;
 }
-.ad-files.is-list .ad-ico,
-.ad-files.is-list .ad-ico img {
+.wd-files.is-list .wd-ico,
+.wd-files.is-list .wd-ico img {
   width: 16px;
   height: 16px;
 }
-.ad-files.is-list .ad-ico.is-shortcut::after {
+.wd-files.is-list .wd-ico.is-shortcut::after {
   background-image: url('/about/icons/shortcut-16.png');
   background-size: 16px 16px;
 }
-.ad-item:focus-visible span,
-.ad-item:active span {
+.wd-item:focus-visible span,
+.wd-item:active span {
   background: var(--navy);
   color: #fff;
   outline: 1px dotted #ffff80;
@@ -397,13 +397,13 @@
 }
 
 /* the status bar */
-.ad-status {
+.wd-status {
   flex: none;
   display: flex;
   gap: 2px;
   margin-top: 3px;
 }
-.ad-sf {
+.wd-sf {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -411,48 +411,48 @@
   box-shadow: var(--field);
   min-height: 18px;
 }
-.ad-sf:first-child {
+.wd-sf:first-child {
   flex: 1;
 }
-.ad-sf img {
+.wd-sf img {
   width: 16px;
   height: 16px;
 }
 
 /* the message box: an icon, some words, and buttons */
-.ad-dlg {
+.wd-dlg {
   padding: 14px 14px 8px;
   line-height: 1.35;
   overflow: auto;
   user-select: text;
   -webkit-user-select: text;
 }
-.ad-dlg-row {
+.wd-dlg-row {
   display: flex;
   gap: 14px;
   align-items: flex-start;
 }
-.ad-dlg-ico {
+.wd-dlg-ico {
   flex: none;
   width: 32px;
   height: 32px;
 }
-.ad-dlg-txt {
+.wd-dlg-txt {
   flex: 1;
   min-width: 0;
   padding-top: 1px;
 }
-.ad-dlg-txt p + p {
+.wd-dlg-txt p + p {
   margin-top: 1em;
 }
-.ad-dlg-btns {
+.wd-dlg-btns {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
   margin-top: 16px;
 }
-.ad-btn {
+.wd-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -466,93 +466,93 @@
   text-decoration: none;
   white-space: nowrap;
 }
-.ad-btn.is-default {
+.wd-btn.is-default {
   box-shadow: inset -2px -2px var(--fr), inset 1px 1px var(--fr), inset -3px -3px var(--sh), inset 2px 2px var(--hi);
 }
-.ad-btn:active {
+.wd-btn:active {
   box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--fr), inset -2px -2px var(--lt), inset 2px 2px var(--sh);
   padding: 2px 11px 0 13px;
 }
-.ad-btn.is-default:active {
+.wd-btn.is-default:active {
   box-shadow: inset -2px -2px var(--fr), inset 1px 1px var(--fr), inset -3px -3px var(--hi), inset 2px 2px var(--sh);
 }
-.ad-btn:focus-visible {
+.wd-btn:focus-visible {
   outline: 1px dotted #000;
   outline-offset: -5px;
 }
 
 /* the scrollbar, with its square arrow buttons and its dithered track */
-.ad-client::-webkit-scrollbar,
-.ad-dlg::-webkit-scrollbar {
+.wd-client::-webkit-scrollbar,
+.wd-dlg::-webkit-scrollbar {
   width: 16px;
   height: 16px;
 }
-.ad-client::-webkit-scrollbar-track,
-.ad-dlg::-webkit-scrollbar-track {
+.wd-client::-webkit-scrollbar-track,
+.wd-dlg::-webkit-scrollbar-track {
   background-color: var(--hi);
   background-image: linear-gradient(45deg, var(--sf) 25%, transparent 25%, transparent 75%, var(--sf) 75%),
     linear-gradient(45deg, var(--sf) 25%, transparent 25%, transparent 75%, var(--sf) 75%);
   background-size: 2px 2px;
   background-position: 0 0, 1px 1px;
 }
-.ad-client::-webkit-scrollbar-thumb,
-.ad-dlg::-webkit-scrollbar-thumb {
+.wd-client::-webkit-scrollbar-thumb,
+.wd-dlg::-webkit-scrollbar-thumb {
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-client::-webkit-scrollbar-button:single-button,
-.ad-dlg::-webkit-scrollbar-button:single-button {
+.wd-client::-webkit-scrollbar-button:single-button,
+.wd-dlg::-webkit-scrollbar-button:single-button {
   display: block;
   width: 16px;
   height: 16px;
   background: var(--sf) center / auto no-repeat;
   box-shadow: var(--raised);
 }
-.ad-client::-webkit-scrollbar-button:single-button:vertical:decrement,
-.ad-dlg::-webkit-scrollbar-button:single-button:vertical:decrement {
+.wd-client::-webkit-scrollbar-button:single-button:vertical:decrement,
+.wd-dlg::-webkit-scrollbar-button:single-button:vertical:decrement {
   background-image: var(--g-up);
 }
-.ad-client::-webkit-scrollbar-button:single-button:vertical:increment,
-.ad-dlg::-webkit-scrollbar-button:single-button:vertical:increment {
+.wd-client::-webkit-scrollbar-button:single-button:vertical:increment,
+.wd-dlg::-webkit-scrollbar-button:single-button:vertical:increment {
   background-image: var(--g-down);
 }
-.ad-client::-webkit-scrollbar-button:single-button:horizontal:decrement,
-.ad-dlg::-webkit-scrollbar-button:single-button:horizontal:decrement {
+.wd-client::-webkit-scrollbar-button:single-button:horizontal:decrement,
+.wd-dlg::-webkit-scrollbar-button:single-button:horizontal:decrement {
   background-image: var(--g-left);
 }
-.ad-client::-webkit-scrollbar-button:single-button:horizontal:increment,
-.ad-dlg::-webkit-scrollbar-button:single-button:horizontal:increment {
+.wd-client::-webkit-scrollbar-button:single-button:horizontal:increment,
+.wd-dlg::-webkit-scrollbar-button:single-button:horizontal:increment {
   background-image: var(--g-right);
 }
-.ad-client::-webkit-scrollbar-corner,
-.ad-dlg::-webkit-scrollbar-corner {
+.wd-client::-webkit-scrollbar-corner,
+.wd-dlg::-webkit-scrollbar-corner {
   background: var(--sf);
 }
 @supports not selector(::-webkit-scrollbar) {
-  .ad-client,
-  .ad-dlg {
+  .wd-client,
+  .wd-dlg {
     scrollbar-color: var(--sf) #e8e8e8;
   }
 }
 
 /* phones: windows cascade like on a desktop, a little narrower than the screen so each shows its edge; drag them by the title bar */
 @media (max-width: 767px) {
-  .ad-win {
+  .wd-win {
     width: calc((100vw - 30px) / var(--z));
   }
-  .ad-wrap.is-max .ad-win {
+  .wd-wrap.is-max .wd-win {
     width: calc(100vw / var(--z));
   }
-  .ad-titlebar {
+  .wd-titlebar {
     touch-action: none;
   }
-  .ad-files {
+  .wd-files {
     justify-content: center;
   }
 }
 
 /* ── the taskbar ───────────────────────────────────────────────────────── */
-.ad-taskbar {
+.wd-taskbar {
   position: absolute;
   left: 0;
   right: 0;
@@ -562,7 +562,7 @@
   background: var(--sf);
   box-shadow: inset 0 1px 0 var(--lt), inset 0 2px 0 var(--hi);
 }
-.ad-tb {
+.wd-tb {
   zoom: var(--z);
   display: flex;
   align-items: center;
@@ -570,7 +570,7 @@
   height: var(--bar);
   padding: 3px 2px 2px;
 }
-.ad-start {
+.wd-start {
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -582,16 +582,16 @@
   box-shadow: var(--raised);
   font-weight: 700;
 }
-.ad-start[aria-expanded='true'],
-.ad-start:active {
+.wd-start[aria-expanded='true'],
+.wd-start:active {
   box-shadow: var(--pressed);
   padding: 2px 4px 0 4px;
 }
-.ad-start img {
+.wd-start img {
   width: 16px;
   height: 16px;
 }
-.ad-grip {
+.wd-grip {
   flex: none;
   width: 2px;
   height: 20px;
@@ -599,13 +599,13 @@
   border-left: 1px solid var(--hi);
   border-right: 1px solid var(--sh);
 }
-.ad-tasks {
+.wd-tasks {
   flex: 1;
   min-width: 0;
   display: flex;
   gap: 2px;
 }
-.ad-task {
+.wd-task {
   flex: 0 1 150px;
   min-width: 0;
   display: flex;
@@ -620,17 +620,17 @@
   text-align: left;
   white-space: nowrap;
 }
-.ad-task img {
+.wd-task img {
   width: 16px;
   height: 16px;
   flex: none;
 }
-.ad-task span {
+.wd-task span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ad-task[aria-pressed='true'] {
+.wd-task[aria-pressed='true'] {
   box-shadow: var(--pressed);
   font-weight: 700;
   background-color: var(--hi);
@@ -639,7 +639,7 @@
   background-size: 2px 2px;
   background-position: 0 0, 1px 1px;
 }
-.ad-tray {
+.wd-tray {
   flex: none;
   display: flex;
   align-items: center;
@@ -648,15 +648,15 @@
   padding: 0 8px 0 6px;
   box-shadow: var(--field);
 }
-.ad-tray img {
+.wd-tray img {
   width: 16px;
   height: 16px;
 }
 @media (max-width: 767px) {
-  .ad-task span {
+  .wd-task span {
     display: none;
   }
-  .ad-task {
+  .wd-task {
     flex: 0 0 26px;
     justify-content: center;
     padding: 0;
@@ -664,26 +664,26 @@
 }
 
 /* ── the start menu ────────────────────────────────────────────────────── */
-.ad-sm {
+.wd-sm {
   position: absolute;
   left: 2px;
   bottom: calc(var(--bar) * var(--z) + var(--sab, 0px));
   z-index: 100001;
 }
-.ad-sm-in {
+.wd-sm-in {
   zoom: var(--z);
   display: flex;
   padding: 3px;
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-sm-list {
+.wd-sm-list {
   display: flex;
   flex-direction: column;
   min-width: 138px;
   padding: 1px;
 }
-.ad-smi {
+.wd-smi {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -696,22 +696,22 @@
   text-decoration: none;
   white-space: nowrap;
 }
-.ad-smi:hover,
-.ad-smi:focus-visible {
+.wd-smi:hover,
+.wd-smi:focus-visible {
   background: var(--navy);
   color: #fff;
   outline: none;
 }
 /* the same pictures as on the desktop, a size down: shrunk smoothly, as the system does, not pixel by pixel */
-.ad-smi .ad-ico,
-.ad-smi .ad-ico img {
+.wd-smi .wd-ico,
+.wd-smi .wd-ico img {
   width: 24px;
   height: 24px;
 }
-.ad-smi .ad-ico img {
+.wd-smi .wd-ico img {
   image-rendering: auto;
 }
-.ad-smsep {
+.wd-smsep {
   height: 0;
   margin: 2px 1px 2px 2px;
   border-top: 1px solid var(--sh);
@@ -719,38 +719,38 @@
 }
 
 /* ── display properties ────────────────────────────────────────────────── */
-.ad-root[data-wall]:not([data-wall='none']) .ad-lbl {
+.wd-root[data-wall]:not([data-wall='none']) .wd-lbl {
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
-.ad-dp {
+.wd-dp {
   padding: 10px 12px 8px;
 }
-.ad-mon {
+.wd-mon {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 0 0 8px;
 }
-.ad-mon-body {
+.wd-mon-body {
   width: 150px;
   padding: 9px 9px 11px;
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-mon-screen {
+.wd-mon-screen {
   position: relative;
   height: 100px;
   overflow: hidden;
   box-shadow: var(--sunken);
 }
-.ad-mon-ico {
+.wd-mon-ico {
   position: absolute;
   width: 10px;
   height: 10px;
   background: var(--hi);
   box-shadow: inset -1px -1px var(--sh);
 }
-.ad-mon-bar {
+.wd-mon-bar {
   position: absolute;
   left: 0;
   right: 0;
@@ -759,34 +759,34 @@
   background: var(--sf);
   box-shadow: inset 0 1px var(--hi);
 }
-.ad-mon-neck {
+.wd-mon-neck {
   width: 36px;
   height: 5px;
   background: var(--sh);
 }
-.ad-mon-base {
+.wd-mon-base {
   width: 76px;
   height: 6px;
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-grp {
+.wd-grp {
   margin: 0 0 8px;
   padding: 4px 8px 8px;
   border: 1px solid var(--sh);
   box-shadow: 1px 1px 0 var(--hi), inset 1px 1px 0 var(--hi);
 }
-.ad-grp legend {
+.wd-grp legend {
   padding: 0 3px;
 }
-.ad-lb {
+.wd-lb {
   height: 84px;
   overflow: auto;
   padding: 2px;
   background: #fff;
   box-shadow: var(--sunken);
 }
-.ad-opt {
+.wd-opt {
   display: block;
   width: 100%;
   padding: 1px 3px;
@@ -795,20 +795,20 @@
   border: 0;
   color: #000;
 }
-.ad-opt[aria-selected='true'] {
+.wd-opt[aria-selected='true'] {
   background: var(--navy);
   color: #fff;
 }
-.ad-opt:focus-visible {
+.wd-opt:focus-visible {
   outline: 1px dotted #ffff80;
   outline-offset: -1px;
 }
-.ad-sw {
+.wd-sw {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
-.ad-swatch {
+.wd-swatch {
   width: 20px;
   height: 18px;
   padding: 0;
@@ -816,42 +816,42 @@
   background: var(--c);
   box-shadow: var(--sunken);
 }
-.ad-swatch[aria-checked='true'] {
+.wd-swatch[aria-checked='true'] {
   box-shadow: var(--sunken), 0 0 0 1px #000;
   outline: 1px dotted #fff;
   outline-offset: -4px;
 }
-.ad-swatch:focus-visible {
+.wd-swatch:focus-visible {
   outline: 1px dotted #fff;
   outline-offset: -4px;
 }
-.ad-dp .ad-dlg-btns {
+.wd-dp .wd-dlg-btns {
   margin-top: 6px;
   gap: 4px;
 }
-.ad-dp .ad-btn {
+.wd-dp .wd-btn {
   min-width: 62px;
   padding: 0 8px;
 }
 
 /* the little menu on a right-click of the bare desktop */
-.ad-ctx {
+.wd-ctx {
   position: absolute;
   z-index: 100002;
 }
-.ad-ctx-in {
+.wd-ctx-in {
   zoom: var(--z);
   min-width: 150px;
   padding: 2px;
   background: var(--sf);
   box-shadow: var(--raised);
 }
-a.ad-pi {
+a.wd-pi {
   text-decoration: none;
   color: #000;
 }
-a.ad-pi:hover,
-a.ad-pi:focus-visible {
+a.wd-pi:hover,
+a.wd-pi:focus-visible {
   background: var(--navy);
   color: #fff;
   outline: none;
@@ -859,91 +859,91 @@ a.ad-pi:focus-visible {
 
 /* icons you can pick up and move (wide screens only: on a phone they sit in a grid) */
 @media (min-width: 768px) {
-  .ad-root .ad-icon {
+  .wd-root .wd-icon {
     touch-action: none;
     cursor: grab;
   }
-  .ad-root .ad-icon.is-dragging {
+  .wd-root .wd-icon.is-dragging {
     cursor: grabbing;
     z-index: 3;
   }
 }
-.ad-icon.is-dragging .ad-lbl {
+.wd-icon.is-dragging .wd-lbl {
   background: var(--navy);
   color: #fff;
   outline: 1px dotted #ffff80;
   outline-offset: -1px;
   text-shadow: none;
 }
-.ad-icon.is-dragging .ad-ico {
+.wd-icon.is-dragging .wd-ico {
   opacity: 0.75;
 }
 /* a menu entry for an app is a plain item, not a shortcut: no arrow on its small icon */
-.ad-smi .ad-ico.is-shortcut::after {
+.wd-smi .wd-ico.is-shortcut::after {
   display: none;
 }
 
 /* a faq answer: a short white box of text, no taller than it needs to be */
-.ad-note.is-answer {
+.wd-note.is-answer {
   min-height: 64px;
   padding: 10px 12px 14px;
 }
 
 /* a folder's icons strewn about rather than lined up */
-.ad-files.is-scatter {
+.wd-files.is-scatter {
   position: relative;
   display: block;
   min-height: var(--h);
   padding: 0;
 }
-.ad-files.is-scatter .ad-item {
+.wd-files.is-scatter .wd-item {
   position: absolute;
   left: var(--l);
   top: var(--t);
 }
 
 /* ── the media player ──────────────────────────────────────────────────── */
-.ad-mp {
+.wd-mp {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
-.ad-mp .ad-menubar {
+.wd-mp .wd-menubar {
   margin-bottom: 0;
 }
-.ad-mp-screen {
+.wd-mp-screen {
   background: #021a05;
   box-shadow: var(--sunken);
   line-height: 0;
   cursor: pointer;
 }
-.ad-mp-screen canvas.is-off {
+.wd-mp-screen canvas.is-off {
   display: none;
 }
-.ad-mp-screen canvas {
+.wd-mp-screen canvas {
   display: block;
   width: 100%;
   height: auto;
   image-rendering: auto;
 }
-.ad-mp-time {
+.wd-mp-time {
   flex: none;
   white-space: nowrap;
 }
-.ad-mp .ad-sf:first-child {
+.wd-mp .wd-sf:first-child {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
 }
-.ad-mp-ctrls {
+.wd-mp-ctrls {
   display: flex;
   align-items: center;
   gap: 3px;
   padding: 1px 0 2px;
 }
-.ad-mpb {
+.wd-mpb {
   flex: none;
   width: 26px;
   height: 22px;
@@ -953,22 +953,22 @@ a.ad-pi:focus-visible {
   box-shadow: var(--raised);
   image-rendering: pixelated;
 }
-.ad-mpb.is-big {
+.wd-mpb.is-big {
   width: 38px;
   height: 26px;
 }
-.ad-mpb:active:not(:disabled) {
+.wd-mpb:active:not(:disabled) {
   box-shadow: var(--pressed);
   background-position: calc(50% + 1px) calc(50% + 1px);
 }
-.ad-mpb:disabled {
+.wd-mpb:disabled {
   opacity: 0.45;
 }
-.ad-mp-gap {
+.wd-mp-gap {
   flex: 1;
 }
 /* the trackbar: a sunken groove and a raised slider */
-.ad-range {
+.wd-range {
   -webkit-appearance: none;
   appearance: none;
   display: block;
@@ -977,12 +977,12 @@ a.ad-pi:focus-visible {
   margin: 0;
   background: transparent;
 }
-.ad-range::-webkit-slider-runnable-track {
+.wd-range::-webkit-slider-runnable-track {
   height: 4px;
   background: #fff;
   box-shadow: var(--sunken);
 }
-.ad-range::-webkit-slider-thumb {
+.wd-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 11px;
   height: 21px;
@@ -992,12 +992,12 @@ a.ad-pi:focus-visible {
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-range::-moz-range-track {
+.wd-range::-moz-range-track {
   height: 4px;
   background: #fff;
   box-shadow: var(--sunken);
 }
-.ad-range::-moz-range-thumb {
+.wd-range::-moz-range-thumb {
   width: 11px;
   height: 21px;
   border: 0;
@@ -1005,20 +1005,20 @@ a.ad-pi:focus-visible {
   background: var(--sf);
   box-shadow: var(--raised);
 }
-.ad-range:disabled {
+.wd-range:disabled {
   opacity: 0.5;
 }
-.ad-range:focus-visible {
+.wd-range:focus-visible {
   outline: 1px dotted #000;
   outline-offset: 1px;
 }
-.ad-mp-vol {
+.wd-mp-vol {
   flex: none;
   width: 76px;
 }
 
 /* the picture behind the whole desktop while the media player is set to fill it */
-.ad-bgviz {
+.wd-bgviz {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1028,24 +1028,24 @@ a.ad-pi:focus-visible {
   opacity: 0;
   transition: opacity 0.9s ease;
 }
-.ad-bgviz.is-on {
+.wd-bgviz.is-on {
   opacity: 1;
 }
-.ad-mpb[aria-pressed='true'] {
+.wd-mpb[aria-pressed='true'] {
   box-shadow: var(--pressed);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ad-bgviz {
+  .wd-bgviz {
     transition: none;
   }
 }
 
 /* ── the media player as a small bar, for phones ───────────────────────── */
-.ad-mini-host {
+.wd-mini-host {
   display: none;
 }
 @media (max-width: 767px) {
-  .ad-mini-host {
+  .wd-mini-host {
     display: block;
     position: absolute;
     left: 0;
@@ -1054,14 +1054,14 @@ a.ad-pi:focus-visible {
     z-index: 99999;
   }
   /* with the bar showing, the icons and any window stop above it */
-  .has-mini .ad-desk {
+  .has-mini .wd-desk {
     bottom: calc(var(--bar) * var(--z) + var(--sab, 0px) + 32px * var(--z));
   }
-  .has-mini .ad-win {
+  .has-mini .wd-win {
     max-height: calc((100dvh - var(--bar) * var(--z) - var(--sab, 0px) - 12px - 32px * var(--z)) / var(--z));
   }
 }
-.ad-mini {
+.wd-mini {
   zoom: var(--z);
   position: relative;
   display: flex;
@@ -1072,20 +1072,20 @@ a.ad-pi:focus-visible {
   background: var(--sf);
   box-shadow: inset 0 1px 0 var(--lt), inset 0 2px 0 var(--hi);
 }
-.ad-mini-prog {
+.wd-mini-prog {
   position: absolute;
   left: 0;
   top: 0;
   height: 2px;
   background: var(--navy);
 }
-.ad-mini img {
+.wd-mini img {
   flex: none;
   width: 16px;
   height: 16px;
   margin: 0 3px 0 2px;
 }
-.ad-mini-ttl {
+.wd-mini-ttl {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -1098,56 +1098,56 @@ a.ad-pi:focus-visible {
   color: #000;
 }
 /* the title drifts left like a marquee while a song plays; two copies with a gap make the loop seamless */
-.ad-mini-run {
+.wd-mini-run {
   display: inline-flex;
 }
-.ad-mini-run > span {
+.wd-mini-run > span {
   flex: none;
   padding-right: 3em;
 }
-.ad-mini-run > span:last-child {
+.wd-mini-run > span:last-child {
   display: none;
 }
-.ad-mini-run.is-on > span:last-child {
+.wd-mini-run.is-on > span:last-child {
   display: inline;
 }
-.ad-mini-run.is-on {
-  animation: ad-marquee 12s linear infinite;
+.wd-mini-run.is-on {
+  animation: wd-marquee 12s linear infinite;
 }
-@keyframes ad-marquee {
+@keyframes wd-marquee {
   to {
     transform: translateX(-50%);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ad-mini-run.is-on {
+  .wd-mini-run.is-on {
     animation: none;
   }
-  .ad-mini-run.is-on > span:last-child {
+  .wd-mini-run.is-on > span:last-child {
     display: none;
   }
 }
-.ad-mini .ad-mpb {
+.wd-mini .wd-mpb {
   width: 24px;
   height: 22px;
 }
 
 /*
- * The page background reaches behind the phone's status bar and the browser's own bars, so it follows the desktop colour.
- * Installed on a home screen the page can end above the screen's bottom edge; the strip below is only reached by this
- * background, so there it is the taskbar's grey and reads as more taskbar. The taskbar then sits flush on the page's
+ * Behind a phone browser's status bar the page's own background shows, and a browser tab can't change that bar's look, so it
+ * is black. Installed on a home screen the page can end above the screen's bottom edge; the strip below is reached only by
+ * this background, so there it is the taskbar's grey and reads as more taskbar. The taskbar then sits flush on the page's
  * edge, as low as it can go (the home indicator is already outside the page there, so no padding for it).
  */
-html:has(.ad-root),
-html:has(.ad-root) body {
-  background: var(--ad-page, #0a6b6b);
+html:has(.wd-root),
+html:has(.wd-root) body {
+  background: #000;
 }
 @media (display-mode: standalone) {
-  html:has(.ad-root),
-  html:has(.ad-root) body {
+  html:has(.wd-root),
+  html:has(.wd-root) body {
     background: #c0c0c0;
   }
-  .ad-root {
+  .wd-root {
     --sab: 0px;
   }
 }
