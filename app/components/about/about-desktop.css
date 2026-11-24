@@ -1,0 +1,903 @@
+/*
+ * The about desktop, built from the parts of a late-90s desktop: raised and sunken bevels, a gradient title bar with
+ * its three buttons, a menu bar, a status bar, a message box, a taskbar with a Start button and a Start menu.
+ *
+ * Everything is measured at the original size (a title bar is 18px, a button 23px high, text 11px) and the whole
+ * thing is scaled up a little with `zoom` by --z, so the proportions are the real ones and the edges stay crisp. To
+ * make it all bigger or smaller, change --z below: 1 is the original size, 2 is double. Positioned wrappers are never zoomed, only what is inside them, so left/top mean what they say.
+ *
+ * The font is "MS Sans Serif" by lou on FontStruct (CC BY-SA 3.0), in public/about/fonts. Only the ground and the
+ * Start menu's banner are in the app's own colours; the rest is the classic grey, navy and white.
+ */
+
+@font-face {
+  font-family: 'ad-sans';
+  src: url('/about/fonts/ms_sans_serif.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'ad-sans';
+  src: url('/about/fonts/ms_sans_serif_bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+.ad-root {
+  --z: 1.333; /* on a phone: three device pixels to a pixel of the original at 4x */
+  --ad-ground: #0a6b6b;
+  --bar: 28px; /* the taskbar, before scaling */
+  --sf: #c0c0c0;
+  --hi: #ffffff;
+  --lt: #dfdfdf;
+  --sh: #808080;
+  --fr: #0a0a0a;
+  --navy: #000080;
+  --sky: #1084d0;
+  --raised: inset -1px -1px var(--fr), inset 1px 1px var(--hi), inset -2px -2px var(--sh), inset 2px 2px var(--lt);
+  --pressed: inset -1px -1px var(--hi), inset 1px 1px var(--fr), inset -2px -2px var(--lt), inset 2px 2px var(--sh);
+  --sunken: inset -1px -1px var(--hi), inset 1px 1px var(--sh), inset -2px -2px var(--lt), inset 2px 2px var(--fr);
+  --window: inset -1px -1px var(--fr), inset 1px 1px var(--lt), inset -2px -2px var(--sh), inset 2px 2px var(--hi);
+  --field: inset -1px -1px var(--lt), inset 1px 1px var(--sh);
+
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  background: var(--ad-ground);
+  color: #000;
+  font-family: 'ad-sans', 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: 11px;
+  line-height: 1.25;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (min-width: 768px) {
+  .ad-root {
+    --z: 1.5; /* on a laptop at 2x: three device pixels to each pixel of the original */
+  }
+}
+.ad-root button,
+.ad-root a {
+  font: inherit;
+  color: inherit;
+}
+.ad-root img {
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* ── the desktop and its icons ─────────────────────────────────────────── */
+.ad-desk {
+  position: absolute;
+  inset: 0 0 calc(var(--bar) * var(--z) + var(--sab, 0px)) 0;
+}
+.ad-root .ad-icon {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  display: block;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+}
+.ad-icon-in {
+  zoom: var(--z);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 78px;
+  padding: 2px 0;
+}
+.ad-ico {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+.ad-ico img {
+  width: 32px;
+  height: 32px;
+}
+.ad-ico.is-shortcut::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/about/icons/shortcut-32.png') 0 0 / 32px 32px no-repeat;
+  image-rendering: pixelated;
+}
+.ad-lbl {
+  padding: 1px 3px 2px;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.ad-icon:hover .ad-lbl,
+.ad-item:hover span {
+  text-decoration: underline;
+}
+.ad-icon:focus-visible,
+.ad-item:focus-visible {
+  outline: none;
+}
+.ad-icon:focus-visible .ad-lbl,
+.ad-icon:active .ad-lbl {
+  background: var(--navy);
+  color: #fff;
+  outline: 1px dotted #ffff80;
+  outline-offset: -1px;
+}
+
+@media (max-width: 767px) {
+  .ad-desk {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: start;
+    gap: 14px 0;
+    padding: calc(var(--sat, 0px) + 18px) 6px 24px;
+  }
+  .ad-icon {
+    position: static;
+    transform: none;
+    justify-self: center;
+  }
+}
+
+/* ── windows ───────────────────────────────────────────────────────────── */
+.ad-wrap {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+}
+.ad-wrap[data-min] {
+  display: none;
+}
+.ad-win {
+  zoom: var(--z);
+  display: flex;
+  flex-direction: column;
+  width: var(--w);
+  max-height: calc((100dvh - var(--bar) * var(--z) - var(--sab, 0px) - 12px) / var(--z));
+  padding: 3px;
+  background: var(--sf);
+  box-shadow: var(--window);
+  outline: none;
+}
+.ad-wrap.is-max {
+  left: 0 !important;
+  top: 0 !important;
+}
+.ad-wrap.is-max .ad-win {
+  width: calc(100vw / var(--z));
+  height: calc((100dvh - var(--bar) * var(--z) - var(--sab, 0px)) / var(--z));
+  max-height: none;
+}
+
+.ad-titlebar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  padding: 1px 2px 1px 3px;
+  background: linear-gradient(90deg, var(--navy), var(--sky));
+  color: #fff;
+  font-weight: 700;
+  touch-action: none;
+  cursor: default;
+}
+.ad-wrap:not([data-active]) .ad-titlebar {
+  background: linear-gradient(90deg, var(--sh), #b5b5b5);
+  color: var(--sf);
+}
+.ad-titlebar > img {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.ad-ttl {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ad-tbtns {
+  display: flex;
+  flex: none;
+}
+.ad-tbtn {
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: var(--sf) var(--g) center / auto no-repeat;
+  box-shadow: var(--raised);
+  image-rendering: pixelated;
+}
+.ad-tbtn + .ad-tbtn {
+  margin-left: 0;
+}
+.ad-tbtn.is-close {
+  margin-left: 2px;
+}
+.ad-tbtn:active {
+  box-shadow: var(--pressed);
+  background-position: calc(50% + 1px) calc(50% + 1px);
+}
+.ad-tbtn:focus-visible {
+  outline: 1px dotted var(--fr);
+  outline-offset: -4px;
+}
+
+/* the menu bar */
+.ad-menubar {
+  flex: none;
+  display: flex;
+  padding: 2px 0 1px;
+  margin-bottom: 2px;
+  box-shadow: 0 1px 0 var(--sh), 0 2px 0 var(--hi);
+}
+.ad-mwrap {
+  position: relative;
+}
+.ad-mi {
+  padding: 2px 6px 3px;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.ad-mi:hover {
+  box-shadow: inset -1px -1px var(--sh), inset 1px 1px var(--hi);
+}
+.ad-mi[data-pressed] {
+  box-shadow: inset 1px 1px var(--sh), inset -1px -1px var(--hi);
+  padding: 3px 5px 2px 7px;
+}
+.ad-pop {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 60;
+  min-width: 130px;
+  padding: 2px;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-pi {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 3px 20px 3px 22px;
+  text-align: left;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+}
+.ad-pi:hover:not(:disabled),
+.ad-pi:focus-visible {
+  background: var(--navy);
+  color: #fff;
+  outline: none;
+}
+.ad-pi:disabled {
+  color: var(--sh);
+  text-shadow: 1px 1px 0 var(--hi);
+}
+.ad-chk {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  background: var(--g-check) center / contain no-repeat;
+}
+.ad-pi:hover:not(:disabled) .ad-chk,
+.ad-pi:focus-visible .ad-chk {
+  filter: invert(1);
+}
+.ad-psep {
+  height: 0;
+  margin: 3px 1px;
+  border-top: 1px solid var(--sh);
+  border-bottom: 1px solid var(--hi);
+}
+
+/* the sunken white area that holds a folder's files or a text file's text */
+.ad-client {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #fff;
+  box-shadow: var(--sunken);
+  padding: 2px;
+}
+.ad-note {
+  padding: 4px 5px 8px;
+  min-height: 120px;
+  line-height: 1.35;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.ad-note p + p {
+  margin-top: 1.35em;
+}
+.ad-note a,
+.ad-dlg a:not(.ad-btn) {
+  color: #0000ff;
+  text-decoration: underline;
+}
+.ad-files {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px 2px;
+  padding: 4px 2px;
+  min-height: 118px;
+}
+.ad-files.is-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+.ad-item {
+  position: relative;
+  width: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 0 3px;
+  background: none;
+  border: 0;
+  color: #000;
+  text-align: center;
+  text-decoration: none;
+}
+.ad-item span {
+  padding: 1px 2px 1px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+}
+.ad-files.is-list .ad-item {
+  width: auto;
+  flex-direction: row;
+  gap: 4px;
+  padding: 1px 3px;
+  text-align: left;
+}
+.ad-files.is-list .ad-ico,
+.ad-files.is-list .ad-ico img {
+  width: 16px;
+  height: 16px;
+}
+.ad-files.is-list .ad-ico.is-shortcut::after {
+  background-image: url('/about/icons/shortcut-16.png');
+  background-size: 16px 16px;
+}
+.ad-item:focus-visible span,
+.ad-item:active span {
+  background: var(--navy);
+  color: #fff;
+  outline: 1px dotted #ffff80;
+  outline-offset: -1px;
+}
+
+/* the status bar */
+.ad-status {
+  flex: none;
+  display: flex;
+  gap: 2px;
+  margin-top: 3px;
+}
+.ad-sf {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  box-shadow: var(--field);
+  min-height: 18px;
+}
+.ad-sf:first-child {
+  flex: 1;
+}
+.ad-sf img {
+  width: 16px;
+  height: 16px;
+}
+
+/* the message box: an icon, some words, and buttons */
+.ad-dlg {
+  padding: 14px 14px 8px;
+  line-height: 1.35;
+  overflow: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.ad-dlg-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.ad-dlg-ico {
+  flex: none;
+  width: 32px;
+  height: 32px;
+}
+.ad-dlg-txt {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1px;
+}
+.ad-dlg-txt p + p {
+  margin-top: 1em;
+}
+.ad-dlg-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 75px;
+  height: 23px;
+  padding: 0 12px;
+  background: var(--sf);
+  color: #000;
+  border: 0;
+  box-shadow: var(--raised);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ad-btn.is-default {
+  box-shadow: inset -2px -2px var(--fr), inset 1px 1px var(--fr), inset -3px -3px var(--sh), inset 2px 2px var(--hi);
+}
+.ad-btn:active {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--fr), inset -2px -2px var(--lt), inset 2px 2px var(--sh);
+  padding: 2px 11px 0 13px;
+}
+.ad-btn.is-default:active {
+  box-shadow: inset -2px -2px var(--fr), inset 1px 1px var(--fr), inset -3px -3px var(--hi), inset 2px 2px var(--sh);
+}
+.ad-btn:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: -5px;
+}
+
+/* the scrollbar, with its square arrow buttons and its dithered track */
+.ad-client::-webkit-scrollbar,
+.ad-dlg::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+.ad-client::-webkit-scrollbar-track,
+.ad-dlg::-webkit-scrollbar-track {
+  background-color: var(--hi);
+  background-image: linear-gradient(45deg, var(--sf) 25%, transparent 25%, transparent 75%, var(--sf) 75%),
+    linear-gradient(45deg, var(--sf) 25%, transparent 25%, transparent 75%, var(--sf) 75%);
+  background-size: 2px 2px;
+  background-position: 0 0, 1px 1px;
+}
+.ad-client::-webkit-scrollbar-thumb,
+.ad-dlg::-webkit-scrollbar-thumb {
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-client::-webkit-scrollbar-button:single-button,
+.ad-dlg::-webkit-scrollbar-button:single-button {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: var(--sf) center / auto no-repeat;
+  box-shadow: var(--raised);
+}
+.ad-client::-webkit-scrollbar-button:single-button:vertical:decrement,
+.ad-dlg::-webkit-scrollbar-button:single-button:vertical:decrement {
+  background-image: var(--g-up);
+}
+.ad-client::-webkit-scrollbar-button:single-button:vertical:increment,
+.ad-dlg::-webkit-scrollbar-button:single-button:vertical:increment {
+  background-image: var(--g-down);
+}
+.ad-client::-webkit-scrollbar-button:single-button:horizontal:decrement,
+.ad-dlg::-webkit-scrollbar-button:single-button:horizontal:decrement {
+  background-image: var(--g-left);
+}
+.ad-client::-webkit-scrollbar-button:single-button:horizontal:increment,
+.ad-dlg::-webkit-scrollbar-button:single-button:horizontal:increment {
+  background-image: var(--g-right);
+}
+.ad-client::-webkit-scrollbar-corner,
+.ad-dlg::-webkit-scrollbar-corner {
+  background: var(--sf);
+}
+@supports not selector(::-webkit-scrollbar) {
+  .ad-client,
+  .ad-dlg {
+    scrollbar-color: var(--sf) #e8e8e8;
+  }
+}
+
+/* phones: the newest window fills the width and sits alone; the taskbar brings the others back */
+@media (max-width: 767px) {
+  .ad-wrap {
+    left: 6px !important;
+    top: calc(var(--sat, 0px) + 8px) !important;
+  }
+  .ad-wrap:not([data-active]) {
+    display: none;
+  }
+  .ad-win,
+  .ad-wrap.is-max .ad-win {
+    width: calc((100vw - 12px) / var(--z));
+  }
+  .ad-files {
+    justify-content: center;
+  }
+}
+
+/* ── the taskbar ───────────────────────────────────────────────────────── */
+.ad-taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100000;
+  padding-bottom: var(--sab, 0px);
+  background: var(--sf);
+  box-shadow: inset 0 1px 0 var(--lt), inset 0 2px 0 var(--hi);
+}
+.ad-tb {
+  zoom: var(--z);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: var(--bar);
+  padding: 3px 2px 2px;
+}
+.ad-start {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 5px 0 3px;
+  background: var(--sf);
+  border: 0;
+  box-shadow: var(--raised);
+  font-weight: 700;
+}
+.ad-start[aria-expanded='true'],
+.ad-start:active {
+  box-shadow: var(--pressed);
+  padding: 2px 4px 0 4px;
+}
+.ad-start img {
+  width: 16px;
+  height: 16px;
+}
+.ad-grip {
+  flex: none;
+  width: 2px;
+  height: 20px;
+  margin: 0 1px;
+  border-left: 1px solid var(--hi);
+  border-right: 1px solid var(--sh);
+}
+.ad-tasks {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 2px;
+}
+.ad-task {
+  flex: 0 1 150px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 4px;
+  overflow: hidden;
+  background: var(--sf);
+  border: 0;
+  box-shadow: var(--raised);
+  text-align: left;
+  white-space: nowrap;
+}
+.ad-task img {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.ad-task span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ad-task[aria-pressed='true'] {
+  box-shadow: var(--pressed);
+  font-weight: 700;
+  background-color: var(--hi);
+  background-image: linear-gradient(45deg, var(--sf) 25%, transparent 25%, transparent 75%, var(--sf) 75%),
+    linear-gradient(45deg, var(--sf) 25%, transparent 25%, transparent 75%, var(--sf) 75%);
+  background-size: 2px 2px;
+  background-position: 0 0, 1px 1px;
+}
+.ad-tray {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  box-shadow: var(--field);
+}
+.ad-tray img {
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 767px) {
+  .ad-task span {
+    display: none;
+  }
+  .ad-task {
+    flex: 0 0 26px;
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+/* ── the start menu ────────────────────────────────────────────────────── */
+.ad-sm {
+  position: absolute;
+  left: 2px;
+  bottom: calc(var(--bar) * var(--z) + var(--sab, 0px));
+  z-index: 100001;
+}
+.ad-sm-in {
+  zoom: var(--z);
+  display: flex;
+  padding: 3px;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-sm-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 138px;
+  padding: 1px;
+}
+.ad-smi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 14px 0 4px;
+  background: none;
+  border: 0;
+  color: #000;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ad-smi:hover,
+.ad-smi:focus-visible {
+  background: var(--navy);
+  color: #fff;
+  outline: none;
+}
+/* the same pictures as on the desktop, a size down: shrunk smoothly, as the system does, not pixel by pixel */
+.ad-smi .ad-ico,
+.ad-smi .ad-ico img {
+  width: 24px;
+  height: 24px;
+}
+.ad-smi .ad-ico img {
+  image-rendering: auto;
+}
+.ad-smsep {
+  height: 0;
+  margin: 2px 1px 2px 2px;
+  border-top: 1px solid var(--sh);
+  border-bottom: 1px solid var(--hi);
+}
+
+/* ── display properties ────────────────────────────────────────────────── */
+.ad-root[data-wall]:not([data-wall='none']) .ad-lbl {
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}
+.ad-dp {
+  padding: 10px 12px 8px;
+}
+.ad-mon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0 8px;
+}
+.ad-mon-body {
+  width: 150px;
+  padding: 9px 9px 11px;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-mon-screen {
+  position: relative;
+  height: 100px;
+  overflow: hidden;
+  box-shadow: var(--sunken);
+}
+.ad-mon-ico {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--hi);
+  box-shadow: inset -1px -1px var(--sh);
+}
+.ad-mon-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7px;
+  background: var(--sf);
+  box-shadow: inset 0 1px var(--hi);
+}
+.ad-mon-neck {
+  width: 36px;
+  height: 5px;
+  background: var(--sh);
+}
+.ad-mon-base {
+  width: 76px;
+  height: 6px;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-grp {
+  margin: 0 0 8px;
+  padding: 4px 8px 8px;
+  border: 1px solid var(--sh);
+  box-shadow: 1px 1px 0 var(--hi), inset 1px 1px 0 var(--hi);
+}
+.ad-grp legend {
+  padding: 0 3px;
+}
+.ad-lb {
+  height: 84px;
+  overflow: auto;
+  padding: 2px;
+  background: #fff;
+  box-shadow: var(--sunken);
+}
+.ad-opt {
+  display: block;
+  width: 100%;
+  padding: 1px 3px;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: #000;
+}
+.ad-opt[aria-selected='true'] {
+  background: var(--navy);
+  color: #fff;
+}
+.ad-opt:focus-visible {
+  outline: 1px dotted #ffff80;
+  outline-offset: -1px;
+}
+.ad-sw {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ad-swatch {
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: var(--c);
+  box-shadow: var(--sunken);
+}
+.ad-swatch[aria-checked='true'] {
+  box-shadow: var(--sunken), 0 0 0 1px #000;
+  outline: 1px dotted #fff;
+  outline-offset: -4px;
+}
+.ad-swatch:focus-visible {
+  outline: 1px dotted #fff;
+  outline-offset: -4px;
+}
+.ad-dp .ad-dlg-btns {
+  margin-top: 6px;
+  gap: 4px;
+}
+.ad-dp .ad-btn {
+  min-width: 62px;
+  padding: 0 8px;
+}
+
+/* the little menu on a right-click of the bare desktop */
+.ad-ctx {
+  position: absolute;
+  z-index: 100002;
+}
+.ad-ctx-in {
+  zoom: var(--z);
+  min-width: 150px;
+  padding: 2px;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+a.ad-pi {
+  text-decoration: none;
+  color: #000;
+}
+a.ad-pi:hover,
+a.ad-pi:focus-visible {
+  background: var(--navy);
+  color: #fff;
+  outline: none;
+}
+
+/* icons you can pick up and move (wide screens only: on a phone they sit in a grid) */
+@media (min-width: 768px) {
+  .ad-root .ad-icon {
+    touch-action: none;
+    cursor: grab;
+  }
+  .ad-root .ad-icon.is-dragging {
+    cursor: grabbing;
+    z-index: 3;
+  }
+}
+.ad-icon.is-dragging .ad-lbl {
+  background: var(--navy);
+  color: #fff;
+  outline: 1px dotted #ffff80;
+  outline-offset: -1px;
+  text-shadow: none;
+}
+.ad-icon.is-dragging .ad-ico {
+  opacity: 0.75;
+}
+/* a menu entry for an app is a plain item, not a shortcut: no arrow on its small icon */
+.ad-smi .ad-ico.is-shortcut::after {
+  display: none;
+}
+
+/* a faq answer: a short white box of text, no taller than it needs to be */
+.ad-note.is-answer {
+  min-height: 64px;
+  padding: 10px 12px 14px;
+}
+
+/* a folder's icons strewn about rather than lined up */
+.ad-files.is-scatter {
+  position: relative;
+  display: block;
+  min-height: var(--h);
+  padding: 0;
+}
+.ad-files.is-scatter .ad-item {
+  position: absolute;
+  left: var(--l);
+  top: var(--t);
+}

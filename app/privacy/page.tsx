@@ -42,7 +42,7 @@ const sections: LegalSection[] = [
           <li>
             The app&apos;s notes: a line the app writes to itself after each reading, so tomorrow&apos;s doesn&apos;t feel like it&apos;s meeting you for the first time. You don&apos;t write them, and they are the one thing on this list that does get sent on when the next reading is written.
           </li>
-          <li>Your settings, including whether personalisation and location are on</li>
+          <li>Your settings, including whether personalisation and location are on, and the wallpaper and colour you pick for the desktop on the about page</li>
         </UL>
         <p>
           We can&apos;t see any of it. It isn&apos;t backed up, synced, or transmitted anywhere, and clearing your
