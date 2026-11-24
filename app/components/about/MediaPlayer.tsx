@@ -29,15 +29,17 @@ const W = 320;
 const H = 180;
 
 const G = {
-  play: glyph(['X.......', 'XX......', 'XXX.....', 'XXXX....', 'XXXXX...', 'XXXX....', 'XXX.....', 'XX......', 'X.......']),
-  pause: glyph(['XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX']),
-  stop: glyph(['XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX']),
-  prev: glyph(['X.......X', 'X......XX', 'X.....XXX', 'X....XXXX', 'X...XXXXX', 'X....XXXX', 'X.....XXX', 'X......XX', 'X.......X']),
-  next: glyph(['X.......X', 'XX......X', 'XXX.....X', 'XXXX....X', 'XXXXX...X', 'XXXX....X', 'XXX.....X', 'XX......X', 'X.......X']),
-  speaker: glyph(['...X....', '..XX..X.', 'XXXX...X', 'XXXX.X.X', 'XXXX...X', '..XX..X.', '...X....']),
-  win: glyph(['XXXXXXXXX', 'XXXXXXXXX', 'X.......X', 'X.......X', 'X.......X', 'X.......X', 'X.......X', 'X.......X', 'XXXXXXXXX']),
-  expand: glyph(['XXX...XXX', 'X.......X', 'X.......X', '.........', '.........', '.........', 'X.......X', 'X.......X', 'XXX...XXX']),
-  mute: glyph(['...X...', '..XX...', 'XXXX...', 'XXXX...', 'XXXX...', '..XX...', '...X...']),
+  // the triangle is five wide and sits one column in, so that in an even button it is centred on the pixel grid
+  play: glyph(['.X....', '.XX...', '.XXX..', '.XXXX.', '.XXXXX', '.XXXX.', '.XXX..', '.XX...', '.X....'], true),
+  pause: glyph(['XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX'], true),
+  stop: glyph(['XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX'], true),
+  prev: glyph(['X.......X', 'X......XX', 'X.....XXX', 'X....XXXX', 'X...XXXXX', 'X....XXXX', 'X.....XXX', 'X......XX', 'X.......X'], true),
+  next: glyph(['X.......X', 'XX......X', 'XXX.....X', 'XXXX....X', 'XXXXX...X', 'XXXX....X', 'XXX.....X', 'XX......X', 'X.......X'], true),
+  speaker: glyph(['...X....', '..XX..X.', 'XXXX...X', 'XXXX.X.X', 'XXXX...X', '..XX..X.', '...X....'], true),
+  win: glyph(['XXXXXXXXX', 'XXXXXXXXX', 'X.......X', 'X.......X', 'X.......X', 'X.......X', 'X.......X', 'X.......X', 'XXXXXXXXX'], true),
+  expand: glyph(['XXX...XXX', 'X.......X', 'X.......X', '.........', '.........', '.........', 'X.......X', 'X.......X', 'XXX...XXX'], true),
+  // the same cone as the speaker, in the same place, with the sound waves left off
+  mute: glyph(['...X....', '..XX....', 'XXXX....', 'XXXX....', 'XXXX....', '..XX....', '...X....'], true),
 };
 
 const fmt = (s: number) => (Number.isFinite(s) && s > 0 ? `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '00:00');

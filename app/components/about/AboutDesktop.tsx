@@ -731,17 +731,17 @@ export default function AboutDesktop() {
                 <img src={icon(n.icon, 16)} alt="" width={16} height={16} />
                 <span className="ad-ttl">{n.title}</span>
                 <span className="ad-tbtns">
-                  {canMin && <button type="button" className="ad-tbtn" aria-label={`minimise ${n.title}`} style={{ '--g': GLYPHS.min } as CSSProperties} onClick={() => minimise(w.id)} />}
+                  {canMin && <button type="button" className="ad-tbtn" aria-label={`minimise ${n.title}`} style={{ '--g': GLYPHS.min, '--gp': '4px 9px', '--gpa': '5px 10px' } as CSSProperties} onClick={() => minimise(w.id)} />}
                   {canMax && (
                     <button
                       type="button"
                       className="ad-tbtn"
                       aria-label={`${w.max ? 'restore' : 'maximise'} ${n.title}`}
-                      style={{ '--g': w.max ? GLYPHS.restore : GLYPHS.max } as CSSProperties}
+                      style={{ '--g': w.max ? GLYPHS.restore : GLYPHS.max, '--gp': '3px 2px', '--gpa': '4px 3px' } as CSSProperties}
                       onClick={() => toggleMax(w.id)}
                     />
                   )}
-                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close } as CSSProperties} onClick={() => (n.kind === 'player' && phone ? minimise(w.id) : close(w.id))} />
+                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close, '--gp': '4px 3px', '--gpa': '5px 4px' } as CSSProperties} onClick={() => (n.kind === 'player' && phone ? minimise(w.id) : close(w.id))} />
                 </span>
               </div>
               {windowBody(w, n)}
