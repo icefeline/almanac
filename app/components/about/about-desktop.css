@@ -542,6 +542,11 @@
   .ad-wrap:not([data-active]) {
     display: none;
   }
+  /* the player opens low, just above the taskbar, where a thumb reaches it */
+  .ad-wrap[data-player] {
+    top: auto !important;
+    bottom: calc(var(--bar) * var(--z) + var(--sab, 0px) + 6px);
+  }
   .ad-win,
   .ad-wrap.is-max .ad-win {
     width: calc((100vw - 12px) / var(--z));
@@ -1096,6 +1101,36 @@ a.ad-pi:focus-visible {
   background: none;
   border: 0;
   color: #000;
+}
+/* the title drifts left like a marquee while a song plays; two copies with a gap make the loop seamless */
+.ad-mini-run {
+  display: inline-flex;
+}
+.ad-mini-run > span {
+  flex: none;
+  padding-right: 3em;
+}
+.ad-mini-run > span:last-child {
+  display: none;
+}
+.ad-mini-run.is-on > span:last-child {
+  display: inline;
+}
+.ad-mini-run.is-on {
+  animation: ad-marquee 12s linear infinite;
+}
+@keyframes ad-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad-mini-run.is-on {
+    animation: none;
+  }
+  .ad-mini-run.is-on > span:last-child {
+    display: none;
+  }
 }
 .ad-mini .ad-mpb {
   width: 24px;

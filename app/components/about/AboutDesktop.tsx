@@ -696,6 +696,7 @@ export default function AboutDesktop() {
             className={w.max ? 'ad-wrap is-max' : 'ad-wrap'}
             data-active={isActive ? '' : undefined}
             data-min={w.min ? '' : undefined}
+            data-player={n.kind === 'player' ? '' : undefined}
             style={{ '--x': `${w.x}px`, '--y': `${w.y}px`, zIndex: w.z } as CSSProperties}
             onPointerDown={() => !isActive && raise(w.id)}
           >

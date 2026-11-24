@@ -378,7 +378,10 @@ export default function MediaPlayer({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/about/icons/cd-16.png" alt="" width={16} height={16} />
       <button type="button" className="ad-mini-ttl" onClick={onExpand} title="open the player">
-        {problem || shortName}
+        <span key={problem || shortName} className={`ad-mini-run${playing ? ' is-on' : ''}`}>
+          <span>{problem || shortName}</span>
+          <span aria-hidden="true">{problem || shortName}</span>
+        </span>
       </button>
       <button type="button" className="ad-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
       <button type="button" className="ad-mpb" aria-label={playing ? 'pause' : 'play'} disabled={!track} style={{ '--g': playing ? G.pause : G.play } as React.CSSProperties} onClick={toggle} />
