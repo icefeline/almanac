@@ -291,6 +291,16 @@ function useClock() {
 export default function AboutDesktop() {
   const [wins, setWins] = useState<Win[]>([]);
   const [startOpen, setStartOpen] = useState(false);
+  // on a phone the media player lives as a small bar along the bottom (see MediaPlayer's `mini`)
+  const [miniHost, setMiniHost] = useState<HTMLElement | null>(null);
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width:767px)');
+    const on = () => setPhone(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const [milky, setMilky] = useState(false);
   const [lists, setLists] = useState<Record<string, boolean>>({}); // folders shown as a list rather than large icons
   const root = useRef<HTMLDivElement>(null);
@@ -369,6 +379,9 @@ export default function AboutDesktop() {
 
   const live = wins.filter((w) => !w.min);
   const activeId = live.length ? live.reduce((a, b) => (b.z > a.z ? b : a)).id : null;
+  // the small bar shows whenever the player isn't the window on show
+  const musicWin = wins.find((w) => w.id === 'music');
+  const showMini = phone && !!musicWin && (musicWin.min || activeId !== 'music');
 
   const raise = (id: string) => {
     const next = ++z.current;
@@ -399,9 +412,11 @@ export default function AboutDesktop() {
     });
   };
 
-  // on a wide screen the media player is already there, tucked into the bottom right; on a phone it would cover the icons
+  // the media player is already there: tucked into the bottom right on a wide screen, as a small bar on a phone
   useEffect(() => {
-    if (window.matchMedia('(min-width:768px)').matches) open('music');
+    open('music');
+    // on a phone it starts put away, as the small bar, so it doesn't cover the icons
+    if (!window.matchMedia('(min-width:768px)').matches) setWins((ws) => ws.map((w) => (w.id === 'music' ? { ...w, min: true } : w)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -542,7 +557,7 @@ export default function AboutDesktop() {
         </div>
       );
     }
-    if (n.kind === 'player') return <MediaPlayer onClose={() => close(w.id)} />;
+    if (n.kind === 'player') return <MediaPlayer onClose={() => close(w.id)} miniHost={phone ? miniHost : null} showMini={showMini} onExpand={() => raise('music')} />;
     if (n.kind === 'display') return <DisplayProps committed={scene} onApply={applyScene} onClose={() => close(w.id)} />;
     if (n.kind === 'folder') {
       const asList = !!lists[w.id];
@@ -620,7 +635,7 @@ export default function AboutDesktop() {
   const resizable = (n: Entry) => n.kind === 'folder' || n.kind === 'text';
 
   return (
-    <div ref={root} className="ad-root" data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
+    <div ref={root} className={showMini ? 'ad-root has-mini' : 'ad-root'} data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
       <VizLayer />
       <div
         ref={desk}
@@ -707,7 +722,7 @@ export default function AboutDesktop() {
                       onClick={() => toggleMax(w.id)}
                     />
                   )}
-                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close } as CSSProperties} onClick={() => close(w.id)} />
+                  <button type="button" className="ad-tbtn is-close" aria-label={`close ${n.title}`} style={{ '--g': GLYPHS.close } as CSSProperties} onClick={() => (n.kind === 'player' && phone ? minimise(w.id) : close(w.id))} />
                 </span>
               </div>
               {windowBody(w, n)}
@@ -746,6 +761,8 @@ export default function AboutDesktop() {
           </div>
         </div>
       )}
+
+      <div ref={setMiniHost} className="ad-mini-host" />
 
       <div className="ad-taskbar" role="toolbar" aria-label="taskbar">
         <div className="ad-tb">

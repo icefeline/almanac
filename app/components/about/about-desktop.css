@@ -1039,3 +1039,65 @@ a.ad-pi:focus-visible {
     transition: none;
   }
 }
+
+/* ── the media player as a small bar, for phones ───────────────────────── */
+.ad-mini-host {
+  display: none;
+}
+@media (max-width: 767px) {
+  .ad-mini-host {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--bar) * var(--z) + var(--sab, 0px));
+    z-index: 99999;
+  }
+  /* with the bar showing, the icons and any window stop above it */
+  .has-mini .ad-desk {
+    bottom: calc(var(--bar) * var(--z) + var(--sab, 0px) + 32px * var(--z));
+  }
+  .has-mini .ad-win {
+    max-height: calc((100dvh - var(--bar) * var(--z) - var(--sab, 0px) - 12px - 32px * var(--z)) / var(--z));
+  }
+}
+.ad-mini {
+  zoom: var(--z);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  padding: 5px 3px 3px;
+  background: var(--sf);
+  box-shadow: inset 0 1px 0 var(--lt), inset 0 2px 0 var(--hi);
+}
+.ad-mini-prog {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 2px;
+  background: var(--navy);
+}
+.ad-mini img {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0 3px 0 2px;
+}
+.ad-mini-ttl {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+  padding: 0 2px;
+  background: none;
+  border: 0;
+  color: #000;
+}
+.ad-mini .ad-mpb {
+  width: 24px;
+  height: 22px;
+}
