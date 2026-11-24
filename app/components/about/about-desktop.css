@@ -222,7 +222,7 @@
   height: 14px;
   padding: 0;
   border: 0;
-  background: var(--sf) var(--g) center / auto no-repeat;
+  background: var(--sf) var(--g) var(--gp, center) / auto no-repeat;
   box-shadow: var(--raised);
   image-rendering: pixelated;
 }
@@ -234,7 +234,7 @@
 }
 .ad-tbtn:active {
   box-shadow: var(--pressed);
-  background-position: calc(50% + 1px) calc(50% + 1px);
+  background-position: var(--gpa, calc(50% + 1px) calc(50% + 1px));
 }
 .ad-tbtn:focus-visible {
   outline: 1px dotted var(--fr);
