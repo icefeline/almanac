@@ -165,7 +165,7 @@ export default function MediaPlayer({
     const src = ctx.createMediaElementSource(audio.current);
     const an = ctx.createAnalyser();
     an.fftSize = 512; // finer at the low end, where the beat is
-    an.smoothingTimeConstant = 0.6;
+    an.smoothingTimeConstant = 0.2; // little smoothing here: it only delays the beat, and the pictures smooth themselves
     src.connect(an);
     an.connect(ctx.destination);
     actx.current = ctx;
@@ -303,7 +303,7 @@ export default function MediaPlayer({
     // for anyone who has asked their device for less motion, everything moves at a quarter of the strength
     const pace = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.25 : 1;
     // the beat detector's memory
-    const bt = { mean: 0, dev: 0, prevLow: 0, last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0, spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0 };
+    const bt = { fmean: 0, fdev: 0, prevFlux: 0, prevF: new Float32Array(6), last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0, spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0 };
     const frame: Frame = { t: 0, bass: 0, mid: 0, high: 0, beat: 0, chaos: 0, spin: 0, bands };
     const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
     const loop = (now: number) => {
@@ -329,7 +329,7 @@ export default function MediaPlayer({
         const lo = Math.floor(Math.pow(f.length, i / 16));
         const hi = Math.max(lo + 1, Math.floor(Math.pow(f.length, (i + 1) / 16)));
         const v = avg(f, lo, hi) / 255;
-        smooth[i] += (v - smooth[i]) * (v > smooth[i] ? 0.22 : 0.07);
+        smooth[i] += (v - smooth[i]) * (v > smooth[i] ? 0.3 : 0.08);
         bands[i] = smooth[i];
       }
       const mean = (from: number, to: number) => {
@@ -341,14 +341,21 @@ export default function MediaPlayer({
       const mid = mean(4, 10);
       const high = mean(10, 16);
 
-      // the beat: a sudden rise in the kick's range (the bottom few bins) that stands out from how much the low end
-      // normally wobbles. A bass-heavy song sits high all the time, so it is the rise, not the level, that counts.
-      const low = avg(f, 0, 4) / 255;
-      bt.dev += (Math.abs(low - bt.mean) - bt.dev) * 0.05;
-      bt.mean += (low - bt.mean) * 0.04;
-      const rising = low > bt.prevLow;
-      bt.prevLow = low;
-      if (rising && low - bt.mean > bt.dev * 1.15 + 0.02 && now - bt.last > 170) {
+      // the beat: a sudden jump in the low end (the bottom few bins) compared with how much that jumps about on this
+      // song. Measured as the growth since the last frame, against a running average and spread of that growth, so it
+      // finds the hits in a quiet, soft or bass-heavy song as readily as in a loud one (the old rule asked for a fixed
+      // rise above the level and so went deaf on some songs for half a minute at a time).
+      let flux = 0;
+      for (let i = 0; i < 6; i++) {
+        flux += Math.max(0, f[i] - bt.prevF[i]);
+        bt.prevF[i] = f[i];
+      }
+      flux /= 255 * 6;
+      bt.fdev += ((flux - bt.fmean) ** 2 - bt.fdev) * 0.04;
+      bt.fmean += (flux - bt.fmean) * 0.04;
+      const hit = flux > bt.fmean + 1.3 * Math.sqrt(bt.fdev) + 0.004 && flux > bt.prevFlux && now - bt.last > 140;
+      bt.prevFlux = flux;
+      if (hit) {
         const gap = (now - bt.last) / 1000;
         if (bt.last > 0 && gap < 2) bt.rate += (1 / gap - bt.rate) * 0.3; // beats a second, smoothed
         bt.last = now;
@@ -521,7 +528,7 @@ export default function MediaPlayer({
       <audio
         ref={audio}
         src={track?.src}
-        preload="metadata"
+        preload="auto"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => (tracks.length > 1 ? go(index + 1) : stop())}
