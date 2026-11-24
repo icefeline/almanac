@@ -743,12 +743,18 @@ def tarot16():
 
 
 def cd16():
+    """The same disc as cd32, at half size: silver face, the rainbow sheen in two opposite sectors, a label, a hole."""
     v = Cv(16)
     disc = v.ell(1, 1, 14, 14)
-    v.grad(disc, [S1, S2, S3], 'd', False)
+    v.grad(disc, [S1, S2, S3, S2, S1], 'd', False)
     v.bevel(disc, WHITE, S4)
-    v.paint(v.dots([(3, 5), (4, 3), (12, 10), (11, 12)]), c('9cc8ff'))
-    v.paint(v.dots([(5, 3), (10, 12)]), c('ffb0d8'))
+    ring = v.ell(2, 2, 13, 13) & ~v.ell(5, 5, 10, 10)
+    sheen_a = ring & v.poly([(8, 8), (1, 3), (7, 0), (11, 0)])
+    sheen_b = ring & v.poly([(8, 8), (15, 13), (9, 15), (5, 15)])
+    v.grad(sheen_a, [c('7fe8ff'), c('b89cff'), c('ff9ad0')], 'x', False)
+    v.grad(sheen_b, [c('ffe27a'), c('9cff9c'), c('7fe8ff')], 'x', False)
+    label = v.ell(5, 5, 10, 10)
+    v.grad(label, [P1, P2, P3], 'd', False)
     v.p[v.rect(7, 7, 8, 8)] = (0, 0, 0, 0)
     v.outline(shadow=False)
     return v
