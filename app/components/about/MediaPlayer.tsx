@@ -168,8 +168,11 @@ export default function MediaPlayer({
     if (!a || !track) return;
     ensureGraph();
     try {
-      await actx.current?.resume();
-      await a.play();
+      // start the song straight from the tap: a browser only allows play() inside the gesture, and waiting on the
+      // audio graph first (as this used to) is exactly what made the buttons do nothing in Safari
+      const started = a.play();
+      void actx.current?.resume();
+      await started;
       setProblem('');
     } catch {
       setProblem("can't play this file");
@@ -193,6 +196,44 @@ export default function MediaPlayer({
     },
     [tracks.length],
   );
+
+  /*
+   * The phone's own controls (lock screen, control centre, headphones, the browser's media notification) for this song.
+   * Registering them is what lets them show the title and work the same in a browser tab as in the home screen app.
+   */
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !track) return;
+    const ms = navigator.mediaSession;
+    try {
+      ms.metadata = new MediaMetadata({ title: track.title, artist: track.artist ?? 'slow garden', album: 'slow garden' });
+    } catch {}
+    ms.playbackState = playing ? 'playing' : 'paused';
+  }, [track, playing]);
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    const set = (name: MediaSessionAction, fn: MediaSessionActionHandler | null) => {
+      try {
+        ms.setActionHandler(name, fn);
+      } catch {}
+    };
+    set('play', () => void play());
+    set('pause', () => pause());
+    set('previoustrack', tracks.length > 1 ? () => go(index - 1) : null);
+    set('nexttrack', tracks.length > 1 ? () => go(index + 1) : null);
+    return () => {
+      (['play', 'pause', 'previoustrack', 'nexttrack'] as MediaSessionAction[]).forEach((n) => set(n, null));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [play, go, index, tracks.length]);
+  // coming back to the tab or app: wake the audio graph again, which the phone suspends while we were away
+  useEffect(() => {
+    const back = () => {
+      if (!document.hidden && audio.current && !audio.current.paused) void actx.current?.resume();
+    };
+    document.addEventListener('visibilitychange', back);
+    return () => document.removeEventListener('visibilitychange', back);
+  }, []);
 
   // a new song was chosen while playing (or by the buttons): start it as soon as it has loaded
   useEffect(() => {

@@ -40,6 +40,8 @@
   --window: inset -1px -1px var(--fr), inset 1px 1px var(--lt), inset -2px -2px var(--sh), inset 2px 2px var(--hi);
   --field: inset -1px -1px var(--lt), inset 1px 1px var(--sh);
 
+  --sab: env(safe-area-inset-bottom, 0px); /* the home indicator: the taskbar grows to cover it */
+  --sat: env(safe-area-inset-top, 0px);
   position: fixed;
   inset: 0;
   z-index: 5;
@@ -533,23 +535,16 @@
   }
 }
 
-/* phones: the newest window fills the width and sits alone; the taskbar brings the others back */
+/* phones: windows cascade like on a desktop, a little narrower than the screen so each shows its edge; drag them by the title bar */
 @media (max-width: 767px) {
-  .ad-wrap {
-    left: 6px !important;
-    top: calc(var(--sat, 0px) + 8px) !important;
+  .ad-win {
+    width: calc((100vw - 30px) / var(--z));
   }
-  .ad-wrap:not([data-active]) {
-    display: none;
-  }
-  /* the player opens low, just above the taskbar, where a thumb reaches it */
-  .ad-wrap[data-player] {
-    top: auto !important;
-    bottom: calc(var(--bar) * var(--z) + var(--sab, 0px) + 6px);
-  }
-  .ad-win,
   .ad-wrap.is-max .ad-win {
-    width: calc((100vw - 12px) / var(--z));
+    width: calc(100vw / var(--z));
+  }
+  .ad-titlebar {
+    touch-action: none;
   }
   .ad-files {
     justify-content: center;
@@ -1135,4 +1130,15 @@ a.ad-pi:focus-visible {
 .ad-mini .ad-mpb {
   width: 24px;
   height: 22px;
+}
+
+/* installed on a phone's home screen the page must run edge to edge, under the status bar and the home indicator */
+@media (display-mode: standalone) {
+  .ad-root {
+    min-height: 100lvh;
+  }
+}
+html:has(.ad-root),
+html:has(.ad-root) body {
+  background: #0a6b6b;
 }
