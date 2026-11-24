@@ -338,6 +338,24 @@ export default function AboutDesktop() {
     setIcons(kept);
     setReady(true);
   }, []);
+  // the colour reaches behind the phone's status bar and the browser's bar too: the page background and the theme colour follow it
+  useEffect(() => {
+    if (!ready) return;
+    const el = document.documentElement;
+    el.style.setProperty('--ad-page', scene.color);
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+    }
+    const before = meta.content;
+    meta.content = scene.color;
+    return () => {
+      el.style.removeProperty('--ad-page');
+      if (meta) meta.content = before;
+    };
+  }, [ready, scene.color]);
   // remember the look and the icons' places, once the reader has let go of an icon rather than on every pixel of a drag
   useEffect(() => {
     if (!ready || dragId) return;
