@@ -1133,11 +1133,21 @@ a.ad-pi:focus-visible {
 }
 
 /*
- * Installed on a phone's home screen, the page can be shorter than the screen: the last strip belongs to the phone, not to
- * the page, and only the page's own background reaches it. Painting that background the taskbar's grey makes the strip read as
- * more taskbar instead of a gap. (The desktop itself must not grow into it: anything past the page's edge is cut off.)
+ * The page background reaches behind the phone's status bar and the browser's own bars, so it follows the desktop colour.
+ * Installed on a home screen the page can end above the screen's bottom edge; the strip below is only reached by this
+ * background, so there it is the taskbar's grey and reads as more taskbar. The taskbar then sits flush on the page's
+ * edge, as low as it can go (the home indicator is already outside the page there, so no padding for it).
  */
 html:has(.ad-root),
 html:has(.ad-root) body {
-  background: #c0c0c0;
+  background: var(--ad-page, #0a6b6b);
+}
+@media (display-mode: standalone) {
+  html:has(.ad-root),
+  html:has(.ad-root) body {
+    background: #c0c0c0;
+  }
+  .ad-root {
+    --sab: 0px;
+  }
 }
