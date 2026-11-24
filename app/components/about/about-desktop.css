@@ -1132,13 +1132,12 @@ a.ad-pi:focus-visible {
   height: 22px;
 }
 
-/* installed on a phone's home screen the page must run edge to edge, under the status bar and the home indicator */
-@media (display-mode: standalone) {
-  .ad-root {
-    min-height: 100lvh;
-  }
-}
+/*
+ * Installed on a phone's home screen, the page can be shorter than the screen: the last strip belongs to the phone, not to
+ * the page, and only the page's own background reaches it. Painting that background the taskbar's grey makes the strip read as
+ * more taskbar instead of a gap. (The desktop itself must not grow into it: anything past the page's edge is cut off.)
+ */
 html:has(.ad-root),
 html:has(.ad-root) body {
-  background: #0a6b6b;
+  background: #c0c0c0;
 }
