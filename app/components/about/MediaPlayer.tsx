@@ -108,14 +108,6 @@ function drawKaleidoscope(ctx: CanvasRenderingContext2D, freq: Uint8Array, t: nu
   ctx.fillRect(0, 0, W, H);
 }
 
-/** An iPhone or iPad in a browser tab (not installed to the home screen). */
-function plainAudio() {
-  if (typeof navigator === 'undefined') return false;
-  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const installed = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
-  return ios && !installed;
-}
-
 export default function MediaPlayer({
   onClose,
   miniHost,
@@ -176,9 +168,7 @@ export default function MediaPlayer({
   const play = useCallback(async () => {
     const a = audio.current;
     if (!a || !track) return;
-    // On an iPhone in a browser tab, routing the song through the audio graph can leave it silent; there the song plays
-    // plainly and the pictures follow a made-up pulse instead of the real signal. Installed on the home screen it is fine.
-    if (!plainAudio()) ensureGraph();
+    ensureGraph();
     try {
       // start the song straight from the tap: a browser only allows play() inside the gesture, and waiting on the
       // audio graph first (as this used to) is exactly what made the buttons do nothing in Safari
