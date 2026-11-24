@@ -1,0 +1,497 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { glyph } from './pixels';
+import { MenuBar } from './WinMenu';
+import { feed, isShader, makeGL, type Frame, type GLViz, type ShaderViz } from './shaders';
+import { TRACKS, type Track } from './tracks';
+
+/*
+ * The media player: a screen that visualises the music, a line saying what is playing and how far along, a seek bar,
+ * and the usual buttons. The songs come from tracks.ts, plus anything the visitor opens from their own device.
+ *
+ * The sound goes through an AnalyserNode, and the screen draws what it hears, and above all when it hits. A beat
+ * detector watches the low end for sudden rises; each one gives the picture a soft push and a glide of spin, and how
+ * often they come sets how erratic everything gets: a slow song drifts, a fast one churns and speeds up. Nothing here
+ * flashes or jumps: the beat is smoothed before the pictures see it, and brightness barely moves.
+ *
+ * View > visualisation picks the picture: four trippy ones drawn on the graphics card (a kaleidoscope, a fractal, a
+ * tunnel, a flow) and a classic glow with sparks. "Fill the desktop" spreads the picture behind the whole screen (see
+ * VizLayer), and "full screen" takes the browser full screen too. Where the browser has no graphics card to use, a flat
+ * drawing stands in. With no music loaded the screen idles on a slow made-up signal, with a gentle pulse, so the window
+ * is never dead.
+ */
+
+type Viz = ShaderViz | 'glow';
+const VIZ: Viz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow', 'glow'];
+
+const W = 320;
+const H = 180;
+
+const G = {
+  play: glyph(['X.......', 'XX......', 'XXX.....', 'XXXX....', 'XXXXX...', 'XXXX....', 'XXX.....', 'XX......', 'X.......']),
+  pause: glyph(['XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX']),
+  stop: glyph(['XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX']),
+  prev: glyph(['X.......X', 'X......XX', 'X.....XXX', 'X....XXXX', 'X...XXXXX', 'X....XXXX', 'X.....XXX', 'X......XX', 'X.......X']),
+  next: glyph(['X.......X', 'XX......X', 'XXX.....X', 'XXXX....X', 'XXXXX...X', 'XXXX....X', 'XXX.....X', 'XX......X', 'X.......X']),
+  speaker: glyph(['...X....', '..XX..X.', 'XXXX...X', 'XXXX.X.X', 'XXXX...X', '..XX..X.', '...X....']),
+  expand: glyph(['XXX...XXX', 'X.......X', 'X.......X', '.........', '.........', '.........', 'X.......X', 'X.......X', 'XXX...XXX']),
+  mute: glyph(['...X...', '..XX...', 'XXXX...', 'XXXX...', 'XXXX...', '..XX...', '...X...']),
+};
+
+const fmt = (s: number) => (Number.isFinite(s) && s > 0 ? `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '00:00');
+const avg = (a: Uint8Array, from: number, to: number) => {
+  let t = 0;
+  for (let i = from; i < to; i++) t += a[i];
+  return t / Math.max(1, to - from);
+};
+
+/**
+ * A kaleidoscope: one wedge of drifting, glowing beads and curves, drawn eight times round the middle and mirrored,
+ * so it always comes out symmetrical. Each bead is a pitch: louder pitches are bigger and brighter, and the bass
+ * spins the whole thing faster. The colours drift slowly round the wheel.
+ */
+function drawKaleidoscope(ctx: CanvasRenderingContext2D, freq: Uint8Array, t: number, spin: { a: number }) {
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(6,4,22,0.22)';
+  ctx.fillRect(0, 0, W, H);
+  const bass = avg(freq, 0, 6) / 255;
+  const mid = avg(freq, 6, 40) / 255;
+  spin.a += 0.004 + bass * 0.035;
+  const hue = (t * 0.02) % 360;
+  const R = Math.hypot(W, H) / 2;
+  const beads = 18;
+  const wedges = 8;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  for (let k = 0; k < wedges; k++) {
+    for (const mirror of [1, -1]) {
+      ctx.save();
+      ctx.rotate(spin.a + (k * Math.PI * 2) / wedges);
+      ctx.scale(1, mirror);
+      let px = 0;
+      let py = 0;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      const pts: [number, number, number, number][] = [];
+      for (let i = 0; i < beads; i++) {
+        const v = freq[Math.min(freq.length - 1, i * 5)] / 255;
+        const x = 22 + (i * R * 0.5) / beads + Math.sin(t * 0.002 + i) * 5;
+        const y = Math.sin(t * 0.0013 * (1 + i * 0.09) + i * 1.3) * R * 0.2 * (0.25 + v);
+        pts.push([x, y, v, i]);
+        ctx.quadraticCurveTo(px, py, (px + x) / 2, (py + y) / 2);
+        px = x;
+        py = y;
+      }
+      ctx.lineWidth = 0.7 + bass * 1.6;
+      ctx.strokeStyle = `hsla(${hue + 200},90%,${60 + mid * 25}%,${0.18 + mid * 0.4})`;
+      ctx.stroke();
+      for (const [x, y, v, i] of pts) {
+        ctx.fillStyle = `hsla(${hue + i * 14},95%,${46 + v * 26}%,${0.08 + v * 0.38})`;
+        ctx.beginPath();
+        ctx.arc(x, y, (1.2 + v * 10) * (0.55 + (i / beads) * 0.7), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+  // a small bright heart where all the wedges meet
+  const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, 9 + bass * 22);
+  g.addColorStop(0, `hsla(${hue + 60},100%,86%,${0.2 + bass * 0.3})`);
+  g.addColorStop(1, `hsla(${hue + 60},100%,50%,0)`);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+/** A glow in the middle that swells with the bass, with jagged sparks running out of it as far as each pitch is loud. */
+function drawGlow(ctx: CanvasRenderingContext2D, freq: Uint8Array, t: number, beat: number, chaos: number, spin: number) {
+  const cx = W / 2;
+  const cy = H / 2;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(0,46,0,0.24)';
+  ctx.fillRect(0, 0, W, H);
+  const bass = avg(freq, 0, 6) / 255;
+  ctx.globalCompositeOperation = 'lighter';
+  const r = 16 + bass * 58 + beat * 26;
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  g.addColorStop(0, `rgba(228,255,228,${0.2 + bass * 0.32})`);
+  g.addColorStop(0.4, `rgba(112,232,112,${0.14 + bass * 0.2})`);
+  g.addColorStop(1, 'rgba(0,90,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  const rays = 26;
+  for (let i = 0; i < rays; i++) {
+    const a = (i / rays) * Math.PI * 2 + t * 0.00018 + spin + Math.sin(t * 0.0004 + i) * 0.05;
+    const amp = freq[(i * 4) % 110] / 255;
+    const len = 18 + amp * W * 0.5 + beat * 40;
+    const lit = 170 + amp * 85;
+    ctx.strokeStyle = `rgba(${lit},255,${lit},${0.3 + amp * 0.6})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    let x = cx;
+    let y = cy;
+    const seg = 9;
+    for (let s = 1; s <= seg; s++) {
+      const d = len / seg;
+      const shake = 5 * (0.4 + amp) * (1 + chaos * 2.4);
+      x += Math.cos(a) * d + (Math.random() - 0.5) * shake;
+      y += Math.sin(a) * d + (Math.random() - 0.5) * shake;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+}
+
+export default function MediaPlayer({ onClose }: { onClose: () => void }) {
+  const [tracks, setTracks] = useState<Track[]>(TRACKS);
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [time, setTime] = useState(0);
+  const [dur, setDur] = useState(0);
+  const [vol, setVol] = useState(0.8);
+  const [muted, setMuted] = useState(false);
+  const [viz, setViz] = useState<Viz>('kaleidoscope');
+  const [fill, setFill] = useState(false); // the picture spreads behind the whole desktop
+  const [problem, setProblem] = useState('');
+
+  const audio = useRef<HTMLAudioElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const glCanvas = useRef<HTMLCanvasElement>(null);
+  const gl = useRef<GLViz | null>(null);
+  const [glReady, setGlReady] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
+  const actx = useRef<AudioContext | null>(null);
+  const analyser = useRef<AnalyserNode | null>(null);
+  const freq = useRef(new Uint8Array(128));
+  const urls = useRef<string[]>([]);
+  const wantPlay = useRef(false);
+  // the drawing loop reads these rather than being rebuilt each time they change
+  const live = useRef({ playing: false, hasTrack: false, viz: 'kaleidoscope' as Viz, fill: false });
+  live.current = { playing, hasTrack: tracks.length > 0, viz, fill };
+
+  const track: Track | undefined = tracks[index];
+
+  // the sound goes through an analyser on its way to the speakers; it can only be set up once, and only after a tap
+  const ensureGraph = useCallback(() => {
+    if (actx.current || !audio.current) return;
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const src = ctx.createMediaElementSource(audio.current);
+    const an = ctx.createAnalyser();
+    an.fftSize = 512; // finer at the low end, where the beat is
+    an.smoothingTimeConstant = 0.6;
+    src.connect(an);
+    an.connect(ctx.destination);
+    actx.current = ctx;
+    analyser.current = an;
+    freq.current = new Uint8Array(an.frequencyBinCount);
+  }, []);
+
+  const play = useCallback(async () => {
+    const a = audio.current;
+    if (!a || !track) return;
+    ensureGraph();
+    try {
+      await actx.current?.resume();
+      await a.play();
+      setProblem('');
+    } catch {
+      setProblem("can't play this file");
+    }
+  }, [track, ensureGraph]);
+
+  const pause = () => audio.current?.pause();
+  const toggle = () => (playing ? pause() : void play());
+  const stop = () => {
+    const a = audio.current;
+    if (!a) return;
+    a.pause();
+    a.currentTime = 0;
+    setTime(0);
+  };
+  const go = useCallback(
+    (to: number) => {
+      if (!tracks.length) return;
+      wantPlay.current = true;
+      setIndex(((to % tracks.length) + tracks.length) % tracks.length);
+    },
+    [tracks.length],
+  );
+
+  // a new song was chosen while playing (or by the buttons): start it as soon as it has loaded
+  useEffect(() => {
+    if (wantPlay.current && track) void play();
+    wantPlay.current = false;
+  }, [index, track, play]);
+
+  useEffect(() => {
+    if (audio.current) audio.current.volume = muted ? 0 : vol;
+  }, [vol, muted]);
+
+  // songs opened from the visitor's own device: kept as local addresses that only this browser can read
+  const addFiles = (files: FileList | File[] | null) => {
+    const songs = Array.from(files ?? []).filter((f) => f.type.startsWith('audio') || /\.(mp3|m4a|ogg|wav|flac|aac)$/i.test(f.name));
+    if (!songs.length) return;
+    const added = songs.map((f) => {
+      const src = URL.createObjectURL(f);
+      urls.current.push(src);
+      return { title: f.name.replace(/\.[^.]+$/, '').toLowerCase(), src };
+    });
+    wantPlay.current = true;
+    setTracks((t) => [...t, ...added]);
+    setIndex(tracks.length);
+  };
+  const onPick = (e: ChangeEvent<HTMLInputElement>) => {
+    addFiles(e.target.files);
+    e.target.value = '';
+  };
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+    addFiles(e.dataTransfer.files);
+  };
+
+  // the graphics-card canvas, if the browser has one
+  useEffect(() => {
+    const c = glCanvas.current;
+    if (!c) return;
+    gl.current = makeGL(c);
+    setGlReady(!!gl.current);
+  }, []);
+
+  // the drawing loop
+  useEffect(() => {
+    const c = canvas.current;
+    const ctx = c?.getContext('2d');
+    if (!c || !ctx) return;
+    ctx.fillStyle = '#021a05';
+    ctx.fillRect(0, 0, W, H);
+    let raf = 0;
+    const spin = { a: 0 };
+    let drawn: string | null = null; // what is on the screen, so a paused screen can still change its look
+    const idle = new Uint8Array(128);
+    const smooth = new Float32Array(16); // sixteen bands, deep bass to high treble, quick to rise and slow to fall
+    const bands = new Float32Array(16);
+    // for anyone who has asked their device for less motion, everything moves at a quarter of the strength
+    const pace = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.25 : 1;
+    // the beat detector's memory
+    const bt = { mean: 0, dev: 0, prevLow: 0, last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0, spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0 };
+    const frame: Frame = { t: 0, bass: 0, mid: 0, high: 0, beat: 0, chaos: 0, spin: 0, bands };
+    const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+    const loop = (now: number) => {
+      raf = requestAnimationFrame(loop);
+      const { playing: isPlaying, hasTrack, viz: mode, fill: spread } = live.current;
+      feed.on = spread;
+      const key = mode + (spread ? '+fill' : '');
+      let f = freq.current;
+      if (isPlaying && analyser.current) {
+        analyser.current.getByteFrequencyData(f);
+      } else if (!hasTrack) {
+        // nothing loaded: a slow made-up signal with a gentle pulse, so the window is alive
+        const pulse = Math.pow(Math.max(0, Math.sin(now * 0.0052)), 8);
+        for (let i = 0; i < idle.length; i++) idle[i] = 30 + 110 * Math.abs(Math.sin(now * 0.0011 + i * 0.33)) * (1 - (i / idle.length) * 0.65) + (i < 6 ? 120 * pulse : 0);
+        f = idle;
+      } else {
+        if (drawn === key) return; // paused or stopped on a song: the picture holds still, unless it was asked to change
+      }
+      drawn = key;
+      const dt = bt.prevNow ? Math.min(0.05, (now - bt.prevNow) / 1000) : 0.016;
+      bt.prevNow = now;
+      for (let i = 0; i < 16; i++) {
+        const lo = Math.floor(Math.pow(f.length, i / 16));
+        const hi = Math.max(lo + 1, Math.floor(Math.pow(f.length, (i + 1) / 16)));
+        const v = avg(f, lo, hi) / 255;
+        smooth[i] += (v - smooth[i]) * (v > smooth[i] ? 0.22 : 0.07);
+        bands[i] = smooth[i];
+      }
+      const mean = (from: number, to: number) => {
+        let sum = 0;
+        for (let i = from; i < to; i++) sum += bands[i];
+        return sum / (to - from);
+      };
+      const bass = mean(0, 4);
+      const mid = mean(4, 10);
+      const high = mean(10, 16);
+
+      // the beat: a sudden rise in the kick's range (the bottom few bins) that stands out from how much the low end
+      // normally wobbles. A bass-heavy song sits high all the time, so it is the rise, not the level, that counts.
+      const low = avg(f, 0, 4) / 255;
+      bt.dev += (Math.abs(low - bt.mean) - bt.dev) * 0.05;
+      bt.mean += (low - bt.mean) * 0.04;
+      const rising = low > bt.prevLow;
+      bt.prevLow = low;
+      if (rising && low - bt.mean > bt.dev * 1.15 + 0.02 && now - bt.last > 170) {
+        const gap = (now - bt.last) / 1000;
+        if (bt.last > 0 && gap < 2) bt.rate += (1 / gap - bt.rate) * 0.3; // beats a second, smoothed
+        bt.last = now;
+        bt.beat = 1;
+        bt.spinV += bt.dir * (0.3 + 0.5 * bt.chaos); // a push that sets the picture gliding round...
+        if (Math.random() < 0.2 + 0.5 * bt.chaos) bt.dir = -bt.dir; // ...and the busier it is, the more often it changes its mind
+      }
+      bt.beat *= Math.exp(-dt * 5);
+      // the pictures never see the hit itself, only a softened version that swells and settles
+      bt.beatS += (bt.beat - bt.beatS) * (1 - Math.exp(-dt * 7));
+      bt.spinV *= Math.exp(-dt * 1.2);
+      bt.spinVs += (bt.spinV - bt.spinVs) * (1 - Math.exp(-dt * 5)); // and the spin speeds up and slows down gradually
+      bt.spin += bt.spinVs * dt * 2.2;
+      bt.rate *= Math.exp(-dt * 0.12); // with no beats the tempo fades away
+      // erratic = quick beats, and plenty going on
+      const target = clamp01((bt.rate - 1) / 3.2) * 0.65 + clamp01(((bass + mid + high) / 3) * 1.6 - 0.25) * 0.35;
+      bt.chaos += (target - bt.chaos) * (target > bt.chaos ? 0.06 : 0.02);
+      // the picture's own clock runs faster the faster and harder the music is
+      bt.clock += dt * pace * (1 + bt.chaos * 2.4 + bt.beatS * 0.3);
+
+      frame.t = bt.clock;
+      frame.bass = bass;
+      frame.mid = mid;
+      frame.high = high;
+      frame.beat = bt.beatS * pace;
+      frame.chaos = bt.chaos * pace;
+      frame.spin = bt.spin * pace;
+      if (spread) {
+        // hand the same music to the layer behind the desktop (the classic glow shows there as the kaleidoscope)
+        feed.mode = isShader(mode) ? mode : 'kaleidoscope';
+        feed.t = frame.t;
+        feed.bass = bass;
+        feed.mid = mid;
+        feed.high = high;
+        feed.beat = frame.beat;
+        feed.chaos = frame.chaos;
+        feed.spin = frame.spin;
+        feed.bands.set(bands);
+      }
+      if (isShader(mode) && gl.current && gl.current.draw(mode, frame)) return;
+      // the classic, and the flat fallback where a shader can't run
+      if (mode === 'glow') drawGlow(ctx, f, now, frame.beat, frame.chaos, frame.spin);
+      else drawKaleidoscope(ctx, f, now, spin);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // closing the window ends the music and lets go of everything it held
+  useEffect(() => {
+    const a = audio.current;
+    const made = urls.current;
+    return () => {
+      a?.pause();
+      made.forEach((u) => URL.revokeObjectURL(u));
+      void actx.current?.close();
+      actx.current = null;
+      feed.on = false;
+    };
+  }, []);
+
+  const fullScreen = () => {
+    try {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void document.documentElement.requestFullscreen();
+    } catch {
+      // some browsers (an iPhone's, for one) don't allow it: nothing to do
+    }
+  };
+  const showGL = glReady && isShader(viz);
+  const status = problem
+    ? problem
+    : !track
+      ? 'no music yet. file > open, or drop a song here'
+      : `${playing ? 'playing' : time > 0 ? 'paused' : 'ready'}: ${track.artist ? `${track.artist} - ` : ''}${track.title}`;
+
+  return (
+    <div className="ad-mp" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
+      <MenuBar
+        menus={[
+          {
+            label: 'file',
+            items: [{ label: 'open...', onSelect: () => picker.current?.click() }, { label: '', sep: true }, { label: 'close', onSelect: onClose }],
+          },
+          {
+            label: 'view',
+            items: [
+              ...VIZ.map((v) => ({ label: v, checked: viz === v, onSelect: () => setViz(v) })),
+              { label: '', sep: true },
+              { label: 'fill the desktop', checked: fill, onSelect: () => setFill((x) => !x) },
+              { label: 'full screen', onSelect: fullScreen },
+            ],
+          },
+          {
+            label: 'play',
+            items: [
+              { label: playing ? 'pause' : 'play', disabled: !track, onSelect: toggle },
+              { label: 'stop', disabled: !track, onSelect: stop },
+              { label: 'previous', disabled: tracks.length < 2, onSelect: () => go(index - 1) },
+              { label: 'next', disabled: tracks.length < 2, onSelect: () => go(index + 1) },
+            ],
+          },
+        ]}
+      />
+      <div className="ad-mp-screen" title={`visualisation: ${viz}`} onClick={() => setViz((v) => VIZ[(VIZ.indexOf(v) + 1) % VIZ.length])}>
+        <canvas ref={glCanvas} width={480} height={270} className={showGL ? undefined : 'is-off'} aria-label="music visualiser" />
+        <canvas ref={canvas} width={W} height={H} className={showGL ? 'is-off' : undefined} aria-hidden="true" />
+      </div>
+      <div className="ad-status">
+        <div className="ad-sf">{status}</div>
+        <div className="ad-sf ad-mp-time">
+          {fmt(time)} / {fmt(dur)}
+        </div>
+      </div>
+      <input
+        type="range"
+        className="ad-range"
+        aria-label="seek"
+        min={0}
+        max={dur || 1}
+        step={0.1}
+        value={Math.min(time, dur || 1)}
+        disabled={!dur}
+        onChange={(e) => {
+          const v = Number(e.target.value);
+          if (audio.current) audio.current.currentTime = v;
+          setTime(v);
+        }}
+      />
+      <div className="ad-mp-ctrls">
+        <button type="button" className="ad-mpb is-big" aria-label={playing ? 'pause' : 'play'} disabled={!track} style={{ '--g': playing ? G.pause : G.play } as React.CSSProperties} onClick={toggle} />
+        <button type="button" className="ad-mpb" aria-label="stop" disabled={!track} style={{ '--g': G.stop } as React.CSSProperties} onClick={stop} />
+        <button type="button" className="ad-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
+        <button type="button" className="ad-mpb" aria-label="next" disabled={tracks.length < 2} style={{ '--g': G.next } as React.CSSProperties} onClick={() => go(index + 1)} />
+        <span className="ad-mp-gap" />
+        <button type="button" className="ad-mpb" aria-label="fill the desktop" aria-pressed={fill} title="fill the desktop" style={{ '--g': G.expand } as React.CSSProperties} onClick={() => setFill((x) => !x)} />
+        <button type="button" className="ad-mpb" aria-label={muted ? 'unmute' : 'mute'} style={{ '--g': muted ? G.mute : G.speaker } as React.CSSProperties} onClick={() => setMuted((m) => !m)} />
+        <input
+          type="range"
+          className="ad-range ad-mp-vol"
+          aria-label="volume"
+          min={0}
+          max={1}
+          step={0.02}
+          value={muted ? 0 : vol}
+          onChange={(e) => {
+            setVol(Number(e.target.value));
+            setMuted(false);
+          }}
+        />
+      </div>
+      <audio
+        ref={audio}
+        src={track?.src}
+        preload="metadata"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => (tracks.length > 1 ? go(index + 1) : stop())}
+        onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => {
+          setDur(e.currentTarget.duration);
+          setProblem('');
+        }}
+        onError={() => track && setProblem("can't play this file")}
+      />
+      <input ref={picker} type="file" accept="audio/*" multiple hidden onChange={onPick} />
+    </div>
+  );
+}

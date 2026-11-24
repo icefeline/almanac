@@ -901,3 +901,141 @@ a.ad-pi:focus-visible {
   left: var(--l);
   top: var(--t);
 }
+
+/* ── the media player ──────────────────────────────────────────────────── */
+.ad-mp {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ad-mp .ad-menubar {
+  margin-bottom: 0;
+}
+.ad-mp-screen {
+  background: #021a05;
+  box-shadow: var(--sunken);
+  line-height: 0;
+  cursor: pointer;
+}
+.ad-mp-screen canvas.is-off {
+  display: none;
+}
+.ad-mp-screen canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: auto;
+}
+.ad-mp-time {
+  flex: none;
+  white-space: nowrap;
+}
+.ad-mp .ad-sf:first-child {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
+.ad-mp-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 0 2px;
+}
+.ad-mpb {
+  flex: none;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: var(--sf) var(--g) center / auto no-repeat;
+  box-shadow: var(--raised);
+  image-rendering: pixelated;
+}
+.ad-mpb.is-big {
+  width: 38px;
+  height: 26px;
+}
+.ad-mpb:active:not(:disabled) {
+  box-shadow: var(--pressed);
+  background-position: calc(50% + 1px) calc(50% + 1px);
+}
+.ad-mpb:disabled {
+  opacity: 0.45;
+}
+.ad-mp-gap {
+  flex: 1;
+}
+/* the trackbar: a sunken groove and a raised slider */
+.ad-range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+}
+.ad-range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #fff;
+  box-shadow: var(--sunken);
+}
+.ad-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 21px;
+  margin-top: -9px;
+  border: 0;
+  border-radius: 0;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-range::-moz-range-track {
+  height: 4px;
+  background: #fff;
+  box-shadow: var(--sunken);
+}
+.ad-range::-moz-range-thumb {
+  width: 11px;
+  height: 21px;
+  border: 0;
+  border-radius: 0;
+  background: var(--sf);
+  box-shadow: var(--raised);
+}
+.ad-range:disabled {
+  opacity: 0.5;
+}
+.ad-range:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: 1px;
+}
+.ad-mp-vol {
+  flex: none;
+  width: 76px;
+}
+
+/* the picture behind the whole desktop while the media player is set to fill it */
+.ad-bgviz {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.ad-bgviz.is-on {
+  opacity: 1;
+}
+.ad-mpb[aria-pressed='true'] {
+  box-shadow: var(--pressed);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad-bgviz {
+    transition: none;
+  }
+}

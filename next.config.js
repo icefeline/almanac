@@ -63,7 +63,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "media-src 'self'",
+  "media-src 'self' blob:",
   // Sentry tunnels through /monitoring and Vercel's analytics beacon posts to
   // /_vercel/insights — both same-origin, so nothing external is needed.
   `connect-src 'self' https://va.vercel-scripts.com${sentryOrigin ? ' ' + sentryOrigin : ''}${isDev ? ' ws: http://localhost:*' : ''}`,
