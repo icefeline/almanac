@@ -148,6 +148,8 @@ vec3 pick(float i) {
   if (i < 5.0) return vec3(1.0, 0.33, 0.0);
   return vec3(1.0, 0.9, 0.0);
 }
+vec3 hot(float i) { return pick(4.0 + mod(floor(i), 3.0)); }   // orange, yellow, pink
+vec3 cool(float i) { return pick(1.0 + mod(floor(i), 3.0)); }  // cyan, lime, violet
 // crt scanlines and a hard posterise, the last thing every picture goes through
 vec3 retro(vec3 c, float d) {
   float row = floor(gl_FragCoord.y / cell());
@@ -268,49 +270,54 @@ void main() {
   // stops falling inward: two layers of the lattice zoom in at different phases and fade into one another
   bubbles: `
 float cells(vec2 q, float t, float px, out float ring) {
-  vec3 B[6];
-  B[0] = vec3(0.0, 0.0, 0.2);
-  B[1] = vec3(0.0, 0.5, 0.19);
-  B[2] = vec3(0.5, 0.0, 0.18);
-  B[3] = vec3(0.34, 0.34, 0.15);
-  B[4] = vec3(0.72, 0.3, 0.12);
-  B[5] = vec3(0.3, 0.72, 0.12);
   float F = 0.0;
+  float Fm = 0.0;
   ring = 0.0;
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 9; i++) {
     float fi = float(i);
-    // each centre wanders on slow, smooth noise rather than going round in a circle
-    vec2 c = B[i].xy + 0.16 * (vec2(noise(vec2(fi * 3.1, t * 0.16)), noise(vec2(fi * 5.3 + 9.0, t * 0.14))) - 0.5);
-    c += 0.12 * uSVocal * vec2(noise(c * 3.0 + t * 0.3) - 0.5, noise(c * 3.0 - t * 0.25) - 0.5);
-    float r = B[i].z * (1.0 + 0.25 * uSBass + 0.1 * uVol + 0.1 * uArc + 0.06 * sin(t * 0.4 + fi));
+    float h1 = hash(vec2(fi, 1.7)), h2 = hash(vec2(fi, 8.3)), h3 = hash(vec2(fi, 4.1));
+    // each bubble roams the whole screen on its own slow noise, so they drift apart, meet, merge and split again
+    vec2 home = vec2((h1 - 0.5) * 1.7, (h2 - 0.5) * 0.95);
+    float sp = 0.12 + 0.25 * uSFlux + 0.1 * uVol;
+    vec2 c = home + 0.42 * (vec2(noise(vec2(fi * 3.1, t * sp)), noise(vec2(fi * 5.3 + 9.0, t * sp * 0.9))) - 0.5);
+    // the bass shoves them outward, a beat kicks them, the voice swirls them round the middle
+    vec2 dir = normalize(c + vec2(0.001));
+    c += dir * (0.1 * uSBass + 0.09 * uBeat * (0.5 + h3));
+    c += 0.12 * uSVocal * vec2(-dir.y, dir.x);
+    // every bubble dances to its own slice of the spectrum
+    float band = clamp(uBands[i], 0.0, 1.0);
+    float r = min(0.28, (0.09 + 0.1 * h3) * (1.0 + 0.5 * band + 0.25 * uBeat * h1 + 0.2 * clamp(uSBass, 0.0, 1.0) + 0.12 * sin(t * 0.7 + fi * 2.0)));
     vec2 d = q - c;
-    F += r * r / (dot(d, d) + 0.0006);
-    ring = max(ring, smoothstep(px * 3.2, px * 0.7, abs(length(d) - r * 1.12)));
+    // the outline breaks out of its circle: a wobble that turns round the edge and grows with the sound
+    float ang = atan(d.y, d.x);
+    float wob = 0.17 * min(1.0, 0.25 + 0.7 * clamp(uSVocal, 0.0, 1.0) + 0.5 * band + 0.4 * clamp(uSFlux, 0.0, 1.0)) * sin(ang * (2.0 + floor(h2 * 2.0)) + t * (0.6 + h1) + fi * 3.0);
+    float dl = length(d) * (1.0 + wob);
+    // a compact blob: nothing beyond about 1.5 radii, so bubbles only join when they really touch
+    float k = max(0.0, 1.0 - dl * dl / (r * r * 2.2));
+    F += k * k;
+    Fm = max(Fm, k * k);
+    ring = max(ring, smoothstep(px * 3.2, px * 0.7, abs(dl - r)));
   }
-  return F;
+  // the strongest bubble wins, the rest only lean on it a little, so neighbours bulge toward each other instead of fusing
+  return Fm + 0.35 * (F - Fm);
 }
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  uv *= 1.0 - 0.05 * uBeat - 0.05 * uVol - 0.1 * uBuild;
-  uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(t * 0.04 + uSpin) * uv;
+  uv *= 1.0 - 0.06 * uBeat - 0.05 * uVol - 0.08 * uBuild;
+  uv += 0.03 * vec2(sin(t * 0.3), cos(t * 0.23));
   float line = 0.0;
   float glow = 0.0;
   float fill = 0.0;
-  for (int k = 0; k < 2; k++) {
-    float fk = float(k);
-    float ph = fract(t * 0.035 + fk * 0.5);
-    float zoom = exp2(ph) * 1.7;
-    float fade = sin(ph * 3.14159);
-    vec2 q = abs(uv * zoom);
-    float ring;
-    float F = cells(q, t + fk * 7.0, zoom * 1.7 / uRes.y, ring);
-    float ee = abs(F - 1.0);
-    line = max(line, max(smoothstep(0.1, 0.03, ee), ring * 0.7) * fade);
-    glow = max(glow, exp(-ee * 4.0) * fade);
-    fill = max(fill, smoothstep(0.9, 1.3, F) * fade);
-  }
+  float ring;
+  float F = cells(uv, t, 1.7 / uRes.y, ring);
+  float ee = abs(F - 0.297);
+  // the line swells and thins as it travels: thick ink in some places, a hair in others
+  float gw = max(fwidth(F), 0.0005);
+  float wv = 0.5 + 3.2 * noise(uv * 2.6 + vec2(t * 0.12, -t * 0.09)) * noise(uv * 5.0 - t * 0.1 + 3.0) * 2.0 + 1.2 * clamp(uVol, 0.0, 1.0);
+  line = 1.0 - smoothstep(gw * wv, gw * wv + gw * 1.2, ee);
+  glow = exp(-ee * 14.0) * smoothstep(0.0, 0.1, F);
+  fill = smoothstep(0.27, 0.39, F);
   float d = dith();
   float off = 0.01 + 0.016 * uSFlux + 0.014 * uBeat;
   float freq = 34.0 + 12.0 * uBright;
@@ -319,21 +326,22 @@ void main() {
   vec2 gB = fract(rot(0.95) * (uv - vec2(0.0, off)) * freq * 0.8) - 0.5;
   float dotsA = smoothstep(0.5 * tone + 0.06, 0.5 * tone - 0.04, length(gA));
   float dotsB = smoothstep(0.45 * tone + 0.05, 0.45 * tone - 0.04, length(gB));
-  float shift = t * 0.04 + uPitch * 2.0 + uArc;
+  // colour turns round the middle like a wheel: a spiral that winds out from the centre, and the sound winds it faster
+  float shift = length(uv) * 3.5 - t * 0.25 - uArc * 2.0 + atan(uv.y, uv.x) * 0.48;
   // the ground slides between two inks as a dither, the dots print over it in two more, out of register
   float ramp = clamp(0.5 + 0.9 * (fbm(uv * 1.4 - t * 0.02) - 0.5) + 0.3 * sin(atan(uv.y, uv.x) * 7.0 + t * 0.12), 0.0, 1.0);
-  vec3 col = mix(pick(shift + 4.0), pick(shift + 0.0), step(d, ramp));
-  col = mix(col, pick(shift + 5.0), dotsA);
-  col = mix(col, pick(shift + 1.0), dotsB * (1.0 - dotsA));
-  // inside the bubbles the world inverts: a checker of the two opposite inks
+  vec3 col = mix(hot(shift + 1.0), hot(shift), step(d, ramp));
+  col = mix(col, hot(shift + 2.0), dotsA);
+  col = mix(col, pick(1.0), dotsB * (1.0 - dotsA) * 0.8);
+  // inside the bubbles the world inverts: a checker of electric cyan and violet
   vec2 ck = floor(gl_FragCoord.xy / (cell() * 2.0));
   float chk = mod(ck.x + ck.y, 2.0);
-  col = mix(col, mix(pick(shift + 3.0), pick(shift + 2.0), chk), fill * step(d, 0.5 + 0.3 * uArc) * 0.9);
+  col = mix(col, mix(pick(3.0), pick(1.0), chk), fill * step(d, 0.5 + 0.3 * uArc) * 0.9);
   float power = 0.75 + 0.4 * uArc + 0.2 * uVol;
   vec3 ink = vec3(0.04, 0.0, 0.25);
   col = mix(col, ink, clamp(line * power, 0.0, 1.0));
   float halo = step(d, glow * 0.9 * power) * (1.0 - clamp(line, 0.0, 1.0));
-  col = mix(col, pick(shift + 1.0), halo);
+  col = mix(col, pick(2.0), halo);
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 
@@ -376,18 +384,19 @@ void main() {
   float lC = sheet(q + vec2(off, off * 0.6), t, hC);
   float haze = smoothstep(0.1, 0.9, fbm(uv * 1.2 + vec2(0.0, t * 0.03) + 9.0)) * (0.35 + 0.4 * uArc);
   float ramp = clamp(haze + 0.4 * (uv.y + 0.5) + 0.3 * hB * (0.4 + uVol), 0.0, 1.0) * 2.0;
-  float shift = t * 0.03 + uPitch * 2.0;
+  // no clock here: the colour only moves when the music does (pitch, brightness and the song's build)
+  float shift = uPitch * 3.0 + uBuild * 2.0 + uBright * 2.0;
   // night ground: uv violet, deep blue, a sunset glow low on the page, stepped by the dither
   vec3 g0 = vec3(0.1, 0.02, 0.38);
   vec3 g1 = vec3(0.12, 0.1, 0.9);
-  vec3 g2 = mix(pick(shift + 0.0), pick(shift + 4.0), 0.5);
+  vec3 g2 = mix(cool(shift + 2.0), pick(0.0), 0.55);
   vec3 col = ramp < 1.0 ? mix(g0, g1, step(d, ramp)) : mix(g1, g2, step(d, ramp - 1.0));
   float pw = 0.8 + 0.3 * uArc;
   // the three fringes are hard inks, and the main line walks through the palette down the page
-  col = mix(col, pick(shift + 1.0), lA * pw);
-  col = mix(col, pick(shift + 0.0), lC * pw);
-  col = mix(col, pick(shift + 2.0 + floor((uv.y + 1.0) * 1.5)), lB * pw);
-  col = mix(col, pick(shift + 5.0), step(d, hB * 0.6 * (0.5 + uVol + 0.5 * uArc)) * (1.0 - lB) * 0.7);
+  col = mix(col, cool(shift + 1.0), lA * pw);
+  col = mix(col, pick(0.0), lC * pw);
+  col = mix(col, cool(shift + floor((uv.y + 1.0) * 1.5)), lB * pw);
+  col = mix(col, pick(5.0), step(d, hB * 0.6 * (0.5 + uVol + 0.5 * uArc)) * (1.0 - lB) * 0.7);
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 
@@ -428,7 +437,7 @@ void main() {
   float ghost = landscape(q + vec2(off, -off), t, hv2, fw2, lev2);
   float ghost2 = landscape(q - vec2(off * 0.8, off * 0.4), t, hv2, fw2, lev2);
   float d = dith();
-  float shift = t * 0.03 + uPitch * 2.5;
+  float shift = t * 0.05 + uPitch * 2.5;
   // the ground is a stack of flat altitude bands in hard inks, each melting into the next as a dither
   float x = lev * (5.0 + 3.0 * uArc);
   float bi = floor(x);

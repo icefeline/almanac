@@ -129,6 +129,8 @@ export default function MediaPlayer({
   const [vol, setVol] = useState(0.8);
   const [muted, setMuted] = useState(false);
   const [viz, setViz] = useState<Viz>('kaleidoscope');
+  // a different visualisation greets each visit
+  useEffect(() => setViz(VIZ[Math.floor(Math.random() * VIZ.length)]), []);
   const [fill, setFill] = useState(false); // the picture spreads behind the whole desktop
   const [problem, setProblem] = useState('');
 

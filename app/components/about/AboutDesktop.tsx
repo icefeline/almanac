@@ -326,9 +326,14 @@ export default function AboutDesktop() {
     } catch {
       // storage can be blocked or empty: the default look is fine
     }
+    // every visit opens with a different look: a wallpaper and colour other than last time's (the reader can still pick their own)
+    const others = <T extends { id: string }>(list: readonly T[], last?: string) => {
+      const pool = list.filter((x) => x.id !== last);
+      return pool[Math.floor(Math.random() * pool.length)].id;
+    };
     setScene({
-      wall: WALLS.some((w) => w.id === saved?.wall) ? saved!.wall! : 'none',
-      color: COLORS.some((col) => col.id === saved?.color) ? saved!.color! : onMilky ? MILKY_COLOR : DEFAULT_COLOR,
+      wall: others(WALLS, saved?.wall),
+      color: onMilky ? MILKY_COLOR : others(COLORS, saved?.color),
     });
     const kept: Record<string, [number, number]> = {};
     for (const { id } of DESK) {
