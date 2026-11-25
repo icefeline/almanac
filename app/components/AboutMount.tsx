@@ -33,7 +33,7 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
 
   // /reading is a past reading framed inside a window: the window is the chrome, so no menu in it
   // /about is the desktop itself, so it carries no link to itself
-  const onLegal = pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/reading') || pathname.startsWith('/about');
+  const onLegal = /^\/(dreams\/)?(privacy|terms|about)/.test(pathname) || pathname.startsWith('/reading');
   const onDreams = pathname.startsWith('/dreams') || milkyHost;
   // the dream map is a whole sky of its own: no about link and no pile of the other apps' icons on it
   const isMapPath = (x: string) => /^\/(dreams\/)?map\/?$/.test(x);
@@ -44,10 +44,11 @@ export default function AboutMount({ home = false, flow = false }: { home?: bool
     <AboutMenu
       current={onDreams ? 'milky' : 'almanac'}
       position={flow && narrow ? 'absolute' : 'fixed'}
-      termsHref="/terms"
-      privacyHref="/privacy"
+      // on the milky address these stay under /dreams, which is the installed app's scope, so they open inside the app
+      termsHref={milkyHost ? '/dreams/terms' : '/terms'}
+      privacyHref={milkyHost ? '/dreams/privacy' : '/privacy'}
       // the about link opens the desktop page, and the other apps live there as icons rather than in the top left
-      aboutHref="/about"
+      aboutHref={milkyHost ? '/dreams/about' : '/about'}
       showApps={false}
       left={16}
       bottom={14}

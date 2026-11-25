@@ -54,7 +54,7 @@
  */
 @media (max-height: 820px) {
   .dreams-page .di-wrap {
-    padding-top: calc(env(safe-area-inset-top, 0px) + clamp(14px, 3.5dvh, 36px)) !important;
+    padding-top: max(calc(env(safe-area-inset-top, 0px) + 10px), clamp(14px, 3.5dvh, 36px)) !important;
     padding-bottom: clamp(14px, 3.5dvh, 40px) !important;
     gap: clamp(12px, 4dvh, 64px) !important;
   }

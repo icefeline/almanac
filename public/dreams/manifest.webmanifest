@@ -3,7 +3,7 @@
   "short_name": "milky",
   "description": "a plain-spoken reading for last night.",
   "start_url": "/dreams",
-  "scope": "/dreams",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#1438C4",
   "theme_color": "#1438C4",

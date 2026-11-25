@@ -358,10 +358,21 @@ export default function AboutDesktop() {
   useEffect(() => {
     try {
       const r = document.referrer ? new URL(document.referrer) : null;
-      if (r && r.hostname.endsWith('slowww.garden') && !r.pathname.startsWith('/about')) setBack(r.href);
+      if (r && r.hostname.endsWith('slowww.garden') && !/^\/(dreams\/)?about/.test(r.pathname)) setBack(r.href);
     } catch {
       // no usable referrer: home it is
     }
+  }, []);
+  // behind the desktop the page is black, so a browser or an installed app's sheet that tints its top bar from the page gets black, not the desktop's colour
+  useEffect(() => {
+    const h = document.documentElement;
+    const b = document.body;
+    const prev = [h.style.backgroundColor, b.style.backgroundColor];
+    h.style.backgroundColor = '#000';
+    b.style.backgroundColor = '#000';
+    return () => {
+      [h.style.backgroundColor, b.style.backgroundColor] = prev;
+    };
   }, []);
   // fetch the Start menu's small icons up front, so the menu opens complete rather than filling in
   useEffect(() => {
