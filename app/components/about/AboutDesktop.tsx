@@ -117,8 +117,8 @@ const NODES: Record<string, Entry> = {
     h: 160,
     scatter: { why: ['5%', 8], coffee: ['58%', 14], privacy: ['20%', 82], terms: ['64%', 88] },
   },
-  display: { title: 'display properties', icon: 'monitor', kind: 'display', w: 330 },
-  music: { title: 'media player', icon: 'cd', kind: 'player', w: 350, dock: 'bottom-right', estH: 335 },
+  display: { title: 'display', icon: 'monitor', kind: 'display', w: 330 },
+  music: { title: 'music', icon: 'cd', kind: 'player', w: 350, dock: 'bottom-right', estH: 335 },
   // the questions, then the two policies: a policy is just one more thing people ask about
   faq: {
     title: ABOUT.faq.label,
@@ -680,7 +680,7 @@ export default function AboutDesktop() {
                 open('display');
               }}
             >
-              display properties…
+              display…
             </button>
             <div className="wd-psep" role="separator" />
             <a href={back} role="menuitem" className="wd-pi">

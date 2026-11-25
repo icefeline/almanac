@@ -53,6 +53,8 @@
   line-height: 1.25;
   -webkit-font-smoothing: none;
   font-smooth: never;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
@@ -66,6 +68,17 @@
 .wd-root a {
   font: inherit;
   color: inherit;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* every start-menu name is the same size, links and apps and folders alike */
+.wd-smi,
+.wd-smi * {
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.25;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 .wd-root img {
   image-rendering: pixelated;
@@ -1158,33 +1171,32 @@ html:has(.wd-root) body {
   display: flex;
   align-items: stretch;
   margin-top: 3px;
-  background: #060400;
+  background: #131313;
   box-shadow: var(--field);
-  color: #ffb000;
+  color: #e8962f;
   font-family: var(--font-doto), 'VT323', monospace;
-  font-weight: 800;
-  font-size: 15px;
+  font-weight: 450;
+  font-variation-settings: 'ROND' 100;
+  font-size: 24px;
   line-height: 1;
-  letter-spacing: 0.04em;
-  text-shadow: 0 0 3px rgba(255, 150, 0, 0.7), 0 0 8px rgba(255, 120, 0, 0.35);
-  /* the unlit dots, faintly, behind the lit ones */
-  background-image: radial-gradient(circle at 50% 50%, rgba(255, 150, 0, 0.1) 0.8px, transparent 1.2px);
-  background-size: 3px 3px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 4px rgba(232, 150, 47, 0.45);
 }
 .wd-lcd-name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  padding: 4px 6px;
+  padding: 7px 6px;
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
 }
 .wd-lcd-time {
   flex: none;
-  padding: 4px 6px 4px 8px;
+  padding: 7px 8px 7px 10px;
   white-space: nowrap;
-  border-left: 1px solid rgba(255, 150, 0, 0.25);
+  border-left: 1px solid rgba(232, 150, 47, 0.25);
 }
 .wd-lcd-run {
   display: inline-flex;

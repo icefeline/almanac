@@ -593,7 +593,7 @@ export default function MediaPlayer({
   const lcdName = problem ? problem : track ? `${track.title}${track.artist ? ` - ${track.artist}` : ''}` : 'no music yet - file > open, or drop a song here';
   const shortName = track ? `${track.artist ? `${track.artist} - ` : ''}${track.title}` : 'no music yet';
   const mini = (
-    <div className="wd-mini" role="region" aria-label="media player">
+    <div className="wd-mini" role="region" aria-label="music">
       <div className="wd-mini-prog" style={{ width: dur ? `${Math.min(100, (time / dur) * 100)}%` : '0%' }} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/about/icons/cd-16.png" alt="" width={16} height={16} />
