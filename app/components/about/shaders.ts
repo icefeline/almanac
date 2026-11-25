@@ -295,47 +295,46 @@ void main() {
   // a lattice of glowing blue outlines that swell, drift apart and join, over a halftone of dots. Like the others it never
   // stops falling inward: two layers of the lattice zoom in at different phases and fade into one another
   hatch: `
+// one set of ruled lines at an angle, thick and thin along its length, wobbling a little
+float rule(vec2 uv, float ang, float freq, float seed, float t, float d, float vl, float ba) {
+  vec2 q = rot(ang) * uv;
+  float along = noise(vec2(q.y * 3.0 + seed * 5.0, t * 0.15 + seed));
+  float thick = clamp(0.04 + 0.9 * along * along * (0.6 + 0.5 * hash(vec2(seed, 2.0))) + 0.15 * vl + 0.2 * ba, 0.04, 0.8);
+  float wob = 0.05 * sin(q.y * 6.0 + t * 0.4 + seed);
+  float dist = abs(fract((q.x + wob) * freq) - 0.5) * 2.0;
+  return step(dist, thick + (d - 0.5) * 0.45);
+}
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   float vo = clamp(uSVocal, 0.0, 1.0), ba = clamp(uSBass, 0.0, 1.0), fl = clamp(uSFlux, 0.0, 1.0), vl = clamp(uVol, 0.0, 1.0);
   uv *= 1.0 - 0.05 * clamp(uBeat, 0.0, 1.0) - 0.04 * vl - 0.06 * clamp(uBuild, 0.0, 1.0);
-  uv += 0.05 * vec2(sin(t * 0.17), cos(t * 0.13));
-  // the picture is cut into flat zones whose edges drift and swim; the voice stirs them
-  vec2 p = uv * 1.5 + vec2(t * 0.04, -t * 0.03);
-  p += (0.35 + 0.5 * vo) * 2.0 * vec2(noise(p * 1.2 + t * 0.07) - 0.5, noise(p * 1.2 - t * 0.06 + 5.0) - 0.5);
-  float n = noise(p) * 0.65 + noise(p * 2.3 + 7.0) * 0.35;
-  float zf = n * (5.0 + 3.0 * clamp(uArc, 0.0, 1.0));
-  float z = floor(zf);
-  float h1 = hash(vec2(z, 3.1)), h2 = hash(vec2(z, 9.7)), h3 = hash(vec2(z, 5.3));
-  // every zone is ruled in its own direction and spacing, and the angles turn with the music
-  float ang = h1 * 3.14159 + 0.25 * sin(t * 0.2 + z * 1.7) + uSpin * 0.6 + 0.5 * vo * sin(t * 0.5 + z);
-  float freq = 3.5 + 7.5 * h2 + 3.0 * ba;
-  vec2 q = rot(ang) * uv;
+  uv = rot(t * 0.03 + uSpin * 0.5) * uv;
+  // a kaleidoscope: the plane is folded into mirrored wedges, so every join is a perfect reflection
+  uv = kfold(uv, 6.0);
   float d = dith();
-  // thickness changes along every line: hairline to heavy ink, and swells with the bass and the volume
-  float along = noise(vec2(q.y * 3.0 + z * 5.0, t * 0.15 + z));
-  float thick = clamp(0.04 + 0.62 * along * along * (0.4 + h3) * 1.5 + 0.15 * vl + 0.2 * ba * h1, 0.04, 0.8);
-  float wob = 0.05 * sin(q.y * 6.0 + t * 0.4 + z);
-  float dist = abs(fract((q.x + wob) * freq) - 0.5) * 2.0;
-  // the edges of the lines are dithered, so they fray into stipple instead of smooth antialiasing
-  float m = step(dist, thick + (d - 0.5) * 0.45);
-  // some zones are cross-hatched with a second, thinner set at another angle
-  float cross = step(0.78, h1);
-  vec2 q2 = rot(ang + 0.9 + 0.5 * h2) * uv;
-  float dist2 = abs(fract(q2.x * freq * 0.8) - 0.5) * 2.0;
-  float m2 = step(dist2, thick * 0.5 + (d - 0.5) * 0.4) * cross;
-  // a ghost print, nudged aside and in another ink
-  float off = 0.012 + 0.012 * fl + 0.014 * clamp(uBeat, 0.0, 1.0);
-  float dg = abs(fract((q.x + wob + off) * freq) - 0.5) * 2.0;
-  float mg = step(dg, thick * 0.6 + (d - 0.5) * 0.4);
-  float shift = length(uv) * 2.5 - t * 0.2 - uArc * 2.0 + atan(uv.y, uv.x) * 0.32;
-  float gi = floor(z + shift);
-  vec3 ground = mix(sw(mod(gi, 3.0)), sw(mod(gi + 1.0, 3.0)), step(d, fract(zf) * 0.85));
-  vec3 ink = h3 > 0.66 ? vec3(0.08, 0.02, 0.32) : (h3 > 0.33 ? vec3(0.0, 0.9, 1.0) : vec3(1.0, 0.97, 0.6));
-  vec3 col = mix(ground, vec3(1.0, 0.95, 0.55), mg * (1.0 - m) * 0.75);
-  col = mix(col, ink, m);
-  col = mix(col, sw(z + shift + 2.0), m2 * (1.0 - m) * 0.9);
+  vec2 p = uv * 1.3 + vec2(t * 0.04, -t * 0.03);
+  p += (0.3 + 0.5 * vo) * vec2(noise(p * 1.2 + t * 0.07) - 0.5, noise(p * 1.2 - t * 0.06 + 5.0) - 0.5) * 2.0;
+  // three line sets at different angles; smooth fields say how much of each is here, and the dither
+  // decides pixel by pixel which one shows, so one hatch melts into the next as stipple with no edge
+  float w1 = noise(p * 0.9 + 1.3), w2 = noise(p * 0.9 + 7.1), w3 = noise(p * 0.9 + 13.7);
+  float ws = w1 + w2 + w3 + 0.001;
+  float c1 = w1 / ws, c2 = (w1 + w2) / ws;
+  float spin = uSpin * 0.5 + 0.4 * vo * sin(t * 0.5);
+  float fa = 4.0 + 2.0 * ba, fb = 6.5 + 2.0 * ba, fc = 9.0 + 2.0 * ba;
+  float m1 = rule(uv, 0.3 + spin, fa, 1.0, t, d, vl, ba);
+  float m2 = rule(uv, 1.45 + spin * 0.6, fb, 2.0, t, d, vl, ba);
+  float m3 = rule(uv, 2.5 - spin * 0.8, fc, 3.0, t, d, vl, ba);
+  float s1 = step(d, c1), s2 = step(c1, d) * step(d, c2), s3 = step(c2, d);
+  float m = s1 * m1 + s2 * m2 + s3 * m3;
+  // the ground colour also changes by dither, never by a hard edge
+  float shift = length(uv) * 2.5 - t * 0.2 - uArc * 2.0;
+  float g = (w1 * 1.7 + w2 * 0.9) * 3.0 + shift;
+  float gi = floor(g);
+  vec3 ground = mix(sw(mod(gi, 3.0)), sw(mod(gi + 1.0, 3.0)), step(d, fract(g)));
+  vec3 inkA = vec3(0.08, 0.02, 0.32), inkB = vec3(0.0, 0.9, 1.0), inkC = vec3(1.0, 0.97, 0.6);
+  vec3 ink = inkA * s1 + inkB * s2 + inkC * s3;
+  vec3 col = mix(ground, ink, m);
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 
@@ -346,7 +345,7 @@ float sheet(vec2 uv, float t, out float halo) {
   // the space itself is stirred round, slowly, so the folds roll and curl rather than slide
   p += 0.28 * vec2(sin(p.y * 1.7 + t * 0.21), cos(p.x * 1.3 - t * 0.17));
   float h = noise(p * 1.1 + vec2(0.0, t * 0.04)) * 0.7 + noise(p * 2.3 + 4.1 - vec2(t * 0.03, 0.0)) * 0.3;
-  float ridge = abs(noise(p * 0.8 + 3.7 + vec2(t * 0.025, 0.0)) - 0.5) * 2.0;
+  float ridge = noise(p * 0.8 + 3.7 + vec2(t * 0.025, 0.0));
   float D = (h - 0.5) * (2.4 + 1.0 * uSBass) + (ridge - 0.5) * (1.0 + 0.6 * uSVocal) - 0.5 * smoothstep(0.55, 0.9, ridge) * (0.4 + uArc);
   float lines = 22.0 + 12.0 * uArc + 8.0 * uBuild;
   float s = (uv.y + D) * lines;
@@ -368,6 +367,7 @@ void main() {
   uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
   uv += (0.1 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(0.2 + t * 0.03 + uSpin) * uv;
+  uv = kfold(uv * 1.2, 6.0); // folded into mirrored wedges, so the joins are reflections
   // it breathes in and out slowly, so there is always more of the sheet to move into
   vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
   float d = dith();
@@ -424,6 +424,7 @@ void main() {
   uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
   uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(t * 0.03 + uSpin) * uv;
+  uv = kfold(uv * 1.2, 8.0); // folded into mirrored wedges, so the joins are reflections
   float hv, fw, lev, hv2, fw2, lev2;
   vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
   float off = 0.012 + 0.012 * uSFlux + 0.016 * uBeat;
