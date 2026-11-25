@@ -263,15 +263,10 @@ void main() {
   // three more, after posters: neon blue bubbles over orange manga halftone, lines of green light folding over blue, and
   // blue topographic contours on white paper. Same rules as the rest: smooth, never a flash, and the whole sound moves them.
 
-  // a lattice of glowing blue outlines that swell and drift apart and join, over a halftone of dots
+  // a lattice of glowing blue outlines that swell, drift apart and join, over a halftone of dots. Like the others it never
+  // stops falling inward: two layers of the lattice zoom in at different phases and fade into one another
   bubbles: `
-void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
-  float t = uTime;
-  uv *= 1.7 - 0.05 * uBeat - 0.05 * uVol - 0.12 * uBuild;
-  uv = rot(sin(t * 0.08) * 0.12 + uSpin * 0.15) * uv;
-  vec2 q = abs(uv);  // mirrored both ways, like the poster
-  // the bubbles of one quarter (x, y, radius); the other three are its reflections
+float cells(vec2 q, float t, out float ring) {
   vec3 B[6];
   B[0] = vec3(0.0, 0.0, 0.2);
   B[1] = vec3(0.0, 0.5, 0.19);
@@ -280,20 +275,40 @@ void main() {
   B[4] = vec3(0.72, 0.3, 0.12);
   B[5] = vec3(0.3, 0.72, 0.12);
   float F = 0.0;
-  float ring = 0.0;
+  ring = 0.0;
   for (int i = 0; i < 6; i++) {
     float fi = float(i);
-    vec2 c = B[i].xy + 0.045 * vec2(sin(t * 0.2 + fi * 1.7), cos(t * 0.17 + fi * 2.3));
-    c += 0.12 * uSVocal * vec2(noise(c * 3.0 + t * 0.4) - 0.5, noise(c * 3.0 - t * 0.3) - 0.5);
-    float r = B[i].z * (1.0 + 0.25 * uSBass + 0.1 * uVol + 0.1 * uArc + 0.05 * sin(t * 0.5 + fi));
+    // each centre wanders on slow, smooth noise rather than going round in a circle
+    vec2 c = B[i].xy + 0.16 * (vec2(noise(vec2(fi * 3.1, t * 0.16)), noise(vec2(fi * 5.3 + 9.0, t * 0.14))) - 0.5);
+    c += 0.12 * uSVocal * vec2(noise(c * 3.0 + t * 0.3) - 0.5, noise(c * 3.0 - t * 0.25) - 0.5);
+    float r = B[i].z * (1.0 + 0.25 * uSBass + 0.1 * uVol + 0.1 * uArc + 0.06 * sin(t * 0.4 + fi));
     vec2 d = q - c;
     F += r * r / (dot(d, d) + 0.0006);
-    // each bubble keeps its own thin outline too, so where they overlap the lattice of cells shows
     ring = max(ring, smoothstep(0.012, 0.002, abs(length(d) - r * 1.12)));
   }
-  float e = abs(F - 1.0);
-  float line = max(smoothstep(0.1, 0.03, e), ring * 0.7);
-  float glow = exp(-e * 4.0);
+  return F;
+}
+void main() {
+  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  float t = uTime;
+  uv *= 1.0 - 0.05 * uBeat - 0.05 * uVol - 0.1 * uBuild;
+  uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.04 + uSpin) * uv;
+  float e = 1.0;
+  float line = 0.0;
+  float glow = 0.0;
+  for (int k = 0; k < 2; k++) {
+    float fk = float(k);
+    float ph = fract(t * 0.035 + fk * 0.5);
+    float zoom = exp2(ph) * 1.7;
+    float fade = sin(ph * 3.14159);
+    vec2 q = abs(uv * zoom);
+    float ring;
+    float F = cells(q, t + fk * 7.0, ring);
+    float ee = abs(F - 1.0);
+    line = max(line, max(smoothstep(0.1, 0.03, ee), ring * 0.7) * fade);
+    glow = max(glow, exp(-ee * 4.0) * fade);
+  }
   // the halftone: dots that grow where the drawing is dense, with rays from the middle
   vec2 g = fract(rot(0.6) * uv * (40.0 + 12.0 * uBright)) - 0.5;
   float tone = clamp(fbm(uv * 2.0 + vec2(t * 0.05, t * 0.03)) * 1.5 - 0.1 + 0.2 * uSFlux, 0.0, 1.0);
@@ -310,23 +325,30 @@ void main() {
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`,
 
-  // lines of light stacked and folded over each other like a sheet of paper in the wind, on blue
+  // lines of light stacked and folded over each other like a sheet of paper in the wind, on blue, falling inward for ever
   ridges: `
-void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
-  float t = uTime;
-  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
-  uv = rot(0.2 + 0.15 * sin(t * 0.05) + uSpin * 0.2) * uv;
-  float lines = 22.0 + 12.0 * uArc + 8.0 * uBuild;
+float sheet(vec2 uv, float t) {
   vec2 p = uv * vec2(0.8, 0.7) + vec2(t * 0.03, 0.0);
+  // the space itself is stirred round, slowly, so the folds roll and curl rather than slide
+  p += 0.28 * vec2(sin(p.y * 1.7 + t * 0.21), cos(p.x * 1.3 - t * 0.17));
   float h = noise(p * 1.1 + vec2(0.0, t * 0.04)) * 0.7 + noise(p * 2.3 + 4.1 - vec2(t * 0.03, 0.0)) * 0.3;
-  float ridge = abs(noise(p * 0.8 + 3.7 + vec2(t * 0.025, 0.0)) - 0.5) * 2.0; // sharp folds
+  float ridge = abs(noise(p * 0.8 + 3.7 + vec2(t * 0.025, 0.0)) - 0.5) * 2.0;
   float D = (h - 0.5) * (2.4 + 1.0 * uSBass) + (ridge - 0.5) * (1.0 + 0.6 * uSVocal) - 0.5 * smoothstep(0.55, 0.9, ridge) * (0.4 + uArc);
+  float lines = 22.0 + 12.0 * uArc + 8.0 * uBuild;
   float s = (uv.y + D) * lines;
   float f = fract(s);
   float dd = min(f, 1.0 - f);
   float w = 0.05 + 0.03 * uVol;
-  float line = smoothstep(w + 0.035, w - 0.015, dd);
+  return smoothstep(w + 0.035, w - 0.015, dd);
+}
+void main() {
+  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  float t = uTime;
+  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
+  uv += (0.1 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(0.2 + t * 0.03 + uSpin) * uv;
+  // it breathes in and out slowly, so there is always more of the sheet to move into
+  float line = sheet(uv * (1.0 + 0.25 * sin(t * 0.07)), t);
   // a soft haze of light low on the page, like the poster's glow
   float haze = smoothstep(0.1, 0.9, fbm(uv * 1.2 + vec2(0.0, t * 0.03) + 9.0)) * (0.35 + 0.4 * uArc);
   vec3 blue = vec3(0.16, 0.27, 0.84);
@@ -341,14 +363,11 @@ void main() {
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`,
 
-  // the contour lines of a landscape that is never still, drawn in blue ink on white paper
+  // the contour lines of a landscape that is never still, in blue ink on white paper, falling into it for ever
   contours: `
-void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
-  float t = uTime;
-  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
-  uv = rot(0.3 * sin(t * 0.04) + uSpin * 0.2) * uv;
+float landscape(vec2 uv, float t, out float heavy, out float fw) {
   vec2 p = uv * 1.5 + vec2(t * 0.03, -t * 0.02);
+  p += 0.3 * vec2(sin(p.y * 1.4 + t * 0.19), cos(p.x * 1.2 - t * 0.16)); // the ground is stirred round, slowly
   vec2 w = vec2(noise(p * 0.7 + vec2(t * 0.05, 1.3)), noise(p * 0.7 + vec2(7.1, t * 0.04)));
   float amp = 1.2 + 0.9 * uSVocal + 0.4 * uSFlux;
   vec2 pw = p + amp * (w - 0.5);
@@ -356,21 +375,30 @@ void main() {
   float levels = 14.0 + 16.0 * uArc;
   float s = H * levels;
 #ifdef GL_OES_standard_derivatives
-  float fw = max(fwidth(s), 0.0001);
+  fw = max(fwidth(s), 0.0001);
 #else
-  float fw = 0.08;
+  fw = 0.08;
 #endif
   float f = fract(s);
   float dd = min(f, 1.0 - f);
-  // every fifth contour is heavier and darker, like the index lines on a map
   float idx = mod(floor(s + 0.5), 5.0);
-  float heavy = 1.0 - step(0.5, idx);
+  heavy = 1.0 - step(0.5, idx);
   float k = fw * (0.7 + 0.5 * uVol + 0.9 * heavy);
-  float line = 1.0 - smoothstep(k, k + fw, dd);
+  return 1.0 - smoothstep(k, k + fw, dd);
+}
+void main() {
+  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  float t = uTime;
+  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
+  uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.03 + uSpin) * uv;
+  float hv;
+  float fw;
+  float line = landscape(uv * (1.0 + 0.25 * sin(t * 0.07)), t, hv, fw);
   vec3 paper = vec3(0.985, 0.985, 0.99);
   vec3 ink = mix(vec3(0.1, 0.1, 1.0), vec3(0.4, 0.12, 0.95), uPitch);
   vec3 navy = vec3(0.07, 0.07, 0.4);
-  vec3 col = mix(paper, mix(ink, navy, heavy * 0.8), line);
+  vec3 col = mix(paper, mix(ink, navy, hv * 0.8), line);
   gl_FragColor = vec4(col, 1.0);
 }`,
 };
