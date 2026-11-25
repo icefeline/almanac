@@ -511,9 +511,10 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc), ch = cl(uChaos);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  uv += (0.1 + 0.1 * ch) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.12 + 0.15 * cz + 0.08 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(t * 0.04 + uSpin) * uv;
   vec3 col = vec3(0.0);
   for (int k = 0; k < 3; k++) {
@@ -522,18 +523,18 @@ void main() {
     float zoom = exp2(ph * 2.5);
     float fade = sin(ph * 3.14159);
     vec2 p = uv * zoom;
-    p += (0.07 + 0.08 * vo) * (vec2(fbm(p * 1.5 + t * 0.05), fbm(p * 1.5 + 7.0 - t * 0.04)) - 0.5);
+    p += (0.07 + 0.3 * (0.6 * vo + 0.8 * fl + 0.5 * cz)) * (vec2(fbm(p * 1.5 + t * 0.05), fbm(p * 1.5 + 7.0 - t * 0.04)) - 0.5);
     float r = length(p);
     float a = atan(p.y, p.x);
     float sp = 0.12;
-    float u = r / sp;
+    float u = r / sp - 0.9 * rb - 0.6 * bt - 0.3 * vl;
     float kk = floor(u);
     float rk = (kk + 0.5) * sp;
     float n = max(6.0, floor(6.28318 * rk / sp));
-    float ca = a / 6.28318 * n + 0.5 * kk + 0.04 * t * (mod(kk, 2.0) * 2.0 - 1.0);
+    float ca = a / 6.28318 * n + 0.5 * kk + 0.04 * t * (mod(kk, 2.0) * 2.0 - 1.0) + uSpin * 0.5 * (mod(kk, 2.0) * 2.0 - 1.0);
     vec2 lc = vec2((fract(ca) - 0.5) * (6.28318 * rk / n) / sp, fract(u) - 0.5);
     float bd = band(mod(kk * 1.7 + fk * 5.0, 16.0));
-    float rad = 0.17 + 0.2 * bd + 0.07 * vl + 0.08 * sin(kk * 0.9 - t * 0.6 - 2.0 * ba);
+    float rad = 0.15 + 0.2 * bd + 0.1 * vl + 0.1 * bt + 0.1 * sin(kk * 0.9 - t * 0.6 - 4.0 * rb);
     float dd = length(lc);
     float dotv = smoothstep(rad + 0.14, rad - 0.1, dd);
     float halo = exp(-dd * dd * 5.0);
@@ -542,7 +543,7 @@ void main() {
   }
   float r0 = length(uv);
   col += pl(t * 0.05 + 0.1, vec3(0.0, 0.2, 0.45)) * 0.04 / (r0 + 0.06) * (0.3 + ba + 0.5 * vl);
-  col *= smoothstep(0.03, 0.2, r0);
+  col *= smoothstep(0.03 + 0.07 * rb, 0.2 + 0.08 * rb, r0);
   col *= (0.55 + 0.35 * ar) + 0.3 * ba + 0.35 * vl;
   gl_FragColor = vec4(soft(col), 1.0);
 }`,
@@ -552,10 +553,11 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc), ch = cl(uChaos);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  uv += (0.1 + 0.1 * ch) * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(t * 0.03 + uSpin * 0.6) * uv;
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.12 + 0.15 * cz + 0.08 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.03 + uSpin) * uv;
   vec3 col = vec3(0.0);
   for (int k = 0; k < 3; k++) {
     float fk = float(k);
@@ -563,8 +565,9 @@ void main() {
     float zoom = exp2(ph * 1.5);
     float fade = sin(ph * 3.14159);
     vec2 m = vec2(abs(uv.x * zoom), uv.y * zoom);
-    m += (0.05 + 0.08 * vo) * (vec2(noise(m * 1.4 + t * 0.05), noise(m * 1.4 + 4.0 - t * 0.04)) - 0.5);
-    vec2 p = m * vec2(2.3, 2.0) + vec2(0.0, t * 0.03);
+    m += (0.05 + 0.25 * (0.6 * vo + 0.8 * fl + 0.5 * cz)) * (vec2(noise(m * 1.4 + t * 0.05), noise(m * 1.4 + 4.0 - t * 0.04)) - 0.5);
+    vec2 p = m * vec2(2.3, 2.0) + vec2(0.0, t * 0.03 + 0.5 * rb + 0.3 * bt);
+    p.x += (0.12 + 0.35 * bt + 0.2 * fl) * sin(p.y * 1.1 + t * 0.5 + uSpin * 1.5);
     vec2 a = fract(p) - 0.5, b = fract(p + 0.5) - 0.5;
     bool useA = dot(a, a) < dot(b, b);
     vec2 q = useA ? a : b;
@@ -572,7 +575,7 @@ void main() {
     float hh = hash(id);
     float lit = band(floor(hh * 16.0)) * 0.8 + 0.5 * bt * (0.5 + 0.5 * sin(id.y * 0.8 - id.x * 0.3 - t * 0.8));
     q.x += 0.05 * sin(t * 0.4 + hh * 6.28318) * (1.0 + vo);
-    float R = 0.26 + 0.05 * ba + 0.04 * lit;
+    float R = 0.25 + 0.08 * rb + 0.05 * lit + 0.04 * bt;
     float taper = 1.0 + 2.6 * smoothstep(0.0, 0.45, -q.y);
     float sdf = length(vec2(q.x * taper * 1.15, q.y * 0.7 + 0.04)) - R;
     float tip = smoothstep(0.05, -0.05, sdf);
@@ -591,10 +594,11 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc), ch = cl(uChaos);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  uv += (0.08 + 0.08 * ch) * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(sin(t * 0.04) * 0.3 + uSpin * 0.4) * uv;
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.1 + 0.12 * cz + 0.06 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(sin(t * 0.04) * 0.3 + uSpin * 0.7) * uv;
   vec3 col = vec3(0.0);
   for (int k = 0; k < 3; k++) {
     float fk = float(k);
@@ -602,17 +606,17 @@ void main() {
     float zoom = exp2(ph * 1.6);
     float fade = sin(ph * 3.14159);
     vec2 q = uv * zoom;
-    q += (0.09 + 0.12 * vo) * (vec2(fbm(q * 1.3 + t * 0.03), fbm(q * 1.3 + 5.0 - t * 0.025)) - 0.5);
-    float x = q.x + 0.06 * sin(q.y * 1.8 + t * 0.15);
+    q += (0.08 + 0.3 * (0.6 * vo + 0.8 * fl + 0.5 * cz)) * (vec2(fbm(q * 1.3 + t * 0.03), fbm(q * 1.3 + 5.0 - t * 0.025)) - 0.5);
+    float x = q.x + (0.06 + 0.1 * fl + 0.08 * bt) * sin(q.y * 1.8 + t * 0.15 + uSpin);
     float ax = abs(x);
-    float s = q.y * 4.2 + pow(ax, 0.8) * 6.0 + fk * 0.37;
+    float s = q.y * 4.2 + pow(ax, 0.8) * 6.0 + fk * 0.37 - 1.2 * rb - 0.6 * bt;
     float f = fract(s);
     float dd = min(f, 1.0 - f);
     float lv = band(mod(floor(s) + fk * 3.0, 16.0));
     float lw = (0.03 + 0.05 * smoothstep(1.6, 0.0, ax)) * (0.8 + 0.7 * lv + 0.3 * vl);
     float ln = exp(-dd * dd / (lw * lw));
     float glw = exp(-dd * 7.0) * 0.3;
-    float tw = 0.035 + 0.015 * ba + 0.01 * vl;
+    float tw = 0.035 + 0.025 * rb + 0.01 * vl;
     float trunk = exp(-ax * ax / (tw * tw));
     float tglow = exp(-ax * 5.0) * 0.3;
     vec2 vid; float vf;
@@ -631,10 +635,11 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc), ch = cl(uChaos);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  uv += (0.1 + 0.1 * ch) * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(t * 0.03 + uSpin * 0.6) * uv;
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.12 + 0.15 * cz + 0.08 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.03 + uSpin) * uv;
   vec3 col = vec3(0.0);
   for (int k = 0; k < 3; k++) {
     float fk = float(k);
@@ -642,14 +647,15 @@ void main() {
     float zoom = exp2(ph * 1.6);
     float fade = sin(ph * 3.14159);
     vec2 p = kal(uv * zoom, 1.0, t) * 3.2 + fk * 3.7;
-    p += 0.35 * (vec2(noise(p * 0.8 + t * 0.04), noise(p * 0.8 + 9.0 - t * 0.03)) - 0.5);
+    p += 0.25 * bt * vec2(cos(uSpin * 2.0), sin(uSpin * 2.0));
+    p += (0.3 + 0.7 * (0.6 * vo + 0.8 * fl + 0.5 * cz)) * (vec2(noise(p * 0.8 + t * 0.04), noise(p * 0.8 + 9.0 - t * 0.03)) - 0.5);
     vec2 id; float f1;
     float e = vor(p, id, f1);
     float hc = hash(id);
     float bn = band(floor(hc * 16.0));
-    float edge = exp(-e * e * (110.0 - 60.0 * bn));
+    float edge = exp(-e * e * (110.0 - 60.0 * bn - 40.0 * rb));
     float shade = smoothstep(0.9, 0.0, f1);
-    float rings = 0.5 + 0.5 * sin(f1 * 22.0 - t * 0.8 - bn * 6.0);
+    float rings = 0.5 + 0.5 * sin(f1 * 22.0 - t * 0.8 - bn * 6.0 - 5.0 * rb - 3.0 * bt);
     float tg = step(0.5, hc);
     vec3 cf = pl(hc * 0.8 + fk * 0.2 + t * 0.03 + uPitch * 0.5, vec3(0.0, 0.18, 0.4));
     vec3 ce = pl(hc * 0.8 + 0.45 + fk * 0.2 + t * 0.03 + uPitch * 0.5, vec3(0.0, 0.18, 0.4));
@@ -665,7 +671,7 @@ float pearl(vec2 p, float t, float k, out float ph, out float lr) {
   float r = length(p) + 0.0005;
   float a = atan(p.y, p.x);
   lr = log(r);
-  ph = a / 6.28318 * 4.0 + lr * k - t * 0.03;
+  ph = a / 6.28318 * 4.0 + lr * k - t * 0.03 - 0.4 * cl(uBass) - 0.25 * cl(uBeat);
   ph += 0.35 * noise(vec2(cos(a), sin(a)) * 1.5 + vec2(lr * 1.2, t * 0.03));
   float ridge = 0.5 + 0.5 * cos(ph * 6.28318);
   return pow(ridge, 1.5) * smoothstep(0.0, 0.07, r);
@@ -673,11 +679,12 @@ float pearl(vec2 p, float t, float k, out float ph, out float lr) {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  vec2 p = uv - vec2(0.08, 0.02) + 0.04 * vec2(sin(t * 0.07), cos(t * 0.06));
-  p = rot(uSpin * 0.5) * p;
-  float k = 0.9 + 0.12 * ba;
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  vec2 p = uv - vec2(0.08, 0.02) + (0.04 + 0.06 * bt) * vec2(sin(t * 0.07), cos(t * 0.06));
+  p = rot(uSpin) * p;
+  float k = 0.9 + 0.35 * rb + 0.15 * ba;
   float ph, lr, ph2, lr2;
   float h = pearl(p, t, k, ph, lr);
   float e = 0.004;
@@ -702,10 +709,11 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  uv += 0.04 * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(t * 0.03 + uSpin * 0.6) * uv;
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.04 + 0.06 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.03 + uSpin) * uv;
   vec3 col = vec3(0.0);
   for (int k = 0; k < 3; k++) {
     float fk = float(k);
@@ -715,9 +723,9 @@ void main() {
     vec2 p = rot(fk * 0.7) * uv * zoom * 1.15;
     float r = length(p);
     vec2 dir = p / max(r, 0.001);
-    float fib = noise(dir * 14.0 + vec2(r * 2.0, -r * 2.0) + t * 0.04 * (0.5 + vo));
-    float fib2 = noise(dir * 38.0 + r * 3.0);
-    float rr = r * 6.0 - t * 0.06 + 0.5 * fib;
+    float fib = noise(dir * 14.0 + vec2(r * 2.0, -r * 2.0) + t * 0.04 * (0.5 + vo) + 1.2 * mi);
+    float fib2 = noise(dir * (30.0 + 25.0 * vo) + r * 3.0);
+    float rr = r * 6.0 - t * 0.06 - 0.8 * rb - 0.5 * bt + 0.5 * fib;
     float ring = 0.5 + 0.5 * sin(rr * 6.28318);
     float bn = band(mod(floor(rr) + fk * 5.0, 16.0));
     float v = (0.25 + 0.9 * ring * ring) * (0.35 + 0.9 * fib * (0.5 + 0.5 * fib2)) * (0.6 + 0.8 * bn);
@@ -725,7 +733,7 @@ void main() {
     col += c * v * fade * 0.8;
   }
   float r0 = length(uv);
-  float pr = 0.1 + 0.07 * ba;
+  float pr = 0.09 + 0.12 * rb + 0.03 * bt;
   col *= smoothstep(pr - 0.01, pr + 0.1, r0);
   col += pl(t * 0.05 + 0.3, vec3(0.0, 0.12, 0.3)) * exp(-pow(abs(r0 - pr) * 9.0, 2.0)) * (0.5 + 0.6 * vl);
   vec2 g1 = uv - vec2(0.09, 0.1);
@@ -737,6 +745,7 @@ void main() {
   // three drops of ink spreading in rings through water that keeps being stirred, folded into crystal. Smooth bands of light
   marbling: `
 float drops(vec2 q, float t) {
+  q *= 1.0 - 0.15 * cl(uBeat);
   vec2 c1 = 0.7 * vec2(sin(t * 0.07), cos(t * 0.06));
   vec2 c2 = 0.75 * vec2(cos(t * 0.05 + 2.0), sin(t * 0.08 + 1.0));
   vec2 c3 = 0.6 * vec2(sin(t * 0.09 + 4.0), sin(t * 0.05 + 3.0));
@@ -745,15 +754,16 @@ float drops(vec2 q, float t) {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
+  float rb = cl(uBass), fl = cl(uFlux), mi = cl(uMid), cz = cl(uChaos);
   float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc);
-  uv *= 1.0 - 0.05 * bt - 0.05 * vl - 0.07 * bu;
-  uv = rot(t * 0.03 + uSpin * 0.6) * uv;
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv = rot(t * 0.03 + uSpin) * uv;
   vec2 p = kal(uv * 1.5, 2.0, t);
   vec2 w = vec2(fbm(p * 1.1 + t * 0.04), fbm(p * 1.1 + 6.0 - t * 0.035)) - 0.5;
   w += 0.5 * (vec2(fbm(p * 2.2 + w * 2.0 + 3.0), fbm(p * 2.2 - w * 2.0 + 8.0)) - 0.5);
-  vec2 q = p + (0.5 + 0.5 * vo) * w;
-  float s = drops(q, t) * (2.0 + 0.4 * ba) + t * 0.06;
-  float s2 = drops(q + vec2(0.03, -0.02), t) * (2.0 + 0.4 * ba) + t * 0.06;
+  vec2 q = p + (0.4 + 0.9 * (0.6 * vo + 0.8 * fl + 0.5 * cz)) * w;
+  float s = drops(q, t) * (2.0 + 0.5 * ba) + t * 0.06 + 1.0 * rb + 0.6 * bt + 0.3 * vl;
+  float s2 = drops(q + vec2(0.03, -0.02), t) * (2.0 + 0.5 * ba) + t * 0.06 + 1.0 * rb + 0.6 * bt + 0.3 * vl;
   float f = fract(s);
   float bn = band(mod(floor(s), 16.0));
   float v = 0.5 + 0.5 * sin(s * 6.28318);

@@ -556,6 +556,7 @@ export default function MediaPlayer({
         feed.spin = frame.spin;
         feed.bands.set(bands);
       }
+      Object.assign(frame, (window as unknown as { __dbg?: object }).__dbg); // TEMP-DBG
       if (gl.current && gl.current.draw(mode, frame)) return;
       // the flat stand-in, where the graphics card can't be used
       drawKaleidoscope(ctx, f, now, spin);
