@@ -351,159 +351,140 @@ void main() {
   // three more, after posters: neon blue bubbles over orange manga halftone, lines of green light folding over blue, and
   // blue topographic contours on white paper. Same rules as the rest: smooth, never a flash, and the whole sound moves them.
 
-  // a lattice of glowing blue outlines that swell, drift apart and join, over a halftone of dots. Like the others it never
-  // stops falling inward: two layers of the lattice zoom in at different phases and fade into one another
+  // ruled lines at three angles and thicknesses, swelling and thinning along their length, glowing in a mirrored fold; layers fall inward for ever
   hatch: `
-// one set of ruled lines at an angle, thick and thin along its length, wobbling a little
-float rule(vec2 uv, float ang, float freq, float seed, float t, float d, float vl, float ba) {
+float rule(vec2 uv, float ang, float freq, float seed, float t, float vl, float ba) {
   vec2 q = rot(ang) * uv;
-  float along = noise(vec2(q.y * 3.0 + seed * 5.0, t * 0.15 + seed));
-  float thick = clamp(0.04 + 0.9 * along * along * (0.6 + 0.5 * hash(vec2(seed, 2.0))) + 0.15 * vl + 0.2 * ba, 0.04, 0.8);
-  float wob = 0.05 * sin(q.y * 6.0 + t * 0.4 + seed);
+  float along = noise(vec2(q.y * 3.0 + seed * 5.0, t * 0.4 + seed));
+  float thick = clamp(0.06 + 0.9 * along * along * (0.6 + 0.5 * hash(vec2(seed, 2.0))) + 0.15 * vl + 0.2 * ba, 0.06, 0.8);
+  float wob = 0.05 * sin(q.y * 6.0 + t * 0.8 + seed);
   float dist = abs(fract((q.x + wob) * freq) - 0.5) * 2.0;
-  return step(dist, thick + (d - 0.5) * 0.22);
+  return 1.0 - smoothstep(thick * 0.5, thick * 0.5 + 0.2, dist);
 }
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  float vo = clamp(uSVocal, 0.0, 1.0), ba = clamp(uSBass, 0.0, 1.0), fl = clamp(uSFlux, 0.0, 1.0), vl = clamp(uVol, 0.0, 1.0);
-  uv *= 1.0 - 0.05 * clamp(uBeat, 0.0, 1.0) - 0.04 * vl - 0.06 * clamp(uBuild, 0.0, 1.0);
-  uv = rot(t * 0.03 + uSpin * 0.5) * uv;
-  // a kaleidoscope, of a different kind each visit: every join is a reflection
-  uv = kal(uv, @H@, t);
-  float d = dith();
-  vec2 p = uv * 1.3 + vec2(t * 0.04, -t * 0.03);
-  p += (0.3 + 0.5 * vo) * vec2(noise(p * 1.2 + t * 0.07) - 0.5, noise(p * 1.2 - t * 0.06 + 5.0) - 0.5) * 2.0;
-  // three line sets at different angles; smooth fields say how much of each is here, and the dither
-  // decides pixel by pixel which one shows, so one hatch melts into the next as stipple with no edge
-  float w1 = noise(p * 0.9 + 1.3), w2 = noise(p * 0.9 + 7.1), w3 = noise(p * 0.9 + 13.7);
-  float ws = w1 + w2 + w3 + 0.001;
-  float c1 = w1 / ws, c2 = (w1 + w2) / ws;
-  float spin = uSpin * 0.5 + 0.4 * vo * sin(t * 0.5);
-  float fa = 7.0 + 3.0 * ba, fb = 11.0 + 3.0 * ba, fc = 15.0 + 3.0 * ba;
-  float m1 = rule(uv, 0.3 + spin, fa, 1.0, t, d, vl, ba);
-  float m2 = rule(uv, 1.45 + spin * 0.6, fb, 2.0, t, d, vl, ba);
-  float m3 = rule(uv, 2.5 - spin * 0.8, fc, 3.0, t, d, vl, ba);
-  float s1 = step(d, c1), s2 = step(c1, d) * step(d, c2), s3 = step(c2, d);
-  float m = s1 * m1 + s2 * m2 + s3 * m3;
-  // the ground colour also changes by dither, never by a hard edge
-  float shift = length(uv) * 2.5 - t * 0.2 - uArc * 2.0;
-  float g = (w1 * 1.7 + w2 * 0.9) * 3.0 + shift;
-  float gi = floor(g);
-  vec3 ground = mix(sw(mod(gi, 3.0)), sw(mod(gi + 1.0, 3.0)), step(d, fract(g)));
-  vec3 inkA = vec3(0.08, 0.02, 0.32), inkB = vec3(0.0, 0.9, 1.0), inkC = vec3(1.0, 0.97, 0.6);
-  vec3 ink = inkA * s1 + inkB * s2 + inkC * s3;
-  vec3 col = mix(ground, ink, m);
-  gl_FragColor = vec4(retro(col, d), 1.0);
+  float rb = cl(0.5 * uBass + 0.5 * uSBass), fl = cl(uFlux), cz = cl(uChaos);
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc);
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.12 + 0.15 * cz + 0.08 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.05 + uSpin) * uv;
+  vec3 col = vec3(0.0);
+  vec3 pp = vec3(0.0, 0.3, 0.6);
+  for (int k = 0; k < 3; k++) {
+    float fk = float(k);
+    float ph = fract(t * 0.06 + fk / 3.0);
+    float zoom = exp2(ph * 3.0);
+    float fade = sin(ph * 3.14159);
+    vec2 m = kal(uv * zoom, @H@, t);
+    vec2 p = m * 1.3 + vec2(t * 0.1, -t * 0.08);
+    p += (0.12 + 0.45 * (0.5 * ar + 0.6 * vo + 0.8 * fl + 0.9 * cz)) * (vec2(noise(p * 1.2 + t * 0.1), noise(p * 1.2 - t * 0.08 + 5.0)) - 0.5) * 2.0;
+    float w1 = noise(p * 0.9 + 1.3), w2 = noise(p * 0.9 + 7.1), w3 = noise(p * 0.9 + 13.7);
+    float ws = w1 + w2 + w3 + 0.001;
+    float spin = uSpin * 0.5 + 0.4 * vo * sin(t * 0.5);
+    float fa = 3.5 + 1.5 * ba + 1.0 * rb, fb = 5.5 + 1.5 * ba + 1.0 * rb, fc = 7.5 + 1.5 * ba + 1.0 * rb;
+    float m1 = rule(m, 0.3 + spin, fa, 1.0 + fk, t, vl, rb);
+    float m2 = rule(m, 1.45 + spin * 0.6, fb, 2.0 + fk, t, vl, rb);
+    float m3 = rule(m, 2.5 - spin * 0.8, fc, 3.0 + fk, t, vl, rb);
+    float base = fk * 0.2 + t * 0.03 + uPitch * 0.5;
+    vec3 c = pl(base, pp) * m1 * w1 + pl(base + 0.33, pp) * m2 * w2 + pl(base + 0.66, pp) * m3 * w3;
+    col += (c * 1.8 / ws) * fade * 0.7;
+    col += pl(base + 0.5, pp) * 0.05 * (w1 + w2) * fade;
+  }
+  col *= (0.55 + 0.35 * ar) + 0.3 * ba + 0.35 * vl;
+  gl_FragColor = vec4(soft(col), 1.0);
 }`,
 
-  // lines of light stacked and folded over each other like a sheet of paper in the wind, on blue, falling inward for ever
+  // lines of light stacked and folded like paper in the wind, with a second misprinted fringe, falling inward for ever
   ridges: `
-float sheet(vec2 uv, float t, out float halo) {
-  vec2 p = uv * vec2(0.8, 0.7) + vec2(t * 0.03, 0.0);
-  // the space itself is stirred round, slowly, so the folds roll and curl rather than slide
-  p += 0.28 * vec2(sin(p.y * 1.7 + t * 0.21), cos(p.x * 1.3 - t * 0.17));
-  float h = noise(p * 1.1 + vec2(0.0, t * 0.04)) * 0.7 + noise(p * 2.3 + 4.1 - vec2(t * 0.03, 0.0)) * 0.3;
-  float ridge = noise(p * 0.8 + 3.7 + vec2(t * 0.025, 0.0));
-  float D = (h - 0.5) * (2.4 + 1.0 * uSBass) + (ridge - 0.5) * (1.0 + 0.6 * uSVocal) - 0.5 * smoothstep(0.55, 0.9, ridge) * (0.4 + uArc);
-  float lines = 22.0 + 12.0 * uArc + 8.0 * uBuild;
-  float s = (uv.y + D) * lines;
-  float f = fract(s);
-  float dd = min(f, 1.0 - f);
-#ifdef GL_OES_standard_derivatives
-  float aa = max(fwidth(s), 0.0001);
-#else
-  float aa = 0.06;
-#endif
-  // an even, clean line a pixel or so wide however crowded the folds get
-  float w = max(0.05 + 0.03 * uVol, 0.5 * aa);
-  halo = smoothstep(0.5, 0.0, dd) * smoothstep(0.0, 0.6, 1.0 / (1.0 + aa * 6.0));
-  return 1.0 - smoothstep(w, w + 1.2 * aa, dd);
+float sheet(vec2 uv, float t) {
+  vec2 p = uv * vec2(0.8, 0.7) + vec2(t * 0.1, 0.0);
+  p += 0.28 * vec2(sin(p.y * 1.7 + t * 0.5), cos(p.x * 1.3 - t * 0.4));
+  float h = noise(p * 1.1 + vec2(0.0, t * 0.1)) * 0.7 + noise(p * 2.3 + 4.1 - vec2(t * 0.08, 0.0)) * 0.3;
+  float ridge = noise(p * 0.8 + 3.7 + vec2(t * 0.07, 0.0));
+  return (h - 0.5) * (2.4 + 1.0 * cl(uSBass) + 1.4 * cl(uFlux)) + (ridge - 0.5) * (1.0 + 0.6 * cl(uSVocal) + 0.8 * cl(uChaos)) - 0.5 * smoothstep(0.55, 0.9, ridge) * (0.4 + cl(uArc));
 }
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
-  uv += (0.1 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(0.2 + t * 0.03 + uSpin) * uv;
-  uv = kal(uv, @R@, t);
-  // it breathes in and out slowly, so there is always more of the sheet to move into
-  vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
-  float d = dith();
-  float off = 0.008 + 0.012 * uSFlux + 0.018 * uBeat + 0.008 * uVol;
-  float hA, hB, hC;
-  float lA = sheet(q + vec2(-off, 0.0), t, hA);
-  float lB = sheet(q, t, hB);
-  float lC = sheet(q + vec2(off, off * 0.6), t, hC);
-  float haze = smoothstep(0.1, 0.9, fbm(uv * 1.2 + vec2(0.0, t * 0.03) + 9.0)) * (0.35 + 0.4 * uArc);
-  float ramp = clamp(haze + 0.4 * (uv.y + 0.5) + 0.3 * hB * (0.4 + uVol), 0.0, 1.0) * 2.0;
-  // no clock here: the colour only moves when the music does (pitch, brightness and the song's build)
-  float shift = uPitch * 3.0 + uBuild * 2.0 + uBright * 2.0;
-  // night ground: uv violet, deep blue, a sunset glow low on the page, stepped by the dither
-  vec3 g0 = vec3(0.01, 0.02, 0.14);
-  vec3 g1 = vec3(0.02, 0.1, 0.55);
-  vec3 g2 = mix(cg(shift + 1.0), vec3(0.0, 0.3, 0.8), 0.55);
-  // smooth: a soft gradient ground, clean antialiased neon lines and a glow, no dither at all
-  vec3 col = mix(mix(g0, g1, smoothstep(0.0, 1.0, ramp)), g2, smoothstep(1.0, 2.0, ramp));
-  float pw = 0.8 + 0.3 * uArc;
-  // two misprinted fringes, one icy and one a single hot magenta, and the main line walks the cyan-mint-ice family
-  col = mix(col, cg(shift + 3.0), lA * pw);
-  col = mix(col, vec3(1.0, 0.1, 0.6), lC * pw);
-  col = mix(col, cg(shift + 1.0 + floor((uv.y + 1.0) * 1.5)), lB * pw);
-  col += cg(shift + 1.0) * hB * 0.22 * (0.5 + uVol + 0.5 * uArc) * (1.0 - lB);
-  col = 1.0 - exp(-col * 1.35);
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+  float rb = cl(0.5 * uBass + 0.5 * uSBass), fl = cl(uFlux), cz = cl(uChaos);
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc);
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.12 + 0.15 * cz + 0.08 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(0.2 + t * 0.05 + uSpin) * uv;
+  vec3 col = vec3(0.0);
+  vec3 pp = vec3(0.0, 0.25, 0.5);
+  for (int k = 0; k < 3; k++) {
+    float fk = float(k);
+    float ph = fract(t * 0.06 + fk / 3.0);
+    float zoom = exp2(ph * 3.0);
+    float fade = sin(ph * 3.14159);
+    vec2 q = kal(uv * zoom, @R@, t);
+    float lines = 8.0 + 5.0 * ar + 3.0 * bu;
+    float off = 0.02 + 0.02 * fl + 0.03 * bt;
+    float s = (q.y + sheet(q, t) - rb * 0.15) * lines;
+    float s2 = (q.y + sheet(q + vec2(off, off * 0.6), t) - rb * 0.15) * lines;
+    float aa = max(fwidth(s), 0.0001);
+    float w = max(0.1 + 0.05 * vl, 0.7 * aa);
+    fade *= 1.0 - smoothstep(0.15, 0.4, aa);
+    float dd = min(fract(s), 1.0 - fract(s));
+    float dd2 = min(fract(s2), 1.0 - fract(s2));
+    float ln = exp(-dd * dd / (w * w));
+    float ln2 = exp(-dd2 * dd2 / (w * w));
+    float glow = exp(-dd * 5.0) * 0.3;
+    float base = fk * 0.2 + t * 0.03 + uPitch * 0.5 + q.y * 0.15;
+    col += (pl(base, pp) * (ln + glow * (0.4 + vl)) + pl(base + 0.4, pp) * ln2 * 0.6) * fade * 0.7;
+  }
+  col *= (0.55 + 0.35 * ar) + 0.3 * ba + 0.35 * vl;
+  gl_FragColor = vec4(soft(col), 1.0);
 }`,
 
-  // the contour lines of a landscape that is never still, in blue ink on white paper, falling into it for ever
+  // the contour lines of a landscape that never settles, glowing over soft bands of colour, falling into it for ever
   contours: `
-float landscape(vec2 uv, float t, out float heavy, out float fw, out float lev) {
-  vec2 p = uv * 1.5 + vec2(t * 0.03, -t * 0.02);
-  p += 0.3 * vec2(sin(p.y * 1.4 + t * 0.19), cos(p.x * 1.2 - t * 0.16)); // the ground is stirred round, slowly
-  vec2 w = vec2(noise(p * 0.7 + vec2(t * 0.05, 1.3)), noise(p * 0.7 + vec2(7.1, t * 0.04)));
-  float amp = 1.2 + 0.9 * uSVocal + 0.4 * uSFlux;
+float landscape(vec2 uv, float t) {
+  vec2 p = uv * 1.5 + vec2(t * 0.1, -t * 0.07);
+  p += 0.3 * vec2(sin(p.y * 1.4 + t * 0.45), cos(p.x * 1.2 - t * 0.4));
+  vec2 w = vec2(noise(p * 0.7 + vec2(t * 0.12, 1.3)), noise(p * 0.7 + vec2(7.1, t * 0.1)));
+  float amp = 1.2 + 0.9 * cl(uSVocal) + 0.4 * cl(uSFlux) + 0.8 * cl(uChaos);
   vec2 pw = p + amp * (w - 0.5);
-  float H = (noise(pw * 0.9) * 0.62 + noise(pw * 1.9 + 5.3) * 0.28 + noise(pw * 3.7 + 1.9) * 0.1) * (1.0 + 0.4 * uSBass);
-  float levels = 14.0 + 16.0 * uArc;
-  float s = H * levels;
-  lev = H;
-#ifdef GL_OES_standard_derivatives
-  fw = max(fwidth(s), 0.0001);
-#else
-  fw = 0.08;
-#endif
-  float f = fract(s);
-  float dd = min(f, 1.0 - f);
-  float idx = mod(floor(s + 0.5), 5.0);
-  heavy = 1.0 - step(0.5, idx);
-  float k = fw * (0.7 + 0.5 * uVol + 0.9 * heavy);
-  return 1.0 - smoothstep(k, k + fw, dd);
+  return (noise(pw * 0.9) * 0.62 + noise(pw * 1.9 + 5.3) * 0.28 + noise(pw * 3.7 + 1.9) * 0.1) * (1.0 + 0.4 * cl(uSBass));
 }
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
-  uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
-  uv = rot(t * 0.03 + uSpin) * uv;
-  uv = kal(uv, @C@, t);
-  float hv, fw, lev, hv2, fw2, lev2;
-  vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
-  float off = 0.012 + 0.012 * uSFlux + 0.016 * uBeat;
-  float line = landscape(q, t, hv, fw, lev);
-  float ghost = landscape(q + vec2(off, -off), t, hv2, fw2, lev2);
-  float ghost2 = landscape(q - vec2(off * 0.8, off * 0.4), t, hv2, fw2, lev2);
-  float d = dith();
-  float shift = t * 0.04 + uPitch * 2.5;
-  // the ground is a stack of flat altitude bands in solid inks with crisp edges, like a screen print: no dither here
-  float x = lev * (5.0 + 3.0 * uArc);
-  float bi = floor(x);
-  float fx = max(fwidth(x), 0.001);
-  vec3 col = mix(sp(shift + bi - 1.0), sp(shift + bi), smoothstep(0.0, fx * 1.5, fract(x)));
-  col = mix(col, sp(shift + bi + 2.0), ghost2 * 0.9 * (1.0 - line));
-  col = mix(col, sp(shift + bi + 3.0), ghost * 0.9 * (1.0 - line));
-  vec3 ink = vec3(0.07, 0.04, 0.16);
-  col = mix(col, ink, line * (0.85 + 0.15 * hv));
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+  float rb = cl(0.5 * uBass + 0.5 * uSBass), fl = cl(uFlux), cz = cl(uChaos);
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild), ar = cl(uArc);
+  uv *= 1.0 - 0.14 * bt - 0.07 * rb - 0.04 * vl - 0.07 * bu;
+  uv += (0.12 + 0.15 * cz + 0.08 * bt) * vec2(sin(t * 0.13), cos(t * 0.11));
+  uv = rot(t * 0.05 + uSpin) * uv;
+  vec3 col = vec3(0.0);
+  vec3 pp = vec3(0.0, 0.15, 0.4);
+  for (int k = 0; k < 3; k++) {
+    float fk = float(k);
+    float ph = fract(t * 0.06 + fk / 3.0);
+    float zoom = exp2(ph * 3.0);
+    float fade = sin(ph * 3.14159);
+    vec2 q = kal(uv * zoom, @C@, t);
+    float H = landscape(q, t);
+    float off = 0.015 + 0.015 * fl + 0.02 * bt;
+    float H2 = landscape(q + vec2(off, -off), t);
+    float levels = 8.0 + 8.0 * ar;
+    float s = (H + rb * 0.05) * levels;
+    float s2 = (H2 + rb * 0.05) * levels;
+    float aa = max(fwidth(s), 0.0001);
+    float w = max(0.09 + 0.04 * vl, 0.7 * aa);
+    fade *= 1.0 - smoothstep(0.15, 0.4, aa);
+    float dd = min(fract(s), 1.0 - fract(s));
+    float dd2 = min(fract(s2), 1.0 - fract(s2));
+    float heavy = 1.0 - step(0.5, mod(floor(s + 0.5), 5.0));
+    float ln = exp(-dd * dd / (w * w)) * (0.7 + 0.8 * heavy);
+    float ln2 = exp(-dd2 * dd2 / (w * w));
+    float base = H * 1.6 + fk * 0.2 + t * 0.03 + uPitch * 0.5;
+    vec3 fill = pl(base, pp) * (0.08 + 0.5 * smoothstep(0.2, 0.9, H));
+    col += (fill + pl(base + 0.45, pp) * ln + pl(base + 0.2, pp) * ln2 * 0.5) * fade * 0.7;
+  }
+  col *= (0.55 + 0.35 * ar) + 0.3 * ba + 0.35 * vl;
+  gl_FragColor = vec4(soft(col), 1.0);
 }`,
 
   // rings of soft glowing dots round a dark centre, layer upon layer falling outward for ever: each ring listens to a band
