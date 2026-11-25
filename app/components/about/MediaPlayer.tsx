@@ -596,7 +596,7 @@ export default function MediaPlayer({
       <div className="wd-mini-prog" style={{ width: dur ? `${Math.min(100, (time / dur) * 100)}%` : '0%' }} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/about/icons/cd-16.png" alt="" width={16} height={16} />
-      <button type="button" className="wd-mini-ttl" onClick={onExpand} title="open the player">
+      <button type="button" className="wd-mini-ttl" aria-label={playing ? 'pause' : 'play'} disabled={!track} onClick={toggle} title={playing ? 'pause' : 'play'}>
         <span key={lcdName} className={`wd-mini-run${playing ? ' is-on' : ''}`}>
           <span>{lcdName}</span>
           <span aria-hidden="true">{lcdName}</span>
