@@ -88,7 +88,6 @@ const COLORS = [
   { id: '#4a4a52', label: 'platinum grey' },
   { id: '#101014', label: 'dos black' },
 ] as const;
-const DEFAULT_COLOR = '#0a6b6b';
 const MILKY_COLOR = '#0b0f8a';
 interface Scene {
   wall: string;
@@ -307,7 +306,7 @@ export default function AboutDesktop() {
   const z = useRef(10);
   const drag = useRef<{ id: string; sx: number; sy: number; ox: number; oy: number; w: number } | null>(null);
   const clock = useClock();
-  const [scene, setScene] = useState<Scene>({ wall: 'none', color: DEFAULT_COLOR });
+  const [scene, setScene] = useState<Scene>({ wall: 'none', color: '#000000' })  // black until the saved or random scene arrives: a browser tints the bar above the page from the first paint;
   const [ctx, setCtx] = useState<{ x: number; y: number } | null>(null);
   // where the reader has moved the desktop icons to (percent of the desktop), and which one is being dragged now
   const [icons, setIcons] = useState<Record<string, [number, number]>>({});
@@ -362,17 +361,6 @@ export default function AboutDesktop() {
     } catch {
       // no usable referrer: home it is
     }
-  }, []);
-  // behind the desktop the page is black, so a browser or an installed app's sheet that tints its top bar from the page gets black, not the desktop's colour
-  useEffect(() => {
-    const h = document.documentElement;
-    const b = document.body;
-    const prev = [h.style.backgroundColor, b.style.backgroundColor];
-    h.style.backgroundColor = '#000';
-    b.style.backgroundColor = '#000';
-    return () => {
-      [h.style.backgroundColor, b.style.backgroundColor] = prev;
-    };
   }, []);
   // fetch the Start menu's small icons up front, so the menu opens complete rather than filling in
   useEffect(() => {
