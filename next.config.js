@@ -94,6 +94,8 @@ const nextConfig = {
         { source: '/', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams' },
         // the dream map lives at milky.slowww.garden/map
         { source: '/map', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams/map' },
+        // about and the legal pages stay inside the installed app's /dreams scope, so they open in the app and not in a browser sheet
+        { source: '/dreams/:page(about|terms|privacy)', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/:page' },
       ],
     };
   },

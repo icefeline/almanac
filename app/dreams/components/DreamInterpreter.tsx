@@ -452,6 +452,36 @@ export default function DreamInterpreter() {
     }
   }
 
+  // The page's own blue behind everything, so nothing of the site's dark green shows if the page ever sits a little off.
+  // And coming back to an installed app from a browser sheet, iOS can leave the page shifted up by the status bar's height:
+  // when the page returns and it is off the top without being scrolled, put it back.
+  useEffect(() => {
+    const h = document.documentElement;
+    const b = document.body;
+    const prev = [h.style.backgroundColor, b.style.backgroundColor];
+    h.style.backgroundColor = BLUE;
+    b.style.backgroundColor = BLUE;
+    const back = () => {
+      if (document.visibilityState === 'hidden') return;
+      const off = window.visualViewport?.offsetTop ?? 0;
+      if (off > 1 && window.scrollY < 1) window.scrollTo(0, 0);
+    };
+    const settle = () => {
+      back();
+      setTimeout(back, 120);
+      setTimeout(back, 500);
+    };
+    window.addEventListener('pageshow', settle);
+    window.addEventListener('focus', settle);
+    document.addEventListener('visibilitychange', settle);
+    return () => {
+      window.removeEventListener('pageshow', settle);
+      window.removeEventListener('focus', settle);
+      document.removeEventListener('visibilitychange', settle);
+      [h.style.backgroundColor, b.style.backgroundColor] = prev;
+    };
+  }, []);
+
   function reset() {
     setReading(null);
     setDeeper(false);
@@ -521,7 +551,7 @@ export default function DreamInterpreter() {
           zIndex: 1,
           maxWidth: 1040,
           margin: '0 auto',
-          padding: 'calc(env(safe-area-inset-top, 0px) + 36px) 28px 40px',
+          padding: 'max(calc(env(safe-area-inset-top, 0px) + 10px), 36px) 28px 40px',
           display: 'flex',
           flexDirection: 'column',
           gap: 64,

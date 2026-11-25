@@ -1229,3 +1229,22 @@ html:has(.wd-root) body {
     display: none;
   }
 }
+
+/*
+ * In a browser, or the sheet an installed app opens for a link, the bar above the page takes its colour from the top
+ * edge of the page, and the desktop's own colour (teal, say) would tint it. A thin black strip at the very top keeps the
+ * bar black. Once the page is installed it runs edge to edge under the status bar, so nothing is added there.
+ */
+@media (display-mode: browser) {
+  .wd-root::before {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 4px;
+    background: #000;
+    z-index: 9999;
+    pointer-events: none;
+  }
+}
