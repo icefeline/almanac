@@ -408,14 +408,16 @@ void main() {
   vec3 g0 = vec3(0.01, 0.02, 0.14);
   vec3 g1 = vec3(0.02, 0.1, 0.55);
   vec3 g2 = mix(cg(shift + 1.0), vec3(0.0, 0.3, 0.8), 0.55);
-  vec3 col = ramp < 1.0 ? mix(g0, g1, step(d, ramp)) : mix(g1, g2, step(d, ramp - 1.0));
+  // smooth: a soft gradient ground, clean antialiased neon lines and a glow, no dither at all
+  vec3 col = mix(mix(g0, g1, smoothstep(0.0, 1.0, ramp)), g2, smoothstep(1.0, 2.0, ramp));
   float pw = 0.8 + 0.3 * uArc;
   // two misprinted fringes, one icy and one a single hot magenta, and the main line walks the cyan-mint-ice family
   col = mix(col, cg(shift + 3.0), lA * pw);
   col = mix(col, vec3(1.0, 0.1, 0.6), lC * pw);
   col = mix(col, cg(shift + 1.0 + floor((uv.y + 1.0) * 1.5)), lB * pw);
-  col = mix(col, vec3(0.9, 1.0, 1.0), step(d, hB * 0.6 * (0.5 + uVol + 0.5 * uArc)) * (1.0 - lB) * 0.7);
-  gl_FragColor = vec4(retro(col, d), 1.0);
+  col += cg(shift + 1.0) * hB * 0.22 * (0.5 + uVol + 0.5 * uArc) * (1.0 - lB);
+  col = 1.0 - exp(-col * 1.35);
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`,
 
   // the contour lines of a landscape that is never still, in blue ink on white paper, falling into it for ever
@@ -457,15 +459,16 @@ void main() {
   float ghost2 = landscape(q - vec2(off * 0.8, off * 0.4), t, hv2, fw2, lev2);
   float d = dith();
   float shift = t * 0.04 + uPitch * 2.5;
-  // the ground is a stack of flat altitude bands in hard inks, each melting into the next as a dither
+  // the ground is a stack of flat altitude bands in solid inks with crisp edges, like a screen print: no dither here
   float x = lev * (5.0 + 3.0 * uArc);
   float bi = floor(x);
-  vec3 col = mix(sp(shift + bi), sp(shift + bi + 1.0), step(d, fract(x) * 0.9));
+  float fx = max(fwidth(x), 0.001);
+  vec3 col = mix(sp(shift + bi - 1.0), sp(shift + bi), smoothstep(0.0, fx * 1.5, fract(x)));
   col = mix(col, sp(shift + bi + 2.0), ghost2 * 0.9 * (1.0 - line));
   col = mix(col, sp(shift + bi + 3.0), ghost * 0.9 * (1.0 - line));
   vec3 ink = vec3(0.07, 0.04, 0.16);
   col = mix(col, ink, line * (0.85 + 0.15 * hv));
-  gl_FragColor = vec4(retro(col, d), 1.0);
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`,
 };
 
