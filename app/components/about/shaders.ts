@@ -14,8 +14,8 @@
  * are no flashes, bursts or rings on a hit, and brightness barely moves, so a fast song makes it wild but never jumpy.
  */
 
-export type ShaderViz = 'kaleidoscope' | 'fractal' | 'tunnel' | 'flow' | 'bubbles' | 'ridges' | 'contours';
-export const SHADER_VIZ: ShaderViz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow', 'bubbles', 'ridges', 'contours'];
+export type ShaderViz = 'kaleidoscope' | 'fractal' | 'tunnel' | 'flow' | 'hatch' | 'ridges' | 'contours';
+export const SHADER_VIZ: ShaderViz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow', 'hatch', 'ridges', 'contours'];
 export const isShader = (v: string): v is ShaderViz => (SHADER_VIZ as string[]).includes(v);
 
 /** What the music is doing, one frame at a time. */
@@ -294,80 +294,48 @@ void main() {
 
   // a lattice of glowing blue outlines that swell, drift apart and join, over a halftone of dots. Like the others it never
   // stops falling inward: two layers of the lattice zoom in at different phases and fade into one another
-  bubbles: `
-float cells(vec2 q, float t, float px, out float ring) {
-  float F = 0.0;
-  float Fm = 0.0;
-  ring = 0.0;
-  for (int i = 0; i < 9; i++) {
-    float fi = float(i);
-    float h1 = hash(vec2(fi, 1.7)), h2 = hash(vec2(fi, 8.3)), h3 = hash(vec2(fi, 4.1));
-    // each bubble roams the whole screen on its own slow noise, so they drift apart, meet, merge and split again
-    vec2 home = vec2((h1 - 0.5) * 2.0, (h2 - 0.5) * 1.1);
-    float sp = 0.12 + 0.25 * clamp(uSFlux, 0.0, 1.0) + 0.1 * clamp(uVol, 0.0, 1.0);
-    vec2 c = home + 0.42 * (vec2(noise(vec2(fi * 3.1, t * sp)), noise(vec2(fi * 5.3 + 9.0, t * sp * 0.9))) - 0.5);
-    // the bass shoves them outward, a beat kicks them, the voice swirls them round the middle
-    vec2 dir = normalize(c + vec2(0.001));
-    c += dir * (0.1 * clamp(uSBass, 0.0, 1.0) + 0.09 * clamp(uBeat, 0.0, 1.0) * (0.5 + h3));
-    c += 0.12 * clamp(uSVocal, 0.0, 1.0) * vec2(-dir.y, dir.x);
-    // every bubble dances to its own slice of the spectrum
-    float band = clamp(uBands[i], 0.0, 1.0);
-    float r = min(0.15, (0.04 + 0.05 * h3) * (1.0 + 0.4 * band + 0.25 * uBeat * h1 + 0.2 * clamp(uSBass, 0.0, 1.0) + 0.12 * sin(t * 0.7 + fi * 2.0)));
-    vec2 d = q - c;
-    // the outline breaks out of its circle: a wobble that turns round the edge and grows with the sound
-    float ang = atan(d.y, d.x);
-    float wob = 0.17 * min(1.0, 0.25 + 0.7 * clamp(uSVocal, 0.0, 1.0) + 0.5 * band + 0.4 * clamp(uSFlux, 0.0, 1.0)) * sin(ang * (2.0 + floor(h2 * 2.0)) + t * (0.6 + h1) + fi * 3.0);
-    float dl = length(d) * (1.0 + wob);
-    // a compact blob: nothing beyond about 1.5 radii, so bubbles only join when they really touch
-    float k = max(0.0, 1.0 - dl * dl / (r * r * 2.2));
-    F += k * k;
-    Fm = max(Fm, k * k);
-    ring = max(ring, smoothstep(px * 3.2, px * 0.7, abs(dl - r)));
-  }
-  // the strongest bubble wins, the rest only lean on it a little, so neighbours bulge toward each other instead of fusing
-  return Fm + 0.2 * (F - Fm);
-}
+  hatch: `
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  uv *= 1.0 - 0.06 * clamp(uBeat, 0.0, 1.0) - 0.05 * clamp(uVol, 0.0, 1.0) - 0.08 * clamp(uBuild, 0.0, 1.0);
-  uv += 0.03 * vec2(sin(t * 0.3), cos(t * 0.23));
-  float line = 0.0;
-  float glow = 0.0;
-  float fill = 0.0;
-  float ring;
-  float F = cells(uv, t, 1.7 / uRes.y, ring);
-  float ee = abs(F - 0.297);
-  // the line swells and thins as it travels: thick ink in some places, a hair in others
-  float gw = max(fwidth(F), 0.0005);
-  float wv = (0.5 + 10.0 * smoothstep(0.3, 0.7, noise(uv * 2.4 + vec2(t * 0.1, -t * 0.08)))) * (0.65 + 0.7 * noise(uv * 7.0 - t * 0.12 + 3.0)) + 2.0 * clamp(uVol, 0.0, 1.0);
-  line = 1.0 - smoothstep(gw * wv, gw * wv + gw * 1.2, ee);
-  glow = exp(-ee * 14.0) * smoothstep(0.0, 0.1, F);
-  fill = smoothstep(0.27, 0.39, F);
+  float vo = clamp(uSVocal, 0.0, 1.0), ba = clamp(uSBass, 0.0, 1.0), fl = clamp(uSFlux, 0.0, 1.0), vl = clamp(uVol, 0.0, 1.0);
+  uv *= 1.0 - 0.05 * clamp(uBeat, 0.0, 1.0) - 0.04 * vl - 0.06 * clamp(uBuild, 0.0, 1.0);
+  uv += 0.05 * vec2(sin(t * 0.17), cos(t * 0.13));
+  // the picture is cut into flat zones whose edges drift and swim; the voice stirs them
+  vec2 p = uv * 1.5 + vec2(t * 0.04, -t * 0.03);
+  p += (0.35 + 0.5 * vo) * 2.0 * vec2(noise(p * 1.2 + t * 0.07) - 0.5, noise(p * 1.2 - t * 0.06 + 5.0) - 0.5);
+  float n = noise(p) * 0.65 + noise(p * 2.3 + 7.0) * 0.35;
+  float zf = n * (5.0 + 3.0 * clamp(uArc, 0.0, 1.0));
+  float z = floor(zf);
+  float h1 = hash(vec2(z, 3.1)), h2 = hash(vec2(z, 9.7)), h3 = hash(vec2(z, 5.3));
+  // every zone is ruled in its own direction and spacing, and the angles turn with the music
+  float ang = h1 * 3.14159 + 0.25 * sin(t * 0.2 + z * 1.7) + uSpin * 0.6 + 0.5 * vo * sin(t * 0.5 + z);
+  float freq = 3.5 + 7.5 * h2 + 3.0 * ba;
+  vec2 q = rot(ang) * uv;
   float d = dith();
-  float off = 0.01 + 0.016 * uSFlux + 0.014 * uBeat;
-  float freq = 34.0 + 12.0 * uBright;
-  float tone = clamp(fbm(uv * 2.0 + vec2(t * 0.05, t * 0.03)) * 1.5 - 0.05 + 0.25 * uSFlux, 0.0, 1.0);
-  vec2 gA = fract(rot(0.6) * (uv + vec2(off, 0.0)) * freq) - 0.5;
-  vec2 gB = fract(rot(0.95) * (uv - vec2(0.0, off)) * freq * 0.8) - 0.5;
-  float dotsA = smoothstep(0.5 * tone + 0.06, 0.5 * tone - 0.04, length(gA));
-  float dotsB = smoothstep(0.45 * tone + 0.05, 0.45 * tone - 0.04, length(gB));
-  // colour turns round the middle like a wheel: a spiral that winds out from the centre, and the sound winds it faster
-  float shift = length(uv) * 3.5 - t * 0.25 - uArc * 2.0 + atan(uv.y, uv.x) * 0.48;
-  // the ground slides between two inks as a dither, the dots print over it in two more, out of register
-  float ramp = clamp(0.5 + 0.9 * (fbm(uv * 1.4 - t * 0.02) - 0.5) + 0.3 * sin(atan(uv.y, uv.x) * 7.0 + t * 0.12), 0.0, 1.0);
-  vec3 col = mix(sw(shift + 1.0), sw(shift), step(d, ramp));
-  col = mix(col, sw(shift + 2.0), dotsA);
-  col = mix(col, vec3(0.1, 0.02, 0.35), dotsB * (1.0 - dotsA) * 0.7);
-  // inside the bubbles the world inverts: a checker of cyan and deep indigo, the sunset's one cool note
-  vec2 ck = floor(gl_FragCoord.xy / (cell() * 2.0));
-  float chk = mod(ck.x + ck.y, 2.0);
-  col = mix(col, mix(vec3(0.0, 0.9, 1.0), vec3(0.1, 0.03, 0.4), chk), fill * step(d, 0.5 + 0.3 * uArc) * 0.9);
-  float power = 0.75 + 0.4 * uArc + 0.2 * uVol;
-  vec3 ink = vec3(0.04, 0.0, 0.25);
-  col = mix(col, ink, clamp(line * power, 0.0, 1.0));
-  float halo = step(d, glow * 0.9 * power) * (1.0 - clamp(line, 0.0, 1.0));
-  col = mix(col, vec3(1.0, 0.95, 0.5), halo);
+  // thickness changes along every line: hairline to heavy ink, and swells with the bass and the volume
+  float along = noise(vec2(q.y * 3.0 + z * 5.0, t * 0.15 + z));
+  float thick = clamp(0.04 + 0.62 * along * along * (0.4 + h3) * 1.5 + 0.15 * vl + 0.2 * ba * h1, 0.04, 0.8);
+  float wob = 0.05 * sin(q.y * 6.0 + t * 0.4 + z);
+  float dist = abs(fract((q.x + wob) * freq) - 0.5) * 2.0;
+  // the edges of the lines are dithered, so they fray into stipple instead of smooth antialiasing
+  float m = step(dist, thick + (d - 0.5) * 0.45);
+  // some zones are cross-hatched with a second, thinner set at another angle
+  float cross = step(0.78, h1);
+  vec2 q2 = rot(ang + 0.9 + 0.5 * h2) * uv;
+  float dist2 = abs(fract(q2.x * freq * 0.8) - 0.5) * 2.0;
+  float m2 = step(dist2, thick * 0.5 + (d - 0.5) * 0.4) * cross;
+  // a ghost print, nudged aside and in another ink
+  float off = 0.012 + 0.012 * fl + 0.014 * clamp(uBeat, 0.0, 1.0);
+  float dg = abs(fract((q.x + wob + off) * freq) - 0.5) * 2.0;
+  float mg = step(dg, thick * 0.6 + (d - 0.5) * 0.4);
+  float shift = length(uv) * 2.5 - t * 0.2 - uArc * 2.0 + atan(uv.y, uv.x) * 0.32;
+  float gi = floor(z + shift);
+  vec3 ground = mix(sw(mod(gi, 3.0)), sw(mod(gi + 1.0, 3.0)), step(d, fract(zf) * 0.85));
+  vec3 ink = h3 > 0.66 ? vec3(0.08, 0.02, 0.32) : (h3 > 0.33 ? vec3(0.0, 0.9, 1.0) : vec3(1.0, 0.97, 0.6));
+  vec3 col = mix(ground, vec3(1.0, 0.95, 0.55), mg * (1.0 - m) * 0.75);
+  col = mix(col, ink, m);
+  col = mix(col, sw(z + shift + 2.0), m2 * (1.0 - m) * 0.9);
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 
