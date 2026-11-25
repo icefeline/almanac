@@ -589,6 +589,8 @@ export default function MediaPlayer({
       ? 'no music yet. file > open, or drop a song here'
       : `${playing ? 'playing' : time > 0 ? 'paused' : 'ready'}: ${track.artist ? `${track.artist} - ` : ''}${track.title}`;
 
+  // the display reads like the reference: the title, then the artist
+  const lcdName = problem ? problem : track ? `${track.title}${track.artist ? ` - ${track.artist}` : ''}` : 'no music yet - file > open, or drop a song here';
   const shortName = track ? `${track.artist ? `${track.artist} - ` : ''}${track.title}` : 'no music yet';
   const mini = (
     <div className="wd-mini" role="region" aria-label="media player">
@@ -640,10 +642,16 @@ export default function MediaPlayer({
         <canvas ref={glCanvas} width={480} height={270} className={showGL ? undefined : 'is-off'} aria-label="music visualiser" />
         <canvas ref={canvas} width={W} height={H} className={showGL ? 'is-off' : undefined} aria-hidden="true" />
       </div>
-      <div className="wd-status">
-        <div className="wd-sf">{status}</div>
-        <div className="wd-sf wd-mp-time">
-          {fmt(time)} / {fmt(dur)}
+      {/* a little amber dot-matrix display: the name scrolls like a marquee, the time sits still beside it */}
+      <div className="wd-lcd" role="status" aria-label={`${status}, ${fmt(time)} of ${fmt(dur)}`}>
+        <div className="wd-lcd-name" aria-hidden="true">
+          <span key={lcdName} className={`wd-lcd-run${playing ? ' is-on' : ''}`}>
+            <span>{lcdName}</span>
+            <span>{lcdName}</span>
+          </span>
+        </div>
+        <div className="wd-lcd-time" aria-hidden="true">
+          {fmt(time)}/{fmt(dur)}
         </div>
       </div>
       <input

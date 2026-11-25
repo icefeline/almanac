@@ -1151,3 +1151,58 @@ html:has(.wd-root) body {
     --sab: 0px;
   }
 }
+
+/* the player's little display: black glass, amber dots. the name scrolls like a marquee (two copies make the loop seamless);
+   it keeps its place when paused, and stands still for anyone who has asked for less motion */
+.wd-lcd {
+  display: flex;
+  align-items: stretch;
+  margin-top: 3px;
+  background: #060400;
+  box-shadow: var(--field);
+  color: #ffb000;
+  font-family: var(--font-doto), 'VT323', monospace;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 3px rgba(255, 150, 0, 0.7), 0 0 8px rgba(255, 120, 0, 0.35);
+  /* the unlit dots, faintly, behind the lit ones */
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 150, 0, 0.1) 0.8px, transparent 1.2px);
+  background-size: 3px 3px;
+}
+.wd-lcd-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 4px 6px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
+}
+.wd-lcd-time {
+  flex: none;
+  padding: 4px 6px 4px 8px;
+  white-space: nowrap;
+  border-left: 1px solid rgba(255, 150, 0, 0.25);
+}
+.wd-lcd-run {
+  display: inline-flex;
+  animation: wd-marquee 14s linear infinite;
+  animation-play-state: paused;
+}
+.wd-lcd-run.is-on {
+  animation-play-state: running;
+}
+.wd-lcd-run > span {
+  flex: none;
+  padding-right: 3em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wd-lcd-run {
+    animation: none;
+  }
+  .wd-lcd-run > span:last-child {
+    display: none;
+  }
+}
