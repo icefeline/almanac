@@ -25,6 +25,16 @@ export interface Frame {
   bass: number;
   mid: number;
   high: number;
+  /** How loud it is overall, 0 to 1, relative to the song's own level. */
+  vol: number;
+  /** How much is going on in the voice's range (roughly 300 Hz to 3.4 kHz): singing, speech, the lead instrument. */
+  vocal: number;
+  /** Where the loudest note sits compared with where it usually sits in this song: 0.5 is usual, up is higher. */
+  pitch: number;
+  /** How bright the sound is compared with usual (0.5): dull and warm below, shimmering above. */
+  bright: number;
+  /** How much the sound is changing from moment to moment: notes arriving, texture, rhythm that isn't the kick. */
+  flux: number;
   /** Rises and falls smoothly with each hit (never a jump). */
   beat: number;
   /** 0 calm, 1 frantic: how quick the beats are and how much is going on. */
@@ -39,17 +49,24 @@ export interface Frame {
  * What the player is hearing, shared with the layer behind the desktop so the same picture can fill the whole screen.
  * The player writes it every frame; the layer reads it.
  */
-export const feed: Frame & { on: boolean; mode: ShaderViz } = {
+export const feed: Frame & { on: boolean; mode: ShaderViz; n: number } = {
   on: false,
   mode: 'kaleidoscope',
   t: 0,
   bass: 0,
   mid: 0,
   high: 0,
+  vol: 0,
+  vocal: 0,
+  pitch: 0.5,
+  bright: 0.5,
+  flux: 0,
   beat: 0,
   chaos: 0,
   spin: 0,
   bands: new Float32Array(16),
+  /** Counts frames, so the layer behind the desktop knows when there is something new to draw. */
+  n: 0,
 };
 
 const HEAD = `
@@ -63,6 +80,11 @@ uniform float uTime;
 uniform float uBass;
 uniform float uMid;
 uniform float uHigh;
+uniform float uVol;
+uniform float uVocal;
+uniform float uPitch;
+uniform float uBright;
+uniform float uFlux;
 uniform float uBeat;
 uniform float uChaos;
 uniform float uSpin;
@@ -100,10 +122,11 @@ const BODY: Record<ShaderViz, string> = {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  uv *= 1.0 - 0.05 * uBeat;
+  uv *= 1.0 - 0.05 * uBeat - 0.05 * uVol;
   uv += (0.14 + 0.12 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(t * 0.05 + uSpin) * uv;
-  float warp = 2.4 * (1.0 + 1.7 * uChaos);
+  // the voice opens the folds out, a brighter sound draws finer detail, and the sound's pitch turns the colours
+  float warp = 2.4 * (1.0 + 1.7 * uChaos + 0.9 * uVocal + 0.5 * uFlux);
   vec3 col = vec3(0.0);
   for (int k = 0; k < 3; k++) {
     float fk = float(k);
@@ -113,8 +136,8 @@ void main() {
     vec2 p = kfold(uv * zoom, 6.0 + 2.0 * fk);
     p = rot(fk * 1.1 + t * 0.04) * p;
     vec2 q = vec2(fbm(p * 2.0 + vec2(0.0, t * 0.1)), fbm(p * 2.0 + vec2(5.2, 1.3) - t * 0.08));
-    float f = fbm(p * 2.4 + warp * q + uBass * 0.8);
-    vec3 c = pal(f * 1.4 + fk * 0.2 + t * 0.04 + uHigh * 0.3 + uSpin * 0.05);
+    float f = fbm(p * (2.2 + 1.4 * uBright) + warp * q + uBass * 0.8);
+    vec3 c = pal(f * 1.4 + fk * 0.2 + t * 0.04 + uHigh * 0.3 + uSpin * 0.05 + (uPitch - 0.5) * 0.7);
     c *= 0.3 + 1.2 * smoothstep(0.2, 0.85, f);
     col += c * fade * 0.62;
   }
@@ -125,7 +148,7 @@ void main() {
     ring += uBands[i * 2] * smoothstep(0.09, 0.0, abs(rr - 0.5));
   }
   col += pal(r * 1.4 + t * 0.1 + 0.3) * ring * 0.55;
-  col *= 0.85 + 0.45 * uBass;
+  col *= 0.7 + 0.35 * uBass + 0.4 * uVol;
   gl_FragColor = vec4(soft(col), 1.0);
 }`,
 
@@ -136,10 +159,10 @@ void main() {
   float t = uTime;
   uv *= 1.0 - 0.04 * uBeat;
   uv += 0.1 * vec2(cos(t * 0.09), sin(t * 0.12));
-  uv = rot(t * 0.04 + uSpin * 0.7) * uv * (1.3 + 0.45 * sin(t * 0.07));
+  uv = rot(t * 0.04 + uSpin * 0.7) * uv * (1.3 + 0.45 * sin(t * 0.07) - 0.3 * uVol);
   vec2 p = kfold(uv, 6.0) * 1.15;
-  vec2 c = vec2(0.64 + 0.1 * sin(t * 0.11) + uBass * 0.06 + 0.02 * uBeat * sin(t * 1.5),
-                0.5 + 0.09 * cos(t * 0.09) + 0.05 * uChaos * sin(t * 1.7));
+  vec2 c = vec2(0.64 + 0.1 * sin(t * 0.11) + uBass * 0.06 + 0.02 * uBeat * sin(t * 1.5) + 0.05 * (uPitch - 0.5),
+                0.5 + 0.09 * cos(t * 0.09) + 0.05 * uChaos * sin(t * 1.7) + 0.07 * uVocal);
   float trap = 1000.0;
   float acc = 0.0;
   for (int i = 0; i < 9; i++) {
@@ -149,9 +172,9 @@ void main() {
     acc += exp(-d * 2.2);
   }
   float g = exp(-trap * 3.0);
-  vec3 col = pal(trap * 1.2 + t * 0.05 + uHigh * 0.4 + uSpin * 0.05) * (0.03 + 2.1 * g * g);
-  col += pal(acc * 0.1 + 0.35) * acc * 0.016 * (0.6 + uMid * 1.8);
-  col *= 0.8 + 0.5 * uBass;
+  vec3 col = pal(trap * 1.2 + t * 0.05 + uHigh * 0.4 + uSpin * 0.05 + (uPitch - 0.5) * 0.7) * (0.03 + 2.1 * g * g);
+  col += pal(acc * 0.1 + 0.35) * acc * 0.016 * (0.6 + uMid * 1.2 + uVocal * 1.2 + uFlux * 0.8);
+  col *= 0.65 + 0.4 * uBass + 0.4 * uVol;
   gl_FragColor = vec4(soft(col), 1.0);
 }`,
 
@@ -160,18 +183,18 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  uv *= 1.0 - 0.04 * uBeat;
+  uv *= 1.0 - 0.04 * uBeat - 0.03 * uVol;
   uv += 0.08 * vec2(sin(t * 0.17), cos(t * 0.13));
   uv = rot(sin(t * 0.2) * 0.5 + uSpin * 0.6) * uv;
   vec2 f = kfold(uv, 12.0);
   float r = length(f) + 0.0001;
   float a = atan(f.y, f.x);
-  float z = 0.35 / r + t * 0.7 + uBass * 1.2;
-  float spokes = 0.5 + 0.5 * sin(a * (24.0 + 18.0 * uChaos) + z * 0.9 + t * 0.4 + uMid * 3.0);
-  float rings = 0.5 + 0.5 * sin(z * (5.5 + 3.0 * uChaos));
+  float z = 0.35 / r + t * 0.7 + uBass * 1.2 + uVol * 0.6;
+  float spokes = 0.5 + 0.5 * sin(a * (24.0 + 18.0 * uChaos + 10.0 * uVocal) + z * 0.9 + t * 0.4 + uMid * 3.0);
+  float rings = 0.5 + 0.5 * sin(z * (5.5 + 3.0 * uChaos + 2.0 * uBright));
   float v = smoothstep(0.3, 0.95, spokes * rings);
-  vec3 col = pal(z * 0.1 + a * 1.2 + uHigh * 0.4 + uSpin * 0.05) * (0.15 + 1.4 * v);
-  col += pal(z * 0.05 + 0.5) * 0.05 / (r + 0.05) * (0.4 + uBass * 1.0 + uBeat * 0.3);
+  vec3 col = pal(z * 0.1 + a * 1.2 + uHigh * 0.4 + uSpin * 0.05 + (uPitch - 0.5) * 0.7) * (0.15 + 1.4 * v);
+  col += pal(z * 0.05 + 0.5) * 0.05 / (r + 0.05) * (0.3 + uBass * 1.0 + uBeat * 0.3 + uVol * 0.5 + uFlux * 0.4);
   col *= smoothstep(0.0, 0.14, r);
   gl_FragColor = vec4(soft(col), 1.0);
 }`,
@@ -181,8 +204,8 @@ void main() {
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  vec2 p = kfold(rot(t * 0.04 + uSpin * 0.6) * uv * 3.8 * (1.0 - 0.04 * uBeat), 6.0);
-  float amp = 0.7 * (1.0 + 1.6 * uChaos);
+  vec2 p = kfold(rot(t * 0.04 + uSpin * 0.6) * uv * (3.8 - 0.5 * uVol) * (1.0 - 0.04 * uBeat), 6.0);
+  float amp = 0.7 * (1.0 + 1.6 * uChaos + 0.8 * uVocal + 0.4 * uFlux);
   for (int i = 0; i < 5; i++) {
     float fi = float(i);
     p += amp * vec2(sin(p.y * 1.7 + t * 0.4 + fi + uBass * 2.2), cos(p.x * 1.3 - t * 0.3 + fi * 1.7));
@@ -190,9 +213,9 @@ void main() {
   }
   float f = sin(p.x * 2.6) + sin(p.y * 2.6) + sin((p.x + p.y) * 1.8) + sin(length(p) * 3.0 - t * 0.8);
   float v = 0.5 + 0.2 * f;
-  vec3 col = pal(f * 0.2 + t * 0.04 + uMid * 0.5 + uSpin * 0.04);
-  col *= 0.12 + 1.25 * smoothstep(0.1, 0.9, v) + uBass * 0.2 + 0.04 * uBeat;
-  col += pal(f * 0.3 + 0.5) * pow(uHigh, 1.5) * 0.3;
+  vec3 col = pal(f * 0.2 + t * 0.04 + uMid * 0.5 + uSpin * 0.04 + (uPitch - 0.5) * 0.7);
+  col *= 0.1 + 1.0 * smoothstep(0.1, 0.9, v) + uBass * 0.2 + 0.04 * uBeat + 0.35 * uVol;
+  col += pal(f * 0.3 + 0.5) * pow(uHigh, 1.5) * (0.2 + 0.4 * uBright);
   gl_FragColor = vec4(soft(col), 1.0);
 }`,
 };
@@ -209,6 +232,11 @@ interface Built {
   uBass: WebGLUniformLocation | null;
   uMid: WebGLUniformLocation | null;
   uHigh: WebGLUniformLocation | null;
+  uVol: WebGLUniformLocation | null;
+  uVocal: WebGLUniformLocation | null;
+  uPitch: WebGLUniformLocation | null;
+  uBright: WebGLUniformLocation | null;
+  uFlux: WebGLUniformLocation | null;
   uBeat: WebGLUniformLocation | null;
   uChaos: WebGLUniformLocation | null;
   uSpin: WebGLUniformLocation | null;
@@ -255,6 +283,11 @@ export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
       uBass: u('uBass'),
       uMid: u('uMid'),
       uHigh: u('uHigh'),
+      uVol: u('uVol'),
+      uVocal: u('uVocal'),
+      uPitch: u('uPitch'),
+      uBright: u('uBright'),
+      uFlux: u('uFlux'),
       uBeat: u('uBeat'),
       uChaos: u('uChaos'),
       uSpin: u('uSpin'),
@@ -278,6 +311,11 @@ export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
       gl.uniform1f(b.uBass, fr.bass);
       gl.uniform1f(b.uMid, fr.mid);
       gl.uniform1f(b.uHigh, fr.high);
+      gl.uniform1f(b.uVol, fr.vol);
+      gl.uniform1f(b.uVocal, fr.vocal);
+      gl.uniform1f(b.uPitch, fr.pitch);
+      gl.uniform1f(b.uBright, fr.bright);
+      gl.uniform1f(b.uFlux, fr.flux);
       gl.uniform1f(b.uBeat, fr.beat);
       gl.uniform1f(b.uChaos, fr.chaos);
       gl.uniform1f(b.uSpin, fr.spin);

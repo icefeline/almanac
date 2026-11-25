@@ -143,8 +143,8 @@ export default function MediaPlayer({
   const urls = useRef<string[]>([]);
   const wantPlay = useRef(false);
   // the drawing loop reads these rather than being rebuilt each time they change
-  const live = useRef({ playing: false, hasTrack: false, viz: 'kaleidoscope' as Viz, fill: false });
-  live.current = { playing, hasTrack: tracks.length > 0, viz, fill };
+  const live = useRef({ playing: false, hasTrack: false, viz: 'kaleidoscope' as Viz, fill: false, trackKey: '' });
+  live.current = { playing, hasTrack: tracks.length > 0, viz, fill, trackKey: tracks[index]?.src ?? '' };
 
   const track: Track | undefined = tracks[index];
 
@@ -288,48 +288,120 @@ export default function MediaPlayer({
     const spin = { a: 0 };
     let drawn: string | null = null; // what is on the screen, so a paused screen can still change its look
     const idle = new Uint8Array(128);
+    const silence = new Uint8Array(256);
     const smooth = new Float32Array(16); // sixteen bands, deep bass to high treble, quick to rise and slow to fall
     const bands = new Float32Array(16);
+    const prevAll = new Float32Array(256);
     // for anyone who has asked their device for less motion, everything moves at a quarter of the strength
     const pace = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.25 : 1;
-    // the beat detector's memory
-    const bt = { fmean: 0, fdev: 0, prevFlux: 0, prevF: new Float32Array(6), last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0, spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0 };
-    const frame: Frame = { t: 0, bass: 0, mid: 0, high: 0, beat: 0, chaos: 0, spin: 0, bands };
+    // the detector's and the pictures' memory. `alive` is how much the picture is moving: it eases up when a song plays and
+    // down when it is paused, stopped or skipped, so motion slows to a stop rather than freezing; `ref` is how loud this
+    // song has been lately, so a quiet song moves as much as a loud one.
+    const bt = {
+      fmean: 0, fdev: 0, prevFlux: 0, prevF: new Float32Array(6), last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0,
+      spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0,
+      alive: 0, ref: 0.3, track: null as string | null, level: 0,
+      vol: 0, vocal: 0, flux: 0, mVol: 0.4, mVocal: 0.4, mFlux: 0.4, peak: 0.5, peakAvg: 0.5, bright: 0.5, brightAvg: 0.5, pitch: 0.5, tone: 0.5,
+    };
+    const frame: Frame = { t: 0, bass: 0, mid: 0, high: 0, vol: 0, vocal: 0, pitch: 0.5, bright: 0.5, flux: 0, beat: 0, chaos: 0, spin: 0, bands };
     const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
-      const { playing: isPlaying, hasTrack, viz: mode, fill: spread } = live.current;
+      const { playing: isPlaying, hasTrack, viz: mode, fill: spread, trackKey } = live.current;
       feed.on = spread;
       const key = mode + (spread ? '+fill' : '');
-      let f = freq.current;
-      if (isPlaying && analyser.current) {
-        analyser.current.getByteFrequencyData(f);
-      } else if (!hasTrack || isPlaying) {
+      const dt = bt.prevNow ? Math.min(0.05, (now - bt.prevNow) / 1000) : 0.016;
+      bt.prevNow = now;
+
+      // skipping to another song: the picture dips and swells back with the new one
+      if (bt.track !== trackKey) {
+        if (bt.track !== null) {
+          bt.alive = Math.min(bt.alive, 0.3);
+          bt.rate = 0;
+          bt.beat = 0;
+          bt.ref = Math.max(0.2, bt.ref * 0.7); // the next song may be a different loudness
+        }
+        bt.track = trackKey;
+      }
+      // play: it comes up in about a second. Pause, stop or skip: it winds down over a couple of seconds
+      const wantAlive = !hasTrack || isPlaying ? 1 : 0;
+      bt.alive += (wantAlive - bt.alive) * (1 - Math.exp(-dt * (wantAlive > bt.alive ? 2.6 : 1.0)));
+      if (bt.alive < 0.002 && wantAlive === 0) bt.alive = 0;
+
+      let f: Uint8Array;
+      if (!hasTrack || (isPlaying && !analyser.current)) {
         // nothing loaded, or playing without a graph to listen to: a slow made-up signal with a gentle pulse, so the window is alive
         const pulse = Math.pow(Math.max(0, Math.sin(now * 0.0052)), 8);
         for (let i = 0; i < idle.length; i++) idle[i] = 30 + 110 * Math.abs(Math.sin(now * 0.0011 + i * 0.33)) * (1 - (i / idle.length) * 0.65) + (i < 6 ? 120 * pulse : 0);
         f = idle;
+      } else if (analyser.current) {
+        analyser.current.getByteFrequencyData(freq.current); // a paused song reads as silence, so everything fades by itself
+        f = freq.current;
       } else {
-        if (drawn === key) return; // paused or stopped on a song: the picture holds still, unless it was asked to change
+        f = silence;
       }
+      // fully wound down and nothing left in the signal: hold still and stop spending the card's time
+      if (bt.alive === 0 && bt.level < 0.004 && drawn === key) return;
       drawn = key;
-      const dt = bt.prevNow ? Math.min(0.05, (now - bt.prevNow) / 1000) : 0.016;
-      bt.prevNow = now;
+      const n = f.length;
+      const half = n >> 1;
+
+      // how loud this song is: a slowly moving reference, so quiet and loud songs both fill the range
+      let sum = 0;
+      for (let i = 1; i < half; i++) sum += f[i];
+      const lvl = sum / (half - 1) / 255;
+      if (lvl > bt.ref) bt.ref += (lvl - bt.ref) * 0.15;
+      else if (lvl > 0.03) bt.ref += (lvl - bt.ref) * (1 - Math.exp(-dt * 0.12));
+      const gain = Math.min(2.6, Math.max(0.8, 0.5 / Math.max(0.1, bt.ref)));
+
       for (let i = 0; i < 16; i++) {
-        const lo = Math.floor(Math.pow(f.length, i / 16));
-        const hi = Math.max(lo + 1, Math.floor(Math.pow(f.length, (i + 1) / 16)));
-        const v = avg(f, lo, hi) / 255;
+        const lo = Math.floor(Math.pow(n, i / 16));
+        const hi = Math.max(lo + 1, Math.floor(Math.pow(n, (i + 1) / 16)));
+        const v = clamp01((avg(f, lo, hi) / 255) * gain);
         smooth[i] += (v - smooth[i]) * (v > smooth[i] ? 0.3 : 0.08);
         bands[i] = smooth[i];
       }
       const mean = (from: number, to: number) => {
-        let sum = 0;
-        for (let i = from; i < to; i++) sum += bands[i];
-        return sum / (to - from);
+        let s2 = 0;
+        for (let i = from; i < to; i++) s2 += bands[i];
+        return s2 / (to - from);
       };
       const bass = mean(0, 4);
       const mid = mean(4, 10);
       const high = mean(10, 16);
+      bt.level = Math.max(bass, mid, high);
+
+      // the whole sound: overall volume, the voice's range (about 300 Hz to 3.4 kHz), how much is changing, and where
+      // the sound sits in pitch (its loudest note, and how bright it is), shown as how far it has moved from where it
+      // usually sits in this song so that every song, high or low, moves the picture
+      const rise = (cur: number, v: number, up: number, down: number) => cur + (v - cur) * (v > cur ? up : down);
+      bt.vol = rise(bt.vol, clamp01(lvl * gain * 1.15), 0.25, 0.07);
+      bt.vocal = rise(bt.vocal, clamp01((avg(f, 4, Math.min(40, half)) / 255) * gain * 1.1), 0.3, 0.08);
+      let fl = 0;
+      let wsum = 0;
+      let csum = 0;
+      let best = 0;
+      let bestK = 2;
+      for (let k = 1; k < half; k++) {
+        if (k > 5) fl += Math.max(0, f[k] - prevAll[k]);
+        prevAll[k] = f[k];
+        const w = (f[k] / 255) * (f[k] / 255);
+        wsum += w;
+        csum += w * k;
+        if (k >= 2 && k < half / 2 && f[k] > best) {
+          best = f[k];
+          bestK = k;
+        }
+      }
+      bt.flux = rise(bt.flux, clamp01((fl / (255 * (half - 6))) * gain * 7), 0.4, 0.1);
+      if (wsum > 0.05) {
+        bt.bright += ((Math.log(Math.max(1, csum / wsum)) / Math.log(half)) - bt.bright) * 0.08;
+        if (best > 70) bt.peak += ((Math.log(bestK) / Math.log(half / 2)) - bt.peak) * 0.18;
+        bt.peakAvg += (bt.peak - bt.peakAvg) * (1 - Math.exp(-dt * 0.15));
+        bt.brightAvg += (bt.bright - bt.brightAvg) * (1 - Math.exp(-dt * 0.15));
+      }
+      bt.pitch = clamp01(0.5 + (bt.peak - bt.peakAvg) * 2.6);
+      bt.tone = clamp01(0.5 + (bt.bright - bt.brightAvg) * 3.2);
 
       // the beat: a sudden jump in the low end (the bottom few bins) compared with how much that jumps about on this
       // song. Measured as the growth since the last frame, against a running average and spread of that growth, so it
@@ -358,18 +430,30 @@ export default function MediaPlayer({
       bt.beatS += (bt.beat - bt.beatS) * (1 - Math.exp(-dt * 7));
       bt.spinV *= Math.exp(-dt * 1.2);
       bt.spinVs += (bt.spinV - bt.spinVs) * (1 - Math.exp(-dt * 5)); // and the spin speeds up and slows down gradually
-      bt.spin += bt.spinVs * dt * 2.2;
+      bt.spin += bt.spinVs * dt * 2.2 * bt.alive;
       bt.rate *= Math.exp(-dt * 0.12); // with no beats the tempo fades away
       // erratic = quick beats, and plenty going on
       const target = clamp01((bt.rate - 1) / 3.2) * 0.65 + clamp01(((bass + mid + high) / 3) * 1.6 - 0.25) * 0.35;
       bt.chaos += (target - bt.chaos) * (target > bt.chaos ? 0.06 : 0.02);
       // the picture's own clock runs faster the faster and harder the music is
-      bt.clock += dt * pace * (1 + bt.chaos * 2.4 + bt.beatS * 0.3);
+      bt.clock += dt * pace * bt.alive * (1 + bt.chaos * 2.4 + bt.beatS * 0.3);
 
       frame.t = bt.clock;
       frame.bass = bass;
       frame.mid = mid;
       frame.high = high;
+      // each measure is shown partly as it is and mostly as how far it is from this song's own usual, so a song that is
+      // always loud, or always sung over, still makes the picture rise and fall with its dynamics
+      const rel = (x: number, m: number) => clamp01(0.3 * x + 0.7 * (0.5 + 3.4 * (x - m)));
+      const slow = 1 - Math.exp(-dt * 0.25);
+      bt.mVol += (bt.vol - bt.mVol) * slow;
+      bt.mVocal += (bt.vocal - bt.mVocal) * slow;
+      bt.mFlux += (bt.flux - bt.mFlux) * slow;
+      frame.vol = rel(bt.vol, bt.mVol);
+      frame.vocal = rel(bt.vocal, bt.mVocal);
+      frame.pitch = bt.pitch;
+      frame.bright = bt.tone;
+      frame.flux = rel(bt.flux, bt.mFlux);
       frame.beat = bt.beatS * pace;
       frame.chaos = bt.chaos * pace;
       frame.spin = bt.spin * pace;
@@ -380,6 +464,12 @@ export default function MediaPlayer({
         feed.bass = bass;
         feed.mid = mid;
         feed.high = high;
+        feed.vol = frame.vol;
+        feed.vocal = frame.vocal;
+        feed.pitch = frame.pitch;
+        feed.bright = frame.bright;
+        feed.flux = frame.flux;
+        feed.n++;
         feed.beat = frame.beat;
         feed.chaos = frame.chaos;
         feed.spin = frame.spin;

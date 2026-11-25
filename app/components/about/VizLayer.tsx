@@ -28,7 +28,7 @@ export default function VizLayer() {
     const ro = new ResizeObserver(size);
     ro.observe(c);
     let raf = 0;
-    let lastT = -1;
+    let lastN = -1;
     let lastMode = '';
     let lastW = 0;
     const loop = () => {
@@ -36,8 +36,8 @@ export default function VizLayer() {
       c.classList.toggle('is-on', feed.on);
       if (!feed.on) return;
       // draw only when something moved: a paused song holds its picture without keeping the card busy
-      if (feed.t === lastT && feed.mode === lastMode && c.width === lastW) return;
-      lastT = feed.t;
+      if (feed.n === lastN && feed.mode === lastMode && c.width === lastW) return;
+      lastN = feed.n;
       lastMode = feed.mode;
       lastW = c.width;
       gl.draw(feed.mode, feed);
