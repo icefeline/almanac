@@ -88,12 +88,19 @@ const nextConfig = {
    * /api/dreams routes, /dreams itself) resolves as normal, and no other host
    * is affected.
    */
+  // on the milky address the dream page is the front page, so /dreams is only ever an older way in: send it to the plain address
+  async redirects() {
+    return [{ source: '/dreams', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/', permanent: false }];
+  },
+
   async rewrites() {
     return {
       beforeFiles: [
         { source: '/', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams' },
         // the dream map lives at milky.slowww.garden/map
         { source: '/map', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams/map' },
+        // on the milky address the app is installed at the plain address: its manifest starts at '/', not '/dreams'
+        { source: '/dreams/manifest.webmanifest', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/dreams/manifest-milky.webmanifest' },
         // about and the legal pages stay inside the installed app's /dreams scope, so they open in the app and not in a browser sheet
         { source: '/dreams/:page(about|terms|privacy)', has: [{ type: 'host', value: 'milky.slowww.garden' }], destination: '/:page' },
       ],
