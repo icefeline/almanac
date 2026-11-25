@@ -43,12 +43,6 @@ export interface Frame {
   sBass: number;
   sVocal: number;
   sFlux: number;
-  /** Where a finger or pointer is on the picture (0 to 1 across, 0 to 1 up), how fast it is moving, and how much it is stirring. */
-  px: number;
-  py: number;
-  vx: number;
-  vy: number;
-  touch: number;
   /** Rises and falls smoothly with each hit (never a jump). */
   beat: number;
   /** 0 calm, 1 frantic: how quick the beats are and how much is going on. */
@@ -75,11 +69,6 @@ export const feed: Frame & { on: boolean; mode: ShaderViz; n: number } = {
   sBass: 0,
   sVocal: 0,
   sFlux: 0,
-  px: 0.5,
-  py: 0.5,
-  vx: 0,
-  vy: 0,
-  touch: 0,
   vol: 0,
   vocal: 0,
   pitch: 0.5,
@@ -105,9 +94,6 @@ uniform float uTime;
 uniform float uBass;
 uniform float uMid;
 uniform float uHigh;
-uniform vec2 uPtr;
-uniform vec2 uPtrV;
-uniform float uTouch;
 uniform float uSBass;
 uniform float uSVocal;
 uniform float uSFlux;
@@ -145,14 +131,6 @@ vec2 kfold(vec2 uv, float n) {
   a = abs(mod(a, seg) - seg * 0.5);
   return r * vec2(cos(a), sin(a));
 }
-// a finger or pointer on the picture stirs it like water: the space swirls round it and is dragged along its path, and
-// settles again, slowly, when it lets go
-vec2 touchWarp(vec2 uv) {
-  vec2 P = (uPtr - 0.5) * vec2(uRes.x / uRes.y, 1.0);
-  vec2 d = uv - P;
-  float g = exp(-dot(d, d) * 6.0) * uTouch;
-  return uv + g * (vec2(-d.y, d.x) * 0.8 + uPtrV * 0.28);
-}
 // gentle tone mapping, so loud passages brighten without burning out to white
 vec3 soft(vec3 c) { return 1.0 - exp(-c * 1.25); }
 `;
@@ -161,7 +139,7 @@ const BODY: Record<ShaderViz, string> = {
   // three layers of warped, drifting colour, each folded into a different mirror, zooming forever
   kaleidoscope: `
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   uv *= 1.0 - 0.05 * uBeat - 0.05 * uVol - 0.07 * uBuild;
   uv += (0.14 + 0.12 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
@@ -196,7 +174,7 @@ void main() {
   // a fractal world of folded space (a Kali set), mirrored, with its orbit traps lit up as colour
   fractal: `
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   uv *= 1.0 - 0.04 * uBeat;
   uv += 0.1 * vec2(cos(t * 0.09), sin(t * 0.12));
@@ -222,7 +200,7 @@ void main() {
   // falling down a mirrored tunnel of spokes and rings, towards a light that flares with the bass
   tunnel: `
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   uv *= 1.0 - 0.04 * uBeat - 0.03 * uVol - 0.06 * uBuild;
   uv += 0.08 * vec2(sin(t * 0.17), cos(t * 0.13));
@@ -243,7 +221,7 @@ void main() {
   // slow liquid colour, mirrored, folded over itself and pushed about by the bass
   flow: `
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   vec2 p = kfold(rot(t * 0.04 + uSpin * 0.6) * uv * (3.8 - 0.5 * uVol) * (1.0 - 0.04 * uBeat), 6.0);
   float amp = 0.7 * (0.6 + 0.5 * uArc + 1.3 * uChaos + 0.8 * uVocal + 0.4 * uFlux);
@@ -266,7 +244,7 @@ void main() {
   // a lattice of glowing blue outlines that swell, drift apart and join, over a halftone of dots. Like the others it never
   // stops falling inward: two layers of the lattice zoom in at different phases and fade into one another
   bubbles: `
-float cells(vec2 q, float t, out float ring) {
+float cells(vec2 q, float t, float px, out float ring) {
   vec3 B[6];
   B[0] = vec3(0.0, 0.0, 0.2);
   B[1] = vec3(0.0, 0.5, 0.19);
@@ -284,12 +262,12 @@ float cells(vec2 q, float t, out float ring) {
     float r = B[i].z * (1.0 + 0.25 * uSBass + 0.1 * uVol + 0.1 * uArc + 0.06 * sin(t * 0.4 + fi));
     vec2 d = q - c;
     F += r * r / (dot(d, d) + 0.0006);
-    ring = max(ring, smoothstep(0.012, 0.002, abs(length(d) - r * 1.12)));
+    ring = max(ring, smoothstep(px * 3.2, px * 0.7, abs(length(d) - r * 1.12)));
   }
   return F;
 }
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   uv *= 1.0 - 0.05 * uBeat - 0.05 * uVol - 0.1 * uBuild;
   uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
@@ -304,7 +282,7 @@ void main() {
     float fade = sin(ph * 3.14159);
     vec2 q = abs(uv * zoom);
     float ring;
-    float F = cells(q, t + fk * 7.0, ring);
+    float F = cells(q, t + fk * 7.0, zoom * 1.7 / uRes.y, ring);
     float ee = abs(F - 1.0);
     line = max(line, max(smoothstep(0.1, 0.03, ee), ring * 0.7) * fade);
     glow = max(glow, exp(-ee * 4.0) * fade);
@@ -338,11 +316,17 @@ float sheet(vec2 uv, float t) {
   float s = (uv.y + D) * lines;
   float f = fract(s);
   float dd = min(f, 1.0 - f);
-  float w = 0.05 + 0.03 * uVol;
-  return smoothstep(w + 0.035, w - 0.015, dd);
+#ifdef GL_OES_standard_derivatives
+  float aa = max(fwidth(s), 0.0001);
+#else
+  float aa = 0.06;
+#endif
+  // an even, clean line a pixel or so wide however crowded the folds get
+  float w = max(0.05 + 0.03 * uVol, 0.5 * aa);
+  return 1.0 - smoothstep(w, w + 1.2 * aa, dd);
 }
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
   uv += (0.1 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
@@ -387,7 +371,7 @@ float landscape(vec2 uv, float t, out float heavy, out float fw) {
   return 1.0 - smoothstep(k, k + fw, dd);
 }
 void main() {
-  vec2 uv = touchWarp((gl_FragCoord.xy - 0.5 * uRes) / uRes.y);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
   float t = uTime;
   uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
   uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
@@ -415,9 +399,6 @@ interface Built {
   uBass: WebGLUniformLocation | null;
   uMid: WebGLUniformLocation | null;
   uHigh: WebGLUniformLocation | null;
-  uPtr: WebGLUniformLocation | null;
-  uPtrV: WebGLUniformLocation | null;
-  uTouch: WebGLUniformLocation | null;
   uSBass: WebGLUniformLocation | null;
   uSVocal: WebGLUniformLocation | null;
   uSFlux: WebGLUniformLocation | null;
@@ -475,9 +456,6 @@ export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
       uBass: u('uBass'),
       uMid: u('uMid'),
       uHigh: u('uHigh'),
-      uPtr: u('uPtr'),
-      uPtrV: u('uPtrV'),
-      uTouch: u('uTouch'),
       uSBass: u('uSBass'),
       uSVocal: u('uSVocal'),
       uSFlux: u('uSFlux'),
@@ -511,9 +489,6 @@ export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
       gl.uniform1f(b.uBass, fr.bass);
       gl.uniform1f(b.uMid, fr.mid);
       gl.uniform1f(b.uHigh, fr.high);
-      gl.uniform2f(b.uPtr, fr.px, fr.py);
-      gl.uniform2f(b.uPtrV, fr.vx, fr.vy);
-      gl.uniform1f(b.uTouch, fr.touch);
       gl.uniform1f(b.uSBass, fr.sBass);
       gl.uniform1f(b.uSVocal, fr.sVocal);
       gl.uniform1f(b.uSFlux, fr.sFlux);
