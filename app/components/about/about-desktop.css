@@ -53,6 +53,8 @@
   line-height: 1.25;
   -webkit-font-smoothing: none;
   font-smooth: never;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
@@ -66,6 +68,17 @@
 .wd-root a {
   font: inherit;
   color: inherit;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* every start-menu name is the same size, links and apps and folders alike */
+.wd-smi,
+.wd-smi * {
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.25;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 .wd-root img {
   image-rendering: pixelated;
@@ -1085,17 +1098,30 @@ a.wd-pi:focus-visible {
   height: 16px;
   margin: 0 3px 0 2px;
 }
-.wd-mini-ttl {
+.wd-root .wd-mini .wd-mini-ttl {
   flex: 1;
   min-width: 0;
+  align-self: stretch;
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
   text-align: left;
-  padding: 0 2px;
-  background: none;
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+  margin: 0 2px 0 3px;
+  /* the same little amber dot-matrix display as in the player window */
+  background: #131313;
+  box-shadow: var(--field);
   border: 0;
-  color: #000;
+  color: #e8962f;
+  font-family: var(--font-doto), 'VT323', monospace;
+  font-weight: 600;
+  font-variation-settings: 'ROND' 100;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 3px rgba(232, 150, 47, 0.4);
 }
 /* the title drifts left like a marquee while a song plays; two copies with a gap make the loop seamless */
 .wd-mini-run {
@@ -1149,5 +1175,57 @@ html:has(.wd-root) body {
   }
   .wd-root {
     --sab: 0px;
+  }
+}
+
+/* the player's little display: black glass, amber dots. the name scrolls like a marquee (two copies make the loop seamless);
+   it keeps its place when paused, and stands still for anyone who has asked for less motion */
+.wd-lcd {
+  display: flex;
+  align-items: stretch;
+  margin-top: 3px;
+  background: #131313;
+  box-shadow: var(--field);
+  color: #e8962f;
+  font-family: var(--font-doto), 'VT323', monospace;
+  font-weight: 600;
+  font-variation-settings: 'ROND' 100;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 3px rgba(232, 150, 47, 0.4);
+}
+.wd-lcd-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 3px 5px;
+}
+.wd-lcd-time {
+  flex: none;
+  padding: 3px 6px 3px 8px;
+  white-space: nowrap;
+  border-left: 1px solid rgba(232, 150, 47, 0.25);
+}
+.wd-lcd-run {
+  display: inline-flex;
+  animation: wd-marquee 14s linear infinite;
+  animation-play-state: paused;
+}
+.wd-lcd-run.is-on {
+  animation-play-state: running;
+}
+.wd-lcd-run > span {
+  flex: none;
+  padding-right: 3em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wd-lcd-run {
+    animation: none;
+  }
+  .wd-lcd-run > span:last-child {
+    display: none;
   }
 }

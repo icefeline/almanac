@@ -117,8 +117,8 @@ const NODES: Record<string, Entry> = {
     h: 160,
     scatter: { why: ['5%', 8], coffee: ['58%', 14], privacy: ['20%', 82], terms: ['64%', 88] },
   },
-  display: { title: 'display properties', icon: 'monitor', kind: 'display', w: 330 },
-  music: { title: 'media player', icon: 'cd', kind: 'player', w: 350, dock: 'bottom-right', estH: 335 },
+  display: { title: 'display', icon: 'monitor', kind: 'display', w: 330 },
+  music: { title: 'music', icon: 'cd', kind: 'player', w: 350, dock: 'bottom-right', estH: 335 },
   // the questions, then the two policies: a policy is just one more thing people ask about
   faq: {
     title: ABOUT.faq.label,
@@ -326,9 +326,14 @@ export default function AboutDesktop() {
     } catch {
       // storage can be blocked or empty: the default look is fine
     }
+    // every visit opens with a different look: a wallpaper and colour other than last time's (the reader can still pick their own)
+    const others = <T extends { id: string }>(list: readonly T[], last?: string) => {
+      const pool = list.filter((x) => x.id !== last);
+      return pool[Math.floor(Math.random() * pool.length)].id;
+    };
     setScene({
-      wall: WALLS.some((w) => w.id === saved?.wall) ? saved!.wall! : 'none',
-      color: COLORS.some((col) => col.id === saved?.color) ? saved!.color! : onMilky ? MILKY_COLOR : DEFAULT_COLOR,
+      wall: others(WALLS, saved?.wall),
+      color: onMilky ? MILKY_COLOR : others(COLORS, saved?.color),
     });
     const kept: Record<string, [number, number]> = {};
     for (const { id } of DESK) {
@@ -675,7 +680,7 @@ export default function AboutDesktop() {
                 open('display');
               }}
             >
-              display properties…
+              display…
             </button>
             <div className="wd-psep" role="separator" />
             <a href={back} role="menuitem" className="wd-pi">
