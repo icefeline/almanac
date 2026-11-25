@@ -1176,6 +1176,10 @@ html:has(.wd-root) body {
   .wd-root {
     --sab: 0px;
   }
+  /* the milky app's page reaches the very bottom of the screen, so its taskbar has to clear the home indicator and the rounded corners */
+  .wd-root[data-app='milky'] {
+    --sab: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 /* the player's little display: black glass, amber dots. the name scrolls like a marquee (two copies make the loop seamless);
