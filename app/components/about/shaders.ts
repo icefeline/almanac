@@ -14,8 +14,14 @@
  * are no flashes, bursts or rings on a hit, and brightness barely moves, so a fast song makes it wild but never jumpy.
  */
 
-export type ShaderViz = 'kaleidoscope' | 'fractal' | 'tunnel' | 'flow' | 'hatch' | 'ridges' | 'contours';
-export const SHADER_VIZ: ShaderViz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow', 'hatch', 'ridges', 'contours'];
+export type ShaderViz =
+  | 'kaleidoscope' | 'fractal' | 'tunnel' | 'flow' | 'hatch' | 'ridges' | 'contours'
+  // textures from nature, none of them a kaleidoscope
+  | 'spores' | 'plumage' | 'veins' | 'wing' | 'nacre' | 'iris' | 'marbling';
+export const SHADER_VIZ: ShaderViz[] = [
+  'kaleidoscope', 'fractal', 'tunnel', 'flow', 'hatch', 'ridges', 'contours',
+  'spores', 'plumage', 'veins', 'wing', 'nacre', 'iris', 'marbling',
+];
 export const isShader = (v: string): v is ShaderViz => (SHADER_VIZ as string[]).includes(v);
 
 /** What the music is doing, one frame at a time. */
@@ -208,6 +214,33 @@ vec2 kal(vec2 uv, float mode, float t) {
 }
 // gentle tone mapping, so loud passages brighten without burning out to white
 vec3 soft(vec3 c) { return 1.0 - exp(-c * 1.25); }
+float cl(float x) { return clamp(x, 0.0, 1.0); }
+// one of the sixteen frequency bands by number (a loop, because a shader may only index a uniform array by a constant)
+float band(float k) {
+  float r = 0.0;
+  for (int i = 0; i < 16; i++) r += uBands[i] * step(abs(float(i) - k), 0.5);
+  return clamp(r, 0.0, 1.0);
+}
+// cells of wandering points: the distance to the nearest (f1o), the gap between nearest and second nearest (which is
+// zero along every border, so it draws the borders), and which cell this is
+float vor(vec2 p, out vec2 id, out float f1o) {
+  vec2 ip = floor(p), fp = fract(p);
+  float f1 = 8.0, f2 = 8.0;
+  vec2 bid = vec2(0.0);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 g = vec2(float(i), float(j));
+      vec2 o = vec2(hash(ip + g), hash(ip + g + 37.0));
+      o = 0.5 + 0.42 * sin(uTime * 0.15 + 6.28318 * o);
+      float d = length(g + o - fp);
+      if (d < f1) { f2 = f1; f1 = d; bid = ip + g; }
+      else if (d < f2) { f2 = d; }
+    }
+  }
+  id = bid;
+  f1o = f1;
+  return f2 - f1;
+}
 `;
 
 const BODY: Record<ShaderViz, string> = {
@@ -469,6 +502,302 @@ void main() {
   vec3 ink = vec3(0.07, 0.04, 0.16);
   col = mix(col, ink, line * (0.85 + 0.15 * hv));
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`,
+
+  // ink dots ringed round a black hole, wave after wave of them: each ring has its own band and its own acid ink. Dithered
+  spores: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), ar = cl(uArc);
+  uv *= 1.0 - 0.05 * bt - 0.04 * vl;
+  uv = rot(t * 0.012 + uSpin * 0.4) * uv;
+  uv += 0.07 * vec2(sin(t * 0.11), cos(t * 0.09));
+  float d = dith();
+  vec2 w = vec2(fbm(uv * 1.7 + t * 0.03), fbm(uv * 1.7 + 7.3 - t * 0.025)) - 0.5;
+  vec2 p = uv + (0.09 + 0.1 * vo) * w;
+  float r = length(p);
+  float a = atan(p.y, p.x);
+  vec2 dir = p / max(r, 0.001);
+  float hole = 0.19 + 0.05 * ba + 0.015 * sin(t * 0.2);
+  float sp = 0.062;
+  float u = (r - hole) / sp;
+  float rmax = hole + sp * (6.0 + 3.0 * ar) * (0.7 + 0.6 * noise(dir * 1.7 + vec2(t * 0.03, 3.0)));
+  float k = floor(u);
+  float rk = hole + (k + 0.5) * sp;
+  float n = max(6.0, floor(6.28318 * rk / sp));
+  float ca = a / 6.28318 * n + 0.5 * k + 0.035 * t * (mod(k, 2.0) * 2.0 - 1.0);
+  vec2 lc = vec2((fract(ca) - 0.5) * (6.28318 * rk / n) / sp, fract(u) - 0.5);
+  float bd = band(mod(k * 1.7, 16.0));
+  // a wave runs outward through the rings, swelling each dot as it passes
+  float wave = 0.5 + 0.5 * sin(k * 0.9 - t * 0.7 - 3.0 * ba);
+  float rad = 0.17 + 0.18 * bd + 0.1 * wave + 0.06 * vl + 0.06 * (hash(vec2(floor(ca), k)) - 0.5);
+  rad *= smoothstep(rmax, rmax - 2.0 * sp, r);
+  float dd = length(lc) + 0.07 * noise(lc * 8.0 + k);
+  float dt = 1.0 - smoothstep(rad - 0.05, rad + 0.05, dd);
+  dt *= step(0.0, u);
+  // a second, misprinted pass of the dots in another ink, slipped half a step
+  vec2 lc2 = lc - vec2(0.18, -0.14);
+  float dt2 = (1.0 - smoothstep(rad * 0.8 - 0.05, rad * 0.8 + 0.05, length(lc2))) * step(0.0, u);
+  vec3 ground = mix(vec3(0.2, 0.03, 0.5), vec3(0.5, 0.06, 0.62), noise(p * 4.0 + 2.0) + 0.3 * sin(r * 14.0 - t * 0.4));
+  vec3 inkA = pick(2.0 + floor(uPitch * 2.5) + mod(k, 2.0) * 1.0);
+  vec3 field = mix(ground, pick(1.0), dt2 * 0.85);
+  field = mix(field, inkA, dt);
+  // outside the dots: deep night with big blots, each with a bright ring where the ink dried
+  vec2 bp = uv * 2.4 + 3.0;
+  vec2 bi = floor(bp), bf = fract(bp) - 0.5;
+  float hb = hash(bi);
+  vec2 off = (vec2(hash(bi + 1.7), hash(bi + 4.1)) - 0.5) * 0.5;
+  float br = 0.12 + 0.16 * hash(bi + 9.0) + 0.09 * band(floor(hb * 16.0));
+  float bdst = length(bf - off);
+  float has = step(0.42, hb);
+  vec3 paper = mix(vec3(0.04, 0.02, 0.22), vec3(0.45, 0.04, 0.45), smoothstep(0.1, 0.9, 0.35 - uv.y));
+  float inside = has * (1.0 - smoothstep(br - 0.03, br, bdst));
+  float rim = has * smoothstep(br - 0.11, br - 0.03, bdst) * (1.0 - smoothstep(br - 0.03, br, bdst));
+  paper = mix(paper, pick(4.0), inside);
+  paper = mix(paper, pick(5.0), rim);
+  float m = step(d, smoothstep(rmax + 0.05, rmax - 0.05, r));
+  vec3 col = mix(paper, field, m);
+  float streak = noise(dir * 14.0 + vec2(r * 2.0, 0.0));
+  vec3 hc = mix(vec3(0.0, 0.0, 0.04), pick(1.0) * 0.8, smoothstep(0.55, 1.0, r / hole) * (0.5 + 0.7 * streak));
+  col = mix(hc, col, step(d, smoothstep(hole - 0.035, hole + 0.012, r)));
+  gl_FragColor = vec4(retro(col, d), 1.0);
+}`,
+
+  // rows of scales that slide and swirl, flat colour with a hot misprint under each: orange ground, ice tips, lit by band
+  plumage: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild);
+  uv *= 1.0 - 0.03 * bt - 0.03 * vl - 0.05 * bu;
+  // the rows bend into a slow whirl, harder on the bass
+  uv = rot(0.1 + sin(t * 0.05) * 0.1 + uSpin * 0.3 + (0.35 + 0.5 * ba) * length(uv) * sin(t * 0.06)) * uv;
+  uv += vec2(0.0, t * 0.014);
+  vec2 wv = vec2(noise(uv * 1.4 + t * 0.05), noise(uv * 1.4 + 4.0 - t * 0.04)) - 0.5;
+  vec2 p = (uv + (0.05 + 0.08 * vo) * wv) * vec2(3.4, 3.0);
+  vec2 a = fract(p) - 0.5, b = fract(p + 0.5) - 0.5;
+  bool useA = dot(a, a) < dot(b, b);
+  vec2 q = useA ? a : b;
+  vec2 id = useA ? floor(p) : floor(p + 0.5) + vec2(0.37, 0.61);
+  float hh = hash(id);
+  float lit = band(floor(hh * 16.0)) * 0.7 + 0.6 * bt * (0.5 + 0.5 * sin(id.y * 0.8 - id.x * 0.3 - t * 0.8));
+  q.x += 0.05 * sin(t * 0.4 + hh * 6.28318) * (1.0 + vo);
+  float R = 0.24 + 0.05 * ba + 0.04 * lit;
+  float taper = 1.0 + 2.6 * smoothstep(0.0, 0.45, -q.y);
+  vec2 qg = q - vec2(0.045, -0.04);
+  float sdf = length(vec2(q.x * taper * 1.15, q.y * 0.7 + 0.04)) - R;
+  float sdfg = length(vec2(qg.x * taper * 1.15, qg.y * 0.7 + 0.04)) - R;
+  float aa = max(fwidth(sdf), 0.002);
+  float mask = 1.0 - smoothstep(-aa, aa * 1.5, sdf);
+  float ghost = 1.0 - smoothstep(-aa, aa * 1.5, sdfg);
+  float streak = noise(vec2(uv.x * 95.0, uv.y * 7.0));
+  vec3 ground = mix(vec3(0.55, 0.0, 0.38), vec3(1.0, 0.22, 0.04), streak);
+  vec3 tipA = vec3(0.0, 0.95, 1.0), tipB = vec3(0.78, 1.0, 0.0);
+  vec3 tip = mix(tipA, tipB, clamp(lit * 1.2 + 0.5 * sin(id.x * 0.5 + id.y * 0.3 + uPitch * 4.0), 0.0, 1.0));
+  tip = mix(tip, vec3(1.0), smoothstep(0.28, 0.0, length(q)) * 0.55);
+  float shaft = 1.0 - smoothstep(0.006, 0.016, abs(q.x));
+  tip = mix(tip, vec3(0.1, 0.05, 0.4), shaft * 0.8 * step(q.y, 0.2));
+  vec3 col = mix(ground, vec3(1.0, 0.1, 0.7), ghost * (1.0 - mask));
+  col = mix(col, tip, mask);
+  col = mix(col, vec3(0.08, 0.02, 0.25), smoothstep(aa * 4.0, 0.0, abs(sdf)) * 0.6 * mask);
+  gl_FragColor = vec4(retro(col, 0.5), 1.0);
+}`,
+
+  // a leaf's skeleton in neon on black: a trunk, veins that fork off it, each lit by its band, three misprinted inks
+  veins: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild);
+  uv *= 1.0 - 0.04 * bt - 0.04 * vl - 0.05 * bu;
+  uv = rot(sin(t * 0.04) * 0.25 + uSpin * 0.3) * uv;
+  uv.y += t * 0.014;
+  vec2 wv = vec2(fbm(uv * 1.3 + t * 0.03), fbm(uv * 1.3 + 5.0 - t * 0.025)) - 0.5;
+  vec2 q = uv + (0.1 + 0.14 * vo) * wv;
+  float x = q.x + 0.06 * sin(q.y * 1.8 + t * 0.15);
+  float ax = abs(x);
+  float s = q.y * 4.2 + pow(ax, 0.8) * 6.0;
+  float aa = max(fwidth(s), 0.0001);
+  float lv = band(mod(floor(s), 16.0));
+  float lw = (0.025 + 0.05 * smoothstep(1.6, 0.0, ax)) * (0.8 + 0.7 * lv + 0.3 * vl);
+  float off = 0.05 + 0.05 * bt;
+  float fA = fract(s + off), fB = fract(s), fC = fract(s - off);
+  float lA = 1.0 - smoothstep(lw, lw + 1.4 * aa, min(fA, 1.0 - fA));
+  float lB = 1.0 - smoothstep(lw, lw + 1.4 * aa, min(fB, 1.0 - fB));
+  float lC = 1.0 - smoothstep(lw, lw + 1.4 * aa, min(fC, 1.0 - fC));
+  float glw = 1.0 - smoothstep(lw, lw * 5.0 + 0.1, min(fB, 1.0 - fB));
+  vec2 vid; float vf;
+  float e = vor(q * 7.0, vid, vf);
+  float net = 1.0 - smoothstep(0.0, 0.05 + 0.04 * vl, e);
+  float tw = 0.03 + 0.012 * ba + 0.01 * vl;
+  float w2 = max(fwidth(ax), 0.0005);
+  float trunk = 1.0 - smoothstep(tw, tw + 1.5 * w2, ax);
+  float tglow = 1.0 - smoothstep(tw, tw * 6.0, ax);
+  vec3 lime = vec3(0.72, 1.0, 0.0), mag = vec3(1.0, 0.1, 0.65), cy = vec3(0.0, 0.95, 1.0);
+  float hue = clamp(uPitch, 0.0, 1.0);
+  vec3 mainc = mix(lime, cy, hue * 0.8);
+  vec3 col = mix(vec3(0.0, 0.02, 0.06), vec3(0.14, 0.0, 0.3), smoothstep(0.0, 1.0, fbm(q * 2.0 + t * 0.02)));
+  col += vec3(0.5, 0.0, 0.7) * net * 0.35;
+  col += mainc * glw * 0.25 * (0.5 + vl + lv);
+  col = mix(col, mag, lA * 0.9);
+  col = mix(col, cy, lC * 0.9);
+  col = mix(col, mainc, lB);
+  col += mainc * lB * lv * 0.5;
+  col += mag * tglow * 0.35 * (0.5 + ba);
+  col = 1.0 - exp(-col * 1.4);
+  col = mix(col, mix(mag, vec3(1.0, 1.0, 0.85), smoothstep(tw, 0.0, ax)), trunk);
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`,
+
+  // a mosaic of flat acid cells, each walled in black with a pink misprint behind, some with target rings that spin.
+  // Each cell's size and colour follows its own band. Flat print with a halftone shadow
+  wing: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vl = cl(uVol), bt = cl(uBeat);
+  uv *= 1.0 - 0.03 * bt;
+  uv = rot(0.4 + sin(t * 0.03) * 0.2 + uSpin * 0.3) * uv;
+  vec2 p = uv * 3.0 + vec2(t * 0.03, -t * 0.02);
+  p += 0.35 * (vec2(noise(p * 0.8 + t * 0.04), noise(p * 0.8 + 9.0 - t * 0.03)) - 0.5);
+  float d = dith();
+  vec2 id; float f1;
+  float e = vor(p, id, f1);
+  vec2 idg; float f1g;
+  float eg = vor(p + vec2(0.12, -0.1), idg, f1g);
+  float hc = hash(id);
+  float bn = band(floor(hc * 16.0));
+  float bw = 0.06 + 0.05 * ba + 0.08 * bn + 0.03 * vl;
+  float aa = max(fwidth(e), 0.002);
+  float border = 1.0 - smoothstep(bw, bw + 1.5 * aa, e);
+  float borderg = 1.0 - smoothstep(bw, bw + 1.5 * aa, eg);
+  float ci = floor(hc * 6.0) + floor(clamp(uPitch, 0.0, 0.99) * 3.0);
+  vec3 fill = pick(ci);
+  // a halftone shadow in each cell, thickest at its edge
+  fill = mix(fill, fill * 0.45, step(d, smoothstep(0.15, 0.75, f1) * 0.8));
+  // the target: rings out from the middle of some cells, turning with the music
+  float tg = step(0.5, hc);
+  float rg = mod(floor(f1 * 8.0 - t * 0.12 - bn * 3.0), 2.0);
+  vec3 ringc = mix(vec3(0.06, 0.02, 0.2), pick(ci + 2.0), rg);
+  fill = mix(fill, ringc, tg * (1.0 - smoothstep(0.35 + 0.15 * bn, 0.37 + 0.15 * bn + aa, f1)));
+  vec3 ink = vec3(0.06, 0.02, 0.2);
+  vec3 col = mix(fill, vec3(1.0, 0.1, 0.65), borderg * (1.0 - border));
+  col = mix(col, ink, border);
+  gl_FragColor = vec4(retro(col, d), 1.0);
+}`,
+
+  // a spiral shell in oil-slick rainbow: ridges that curl into the centre for ever, hard bands of colour, dithered
+  nacre: `
+float pearl(vec2 p, float t, float k, out float ph, out float lr) {
+  float r = length(p) + 0.0005;
+  float a = atan(p.y, p.x);
+  lr = log(r);
+  ph = a / 6.28318 * 4.0 + lr * k - t * 0.03;
+  ph += 0.35 * noise(vec2(cos(a), sin(a)) * 1.5 + vec2(lr * 1.2, t * 0.03));
+  float ridge = 0.5 + 0.5 * cos(ph * 6.28318);
+  return pow(ridge, 1.5) * smoothstep(0.0, 0.07, r);
+}
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vl = cl(uVol), bt = cl(uBeat), bu = cl(uBuild);
+  uv *= 1.0 - 0.03 * bt - 0.05 * bu;
+  vec2 p = uv - vec2(0.1, 0.03) + 0.03 * vec2(sin(t * 0.07), cos(t * 0.06));
+  p = rot(uSpin * 0.4) * p;
+  float k = 0.9 + 0.12 * ba;
+  float ph, lr, ph2, lr2;
+  float h = pearl(p, t, k, ph, lr);
+  float e = 0.004;
+  float hx = pearl(p + vec2(e, 0.0), t, k, ph2, lr2) - pearl(p - vec2(e, 0.0), t, k, ph2, lr2);
+  float hy = pearl(p + vec2(0.0, e), t, k, ph2, lr2) - pearl(p - vec2(0.0, e), t, k, ph2, lr2);
+  vec3 n = normalize(vec3(-hx, -hy, 2.0 * e * 2.5));
+  float la = 2.2 + 0.4 * sin(t * 0.05);
+  vec3 L = normalize(vec3(cos(la), sin(la), 0.7));
+  float lam = 0.5 + 0.5 * dot(n, L);
+  float spec = pow(max(dot(n, normalize(L + vec3(0.0, 0.0, 1.0))), 0.0), 14.0);
+  float d = dith();
+  // the colour runs round the rainbow along the ridges, and further with every pass of the spiral
+  float hue = h * 0.45 + lr * 0.3 + t * 0.02 + uPitch * 0.6 + 0.2 * lam;
+  vec3 col = pal(hue) * (0.25 + 1.0 * lam);
+  col += vec3(1.0, 0.95, 0.9) * spec * (0.3 + 0.5 * vl + 0.4 * bt);
+  col *= 0.55 + 0.7 * smoothstep(0.0, 0.1, length(p));
+  col *= 1.0 - 0.3 * smoothstep(0.5, 1.2, length(uv));
+  gl_FragColor = vec4(retro(col, d), 1.0);
+}`,
+
+  // an iris filling the whole screen: rings of acid colour, spiky fibres, a black pupil that opens on the bass. Dithered
+  iris: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat);
+  uv *= 1.0 - 0.04 * bt - 0.04 * vl;
+  vec2 p = rot(t * 0.015 + uSpin * 0.5) * uv * 1.15;
+  p += 0.03 * vec2(sin(t * 0.13), cos(t * 0.11));
+  float d = dith();
+  float r = length(p);
+  vec2 dir = p / max(r, 0.001);
+  float fib = noise(dir * 14.0 + vec2(r * 2.0, -r * 2.0) + t * 0.04 * (0.5 + vo));
+  float fib2 = noise(dir * 38.0 + r * 3.0);
+  // rings of colour that open outward from the pupil, one band to a ring
+  float rr = r * 6.0 - t * 0.06 + 0.5 * fib;
+  float n = floor(rr);
+  float f = fract(rr);
+  float bn = band(mod(n, 16.0));
+  float ci = n + floor(clamp(uPitch, 0.0, 0.99) * 3.0);
+  vec3 cA = pick(ci + 1.0), cB = pick(ci + 2.0);
+  vec3 col = mix(cA, cB, step(d, smoothstep(0.55, 1.0, f)));
+  col *= 0.5 + 0.9 * fib * (0.5 + 0.5 * fib2) + 0.35 * bn;
+  // dark spokes between the fibres
+  col *= 1.0 - 0.6 * step(0.66, fib2) * smoothstep(0.1, 0.6, r);
+  float pr = 0.1 + 0.07 * ba;
+  float rim = smoothstep(pr + 0.05, pr, r) * smoothstep(pr - 0.01, pr + 0.01, r);
+  col = mix(col, pick(2.0), rim * (0.6 + 0.4 * vl));
+  col = mix(vec3(0.0), col, step(d, smoothstep(pr - 0.015, pr + 0.01, r)));
+  // two glints, which tick over to a bigger square on the beat
+  vec2 g1 = p - vec2(0.09, 0.1);
+  col = mix(col, vec3(1.0), step(max(abs(g1.x), abs(g1.y)), 0.012 + 0.014 * bt));
+  col *= 1.0 - 0.8 * smoothstep(0.7, 1.3, length(uv));
+  gl_FragColor = vec4(retro(col, d), 1.0);
+}`,
+
+  // three drops of ink spreading in rings through still water that keeps being stirred: flat acid bands, dithered at the
+  // seams, a cyan misprint line riding each seam
+  marbling: `
+float drops(vec2 q, float t) {
+  vec2 c1 = 0.7 * vec2(sin(t * 0.07), cos(t * 0.06));
+  vec2 c2 = 0.75 * vec2(cos(t * 0.05 + 2.0), sin(t * 0.08 + 1.0));
+  vec2 c3 = 0.6 * vec2(sin(t * 0.09 + 4.0), sin(t * 0.05 + 3.0));
+  return 0.55 / (length(q - c1) + 0.12) + 0.5 / (length(q - c2) + 0.12) + 0.45 / (length(q - c3) + 0.12);
+}
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  float ba = cl(uSBass), vo = cl(uSVocal), vl = cl(uVol), bt = cl(uBeat);
+  uv *= 1.0 - 0.03 * bt - 0.03 * vl;
+  vec2 p = rot(uSpin * 0.3) * uv * 1.5;
+  vec2 w = vec2(fbm(p * 1.1 + t * 0.04), fbm(p * 1.1 + 6.0 - t * 0.035)) - 0.5;
+  w += 0.5 * (vec2(fbm(p * 2.2 + w * 2.0 + 3.0), fbm(p * 2.2 - w * 2.0 + 8.0)) - 0.5);
+  vec2 q = p + (0.5 + 0.5 * vo) * w;
+  float d = dith();
+  float s = drops(q, t) * (2.4 + 0.5 * ba) + t * 0.08;
+  float s2 = drops(q + vec2(0.03, -0.02), t) * (2.4 + 0.5 * ba) + t * 0.08;
+  float n = floor(s);
+  float f = fract(s);
+  float shiftc = floor(clamp(uPitch, 0.0, 0.99) * 4.0);
+  vec3 cA = pick(n + shiftc + floor(band(mod(n, 16.0)) * 2.0));
+  vec3 cB = pick(n + 1.0 + shiftc + floor(band(mod(n + 1.0, 16.0)) * 2.0));
+  vec3 col = mix(cA, cB, step(d, smoothstep(0.7, 1.0, f)));
+  float fw = fwidth(s);
+  float aa = max(fw * 1.5, 0.004);
+  float seam = 1.0 - smoothstep(0.0, 0.05 + aa, min(f, 1.0 - f));
+  float seam2 = 1.0 - smoothstep(0.0, 0.05 + aa, min(fract(s2), 1.0 - fract(s2)));
+  col = mix(col, vec3(0.0, 0.95, 1.0), seam2 * 0.8);
+  col = mix(col, vec3(0.06, 0.02, 0.2), seam);
+  col = mix(col, vec3(0.06, 0.02, 0.2), smoothstep(0.3, 0.6, fw));
+  col *= 1.0 - 0.3 * smoothstep(0.5, 1.3, length(uv));
+  gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 };
 
