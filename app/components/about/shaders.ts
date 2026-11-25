@@ -182,6 +182,30 @@ vec3 retro(vec3 c, float d) {
   c *= 0.84 + 0.16 * mod(row, 2.0);
   return quant(clamp(c, 0.0, 1.0), 4.0, d * 0.75 + 0.12);
 }
+// four kinds of kaleidoscope, so the new pictures needn't all bloom into the same flower. every one is built from
+// mirrors, so every join is a reflection:
+//  0 a fan: a wedge fold round a centre that wanders about, so only part of the flower is ever in view
+//  1 a mirror tile: the plane is a grid of cells, each the reflection of its neighbour
+//  2 a fold-and-turn: fold across an axis, turn, fold again; it grows a crystal that is no flower at all
+//  3 a mirrored strip: a butterfly down the middle, repeated up the page in mirrored bands
+vec2 kal(vec2 uv, float mode, float t) {
+  if (mode < 0.5) {
+    vec2 c = 0.45 * vec2(sin(t * 0.11), cos(t * 0.13));
+    return kfold(uv - c, 7.0) * 1.2;
+  } else if (mode < 1.5) {
+    vec2 p = uv * 2.2 + vec2(t * 0.05, t * 0.035);
+    return (abs(fract(p * 0.5) - 0.5) * 2.0 - 0.5) * 0.9;
+  } else if (mode < 2.5) {
+    vec2 p = uv * 1.7;
+    for (int i = 0; i < 4; i++) {
+      p = abs(p) - vec2(0.24, 0.13);
+      p = rot(0.85 + 0.08 * sin(t * 0.1 + float(i))) * p;
+    }
+    return p * 0.9;
+  }
+  vec2 p = uv * 1.3 + vec2(0.0, t * 0.04);
+  return vec2(abs(p.x), abs(fract(p.y * 0.9 + 0.5) - 0.5) * 1.2) * 1.1;
+}
 // gentle tone mapping, so loud passages brighten without burning out to white
 vec3 soft(vec3 c) { return 1.0 - exp(-c * 1.25); }
 `;
@@ -310,8 +334,8 @@ void main() {
   float vo = clamp(uSVocal, 0.0, 1.0), ba = clamp(uSBass, 0.0, 1.0), fl = clamp(uSFlux, 0.0, 1.0), vl = clamp(uVol, 0.0, 1.0);
   uv *= 1.0 - 0.05 * clamp(uBeat, 0.0, 1.0) - 0.04 * vl - 0.06 * clamp(uBuild, 0.0, 1.0);
   uv = rot(t * 0.03 + uSpin * 0.5) * uv;
-  // a kaleidoscope: the plane is folded into mirrored wedges, so every join is a perfect reflection
-  uv = kfold(uv, 6.0);
+  // a kaleidoscope, of a different kind each visit: every join is a reflection
+  uv = kal(uv, @H@, t);
   float d = dith();
   vec2 p = uv * 1.3 + vec2(t * 0.04, -t * 0.03);
   p += (0.3 + 0.5 * vo) * vec2(noise(p * 1.2 + t * 0.07) - 0.5, noise(p * 1.2 - t * 0.06 + 5.0) - 0.5) * 2.0;
@@ -367,7 +391,7 @@ void main() {
   uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
   uv += (0.1 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(0.2 + t * 0.03 + uSpin) * uv;
-  uv = kfold(uv * 1.2, 6.0); // folded into mirrored wedges, so the joins are reflections
+  uv = kal(uv, @R@, t);
   // it breathes in and out slowly, so there is always more of the sheet to move into
   vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
   float d = dith();
@@ -424,7 +448,7 @@ void main() {
   uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
   uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(t * 0.03 + uSpin) * uv;
-  uv = kfold(uv * 1.2, 8.0); // folded into mirrored wedges, so the joins are reflections
+  uv = kal(uv, @C@, t);
   float hv, fw, lev, hv2, fw2, lev2;
   vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
   float off = 0.012 + 0.012 * uSFlux + 0.016 * uBeat;
@@ -475,6 +499,19 @@ interface Built {
 }
 
 /** Sets up a graphics-card canvas, or returns null if the browser can't (the player then falls back to a flat drawing). */
+// which kind of kaleidoscope each of the new pictures gets: a fresh, distinct draw every visit
+let KAL: Record<string, number> | null = null;
+function kalFor(name: string): string {
+  if (!KAL) {
+    const pool = [0, 1, 2, 3];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    KAL = { hatch: pool[0], ridges: pool[1], contours: pool[2] };
+  }
+  return String(KAL[name] ?? 0) + '.0';
+}
 export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
   const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
   if (!gl) return null;
@@ -499,7 +536,7 @@ export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
   const built = new Map<ShaderViz, Built | null>();
 
   const build = (name: ShaderViz): Built | null => {
-    const frag = shader(gl.FRAGMENT_SHADER, HEAD + BODY[name]);
+    const frag = shader(gl.FRAGMENT_SHADER, HEAD + BODY[name].replace('@H@', kalFor('hatch')).replace('@R@', kalFor('ridges')).replace('@C@', kalFor('contours')));
     const prog = gl.createProgram();
     if (!vert || !frag || !prog) return null;
     gl.attachShader(prog, vert);
