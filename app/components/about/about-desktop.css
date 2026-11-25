@@ -1229,15 +1229,3 @@ html:has(.wd-root) body {
     display: none;
   }
 }
-
-/*
- * What sits behind the desktop shows only at the edges, where a browser's bars meet the page: black at the top, so the
- * bar above takes black, and the taskbar's grey at the bottom, so the taskbar seems to run down to the toolbar with no
- * dark band between them.
- */
-html:has(.wd-root) {
-  background: linear-gradient(#000 50%, #c0c0c0 50%) fixed no-repeat;
-}
-html:has(.wd-root) body {
-  background: transparent;
-}
