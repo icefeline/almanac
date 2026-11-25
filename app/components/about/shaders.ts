@@ -14,8 +14,8 @@
  * are no flashes, bursts or rings on a hit, and brightness barely moves, so a fast song makes it wild but never jumpy.
  */
 
-export type ShaderViz = 'kaleidoscope' | 'fractal' | 'tunnel' | 'flow';
-export const SHADER_VIZ: ShaderViz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow'];
+export type ShaderViz = 'kaleidoscope' | 'fractal' | 'tunnel' | 'flow' | 'bubbles' | 'ridges' | 'contours';
+export const SHADER_VIZ: ShaderViz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow', 'bubbles', 'ridges', 'contours'];
 export const isShader = (v: string): v is ShaderViz => (SHADER_VIZ as string[]).includes(v);
 
 /** What the music is doing, one frame at a time. */
@@ -76,6 +76,7 @@ export const feed: Frame & { on: boolean; mode: ShaderViz; n: number } = {
 };
 
 const HEAD = `
+#extension GL_OES_standard_derivatives : enable
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -226,6 +227,120 @@ void main() {
   col += pal(f * 0.3 + 0.5) * pow(uHigh, 1.5) * (0.2 + 0.4 * uBright);
   gl_FragColor = vec4(soft(col), 1.0);
 }`,
+
+  // three more, after posters: neon blue bubbles over orange manga halftone, lines of green light folding over blue, and
+  // blue topographic contours on white paper. Same rules as the rest: smooth, never a flash, and the whole sound moves them.
+
+  // a lattice of glowing blue outlines that swell and drift apart and join, over a halftone of dots
+  bubbles: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  uv *= 1.7 - 0.05 * uBeat - 0.05 * uVol - 0.12 * uBuild;
+  uv = rot(sin(t * 0.08) * 0.12 + uSpin * 0.15) * uv;
+  vec2 q = abs(uv);  // mirrored both ways, like the poster
+  // the bubbles of one quarter (x, y, radius); the other three are its reflections
+  vec3 B[6];
+  B[0] = vec3(0.0, 0.0, 0.2);
+  B[1] = vec3(0.0, 0.5, 0.19);
+  B[2] = vec3(0.5, 0.0, 0.18);
+  B[3] = vec3(0.34, 0.34, 0.15);
+  B[4] = vec3(0.72, 0.3, 0.12);
+  B[5] = vec3(0.3, 0.72, 0.12);
+  float F = 0.0;
+  float ring = 0.0;
+  for (int i = 0; i < 6; i++) {
+    float fi = float(i);
+    vec2 c = B[i].xy + 0.045 * vec2(sin(t * 0.2 + fi * 1.7), cos(t * 0.17 + fi * 2.3));
+    c += 0.12 * uVocal * vec2(noise(c * 3.0 + t * 0.4) - 0.5, noise(c * 3.0 - t * 0.3) - 0.5);
+    float r = B[i].z * (1.0 + 0.3 * uBass + 0.15 * uBeat + 0.12 * uArc + 0.05 * sin(t * 0.5 + fi));
+    vec2 d = q - c;
+    F += r * r / (dot(d, d) + 0.0006);
+    // each bubble keeps its own thin outline too, so where they overlap the lattice of cells shows
+    ring = max(ring, smoothstep(0.012, 0.002, abs(length(d) - r * 1.12)));
+  }
+  float e = abs(F - 1.0);
+  float line = max(smoothstep(0.1, 0.03, e), ring * 0.7);
+  float glow = exp(-e * 4.0);
+  // the halftone: dots that grow where the drawing is dense, with rays from the middle
+  vec2 g = fract(rot(0.6) * uv * (40.0 + 12.0 * uBright)) - 0.5;
+  float tone = clamp(fbm(uv * 2.0 + vec2(t * 0.05, t * 0.03)) * 1.5 - 0.1 + 0.25 * uFlux, 0.0, 1.0);
+  float dots = smoothstep(0.5 * tone + 0.06, 0.5 * tone - 0.04, length(g));
+  float ang = atan(uv.y, uv.x);
+  float rays = 0.5 + 0.5 * sin(ang * 14.0 + t * 0.15 + 6.0 * length(uv));
+  vec3 orange = vec3(1.0, 0.62, 0.3);
+  vec3 red = vec3(0.95, 0.2, 0.1);
+  vec3 col = mix(orange, red, dots * (0.55 + 0.45 * rays));
+  vec3 ink = mix(vec3(0.1, 0.18, 1.0), vec3(0.45, 0.14, 1.0), uPitch);
+  float power = 0.65 + 0.5 * uArc + 0.2 * uVol;
+  col = mix(col, ink, clamp(line * power, 0.0, 1.0));
+  col += ink * glow * 0.4 * power;
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`,
+
+  // lines of light stacked and folded over each other like a sheet of paper in the wind, on blue
+  ridges: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
+  uv = rot(0.2 + 0.15 * sin(t * 0.05) + uSpin * 0.2) * uv;
+  float lines = 22.0 + 12.0 * uArc + 8.0 * uBuild;
+  vec2 p = uv * vec2(0.8, 0.7) + vec2(t * 0.03, 0.0);
+  float h = noise(p * 1.1 + vec2(0.0, t * 0.04)) * 0.7 + noise(p * 2.3 + 4.1 - vec2(t * 0.03, 0.0)) * 0.3;
+  float ridge = abs(noise(p * 0.8 + 3.7 + vec2(t * 0.025, 0.0)) - 0.5) * 2.0; // sharp folds
+  float D = (h - 0.5) * (2.4 + 1.2 * uBass + 0.4 * uBeat) + (ridge - 0.5) * (1.0 + 0.7 * uVocal) - 0.5 * smoothstep(0.55, 0.9, ridge) * (0.4 + uArc) + 0.015 * uFlux * sin(uv.x * 7.0 + t * 1.2);
+  float s = (uv.y + D) * lines;
+  float f = fract(s);
+  float dd = min(f, 1.0 - f);
+  float w = 0.05 + 0.035 * uVol + 0.02 * uBeat;
+  float line = smoothstep(w + 0.035, w - 0.015, dd);
+  // a soft haze of light low on the page, like the poster's glow
+  float haze = smoothstep(0.1, 0.9, fbm(uv * 1.2 + vec2(0.0, t * 0.03) + 9.0)) * (0.35 + 0.4 * uArc);
+  vec3 blue = vec3(0.16, 0.27, 0.84);
+  vec3 cyan = vec3(0.3, 1.0, 0.7);
+  vec3 green = vec3(0.74, 1.0, 0.1);
+  vec3 gold = vec3(1.0, 0.95, 0.2);
+  vec3 ink = mix(mix(cyan, green, smoothstep(0.0, 0.5, uPitch)), gold, smoothstep(0.5, 1.0, uPitch));
+  vec3 col = mix(blue, vec3(0.3, 0.8, 0.5), haze * 0.3);
+  col = mix(col, ink, line * (0.7 + 0.3 * uArc));
+  float grain = hash(gl_FragCoord.xy + floor(t * 4.0)) - 0.5;
+  col += grain * 0.06;
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`,
+
+  // the contour lines of a landscape that is never still, drawn in blue ink on white paper
+  contours: `
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  float t = uTime;
+  uv *= 1.0 - 0.04 * uBeat - 0.04 * uVol - 0.08 * uBuild;
+  uv = rot(0.3 * sin(t * 0.04) + uSpin * 0.2) * uv;
+  vec2 p = uv * 1.5 + vec2(t * 0.03, -t * 0.02);
+  vec2 w = vec2(noise(p * 0.7 + vec2(t * 0.05, 1.3)), noise(p * 0.7 + vec2(7.1, t * 0.04)));
+  float amp = 1.2 + 1.0 * uVocal + 0.5 * uFlux;
+  vec2 pw = p + amp * (w - 0.5);
+  float H = (noise(pw * 0.9) * 0.62 + noise(pw * 1.9 + 5.3) * 0.28 + noise(pw * 3.7 + 1.9) * 0.1) * (1.0 + 0.5 * uBass + 0.25 * uBeat);
+  float levels = 14.0 + 16.0 * uArc;
+  float s = H * levels;
+#ifdef GL_OES_standard_derivatives
+  float fw = max(fwidth(s), 0.0001);
+#else
+  float fw = 0.08;
+#endif
+  float f = fract(s);
+  float dd = min(f, 1.0 - f);
+  // every fifth contour is heavier and darker, like the index lines on a map
+  float idx = mod(floor(s + 0.5), 5.0);
+  float heavy = 1.0 - step(0.5, idx);
+  float k = fw * (0.7 + 0.5 * uVol + 0.9 * heavy);
+  float line = 1.0 - smoothstep(k, k + fw, dd);
+  vec3 paper = vec3(0.985, 0.985, 0.99);
+  vec3 ink = mix(vec3(0.1, 0.1, 1.0), vec3(0.4, 0.12, 0.95), uPitch);
+  vec3 navy = vec3(0.07, 0.07, 0.4);
+  vec3 col = mix(paper, mix(ink, navy, heavy * 0.8), line);
+  gl_FragColor = vec4(col, 1.0);
+}`,
 };
 
 export interface GLViz {
@@ -258,6 +373,7 @@ interface Built {
 export function makeGL(canvas: HTMLCanvasElement): GLViz | null {
   const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
   if (!gl) return null;
+  gl.getExtension('OES_standard_derivatives'); // lets the contour lines keep an even width
 
   const buf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buf);

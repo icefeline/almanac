@@ -24,7 +24,7 @@ import { TRACKS, type Track } from './tracks';
  */
 
 type Viz = ShaderViz;
-const VIZ: Viz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow'];
+const VIZ: Viz[] = ['kaleidoscope', 'fractal', 'tunnel', 'flow', 'bubbles', 'ridges', 'contours'];
 
 const W = 320;
 const H = 180;
