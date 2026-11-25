@@ -324,6 +324,7 @@ export default function MediaPlayer({
     ctx.fillRect(0, 0, W, H);
     let raf = 0;
     const spin = { a: 0 };
+    let lastRest = 0;
     let drawn: string | null = null; // what is on the screen, so a paused screen can still change its look
     const idle = new Uint8Array(128);
     const silence = new Uint8Array(256);
@@ -379,8 +380,9 @@ export default function MediaPlayer({
       } else {
         f = silence;
       }
-      // fully wound down and nothing left in the signal: hold still and stop spending the card's time
-      if (bt.alive === 0 && bt.level < 0.004 && drawn === key) return;
+      // at rest the picture doesn't stop, it floats: still drawn, but only about thirty times a second, which is plenty for a drift
+      if (bt.alive < 0.02 && now - lastRest < 33) return;
+      lastRest = now;
       drawn = key;
       const n = f.length;
       const half = n >> 1;
@@ -490,13 +492,15 @@ export default function MediaPlayer({
       bt.beatS += (bt.beat - bt.beatS) * (1 - Math.exp(-dt * 7));
       bt.spinV *= Math.exp(-dt * 1.2);
       bt.spinVs += (bt.spinV - bt.spinVs) * (1 - Math.exp(-dt * 5)); // and the spin speeds up and slows down gradually
-      bt.spin += bt.spinVs * dt * 2.2 * bt.alive;
+      // at rest the turning slows to a slow, steady float rather than stopping
+      bt.spin += (bt.spinVs * 2.2 * bt.alive + (1 - bt.alive) * 0.025) * dt;
       bt.rate *= Math.exp(-dt * 0.12); // with no beats the tempo fades away
       // erratic = quick beats, and plenty going on
       const target = clamp01((bt.rate - 1) / 3.2) * 0.3 + clamp01(((bass + mid + high) / 3) * 1.6 - 0.25) * 0.2 + bt.arc * 0.5;
       bt.chaos += (target - bt.chaos) * (target > bt.chaos ? 0.06 : 0.02);
       // the picture's own clock runs faster the faster and harder the music is
-      bt.clock += dt * pace * bt.alive * (0.35 + 0.9 * bt.arc) * (1 + bt.chaos * 2.4 + bt.beatS * 0.3);
+      // ...and the clock never stops: at rest it crawls at a small fraction of speed, so the picture floats solemnly
+      bt.clock += dt * pace * (bt.alive * (0.35 + 0.9 * bt.arc) * (1 + bt.chaos * 2.4 + bt.beatS * 0.3) + (1 - bt.alive) * 0.07);
 
       frame.t = bt.clock;
       frame.bass = bass;
