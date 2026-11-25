@@ -595,7 +595,9 @@ export default function MediaPlayer({
   // the display reads like the reference: the title, then the artist
   const lcdName = problem ? problem : track ? `${track.title}${track.artist ? ` - ${track.artist}` : ''}` : 'no music yet - file > open, or drop a song here';
   const mini = (
-    <div className="wd-mini" role="region" aria-label="music">
+    // This bar is drawn into the taskbar area by a portal, but React still passes a press up through the player's own window,
+    // whose handler brings a window forward on any press: so a tap on play opened the player. Keep the press here.
+    <div className="wd-mini" role="region" aria-label="music" onPointerDown={(e) => e.stopPropagation()}>
       <div className="wd-mini-prog" style={{ width: dur ? `${Math.min(100, (time / dur) * 100)}%` : '0%' }} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/about/icons/cd-16.png" alt="" width={16} height={16} />
