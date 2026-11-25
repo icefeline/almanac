@@ -182,6 +182,25 @@ vec3 sp(float i) {
   if (i < 4.0) return vec3(0.95, 0.7, 0.1);
   return vec3(0.5, 0.12, 0.1);
 }
+// 90s memphis: teal, hot pink, sunny yellow, grape, cream, coral
+vec3 mm(float i) {
+  i = mod(floor(i), 6.0);
+  if (i < 1.0) return vec3(0.0, 0.66, 0.62);
+  if (i < 2.0) return vec3(0.98, 0.38, 0.6);
+  if (i < 3.0) return vec3(1.0, 0.82, 0.18);
+  if (i < 4.0) return vec3(0.42, 0.27, 0.72);
+  if (i < 5.0) return vec3(0.97, 0.92, 0.8);
+  return vec3(1.0, 0.45, 0.35);
+}
+// a 70s-90s sunset: grape, rose, orange, yellow, cream
+vec3 ss(float i) {
+  i = mod(floor(i), 5.0);
+  if (i < 1.0) return vec3(0.27, 0.06, 0.42);
+  if (i < 2.0) return vec3(0.86, 0.17, 0.48);
+  if (i < 3.0) return vec3(1.0, 0.45, 0.14);
+  if (i < 4.0) return vec3(1.0, 0.8, 0.25);
+  return vec3(0.98, 0.9, 0.75);
+}
 // crt scanlines and a hard posterise, the last thing every picture goes through
 vec3 retro(vec3 c, float d) {
   float row = floor(gl_FragCoord.y / cell());
@@ -539,9 +558,9 @@ void main() {
   // a second, misprinted pass of the dots in another ink, slipped half a step
   vec2 lc2 = lc - vec2(0.18, -0.14);
   float dt2 = (1.0 - smoothstep(rad * 0.8 - 0.05, rad * 0.8 + 0.05, length(lc2))) * step(0.0, u);
-  vec3 ground = mix(vec3(0.2, 0.03, 0.5), vec3(0.5, 0.06, 0.62), noise(p * 4.0 + 2.0) + 0.3 * sin(r * 14.0 - t * 0.4));
-  vec3 inkA = pick(2.0 + floor(uPitch * 2.5) + mod(k, 2.0) * 1.0);
-  vec3 field = mix(ground, pick(1.0), dt2 * 0.85);
+  vec3 ground = mix(vec3(0.0, 0.4, 0.43), vec3(0.0, 0.58, 0.55), noise(p * 4.0 + 2.0) + 0.3 * sin(r * 14.0 - t * 0.4));
+  vec3 inkA = mm(1.0 + mod(k + floor(uPitch * 2.5), 2.0));
+  vec3 field = mix(ground, mm(3.0), dt2 * 0.85);
   field = mix(field, inkA, dt);
   // outside the dots: deep night with big blots, each with a bright ring where the ink dried
   vec2 bp = uv * 2.4 + 3.0;
@@ -551,15 +570,15 @@ void main() {
   float br = 0.12 + 0.16 * hash(bi + 9.0) + 0.09 * band(floor(hb * 16.0));
   float bdst = length(bf - off);
   float has = step(0.42, hb);
-  vec3 paper = mix(vec3(0.04, 0.02, 0.22), vec3(0.45, 0.04, 0.45), smoothstep(0.1, 0.9, 0.35 - uv.y));
+  vec3 paper = mix(vec3(0.1, 0.07, 0.3), vec3(0.34, 0.16, 0.52), smoothstep(0.1, 0.9, 0.35 - uv.y));
   float inside = has * (1.0 - smoothstep(br - 0.03, br, bdst));
   float rim = has * smoothstep(br - 0.11, br - 0.03, bdst) * (1.0 - smoothstep(br - 0.03, br, bdst));
-  paper = mix(paper, pick(4.0), inside);
-  paper = mix(paper, pick(5.0), rim);
+  paper = mix(paper, mm(5.0), inside);
+  paper = mix(paper, mm(4.0), rim);
   float m = step(d, smoothstep(rmax + 0.05, rmax - 0.05, r));
   vec3 col = mix(paper, field, m);
   float streak = noise(dir * 14.0 + vec2(r * 2.0, 0.0));
-  vec3 hc = mix(vec3(0.0, 0.0, 0.04), pick(1.0) * 0.8, smoothstep(0.55, 1.0, r / hole) * (0.5 + 0.7 * streak));
+  vec3 hc = mix(vec3(0.06, 0.0, 0.16), mm(4.0) * 0.85, smoothstep(0.55, 1.0, r / hole) * (0.5 + 0.7 * streak));
   col = mix(hc, col, step(d, smoothstep(hole - 0.035, hole + 0.012, r)));
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
@@ -592,13 +611,13 @@ void main() {
   float mask = 1.0 - smoothstep(-aa, aa * 1.5, sdf);
   float ghost = 1.0 - smoothstep(-aa, aa * 1.5, sdfg);
   float streak = noise(vec2(uv.x * 95.0, uv.y * 7.0));
-  vec3 ground = mix(vec3(0.55, 0.0, 0.38), vec3(1.0, 0.22, 0.04), streak);
-  vec3 tipA = vec3(0.0, 0.95, 1.0), tipB = vec3(0.78, 1.0, 0.0);
+  vec3 ground = mix(vec3(0.3, 0.05, 0.26), vec3(0.66, 0.13, 0.2), streak);
+  vec3 tipA = vec3(0.5, 0.92, 0.82), tipB = vec3(0.98, 0.9, 0.7);
   vec3 tip = mix(tipA, tipB, clamp(lit * 1.2 + 0.5 * sin(id.x * 0.5 + id.y * 0.3 + uPitch * 4.0), 0.0, 1.0));
   tip = mix(tip, vec3(1.0), smoothstep(0.28, 0.0, length(q)) * 0.55);
   float shaft = 1.0 - smoothstep(0.006, 0.016, abs(q.x));
-  tip = mix(tip, vec3(0.1, 0.05, 0.4), shaft * 0.8 * step(q.y, 0.2));
-  vec3 col = mix(ground, vec3(1.0, 0.1, 0.7), ghost * (1.0 - mask));
+  tip = mix(tip, vec3(0.1, 0.07, 0.3), shaft * 0.8 * step(q.y, 0.2));
+  vec3 col = mix(ground, mm(2.0), ghost * (1.0 - mask));
   col = mix(col, tip, mask);
   col = mix(col, vec3(0.08, 0.02, 0.25), smoothstep(aa * 4.0, 0.0, abs(sdf)) * 0.6 * mask);
   gl_FragColor = vec4(retro(col, 0.5), 1.0);
@@ -634,11 +653,11 @@ void main() {
   float w2 = max(fwidth(ax), 0.0005);
   float trunk = 1.0 - smoothstep(tw, tw + 1.5 * w2, ax);
   float tglow = 1.0 - smoothstep(tw, tw * 6.0, ax);
-  vec3 lime = vec3(0.72, 1.0, 0.0), mag = vec3(1.0, 0.1, 0.65), cy = vec3(0.0, 0.95, 1.0);
+  vec3 lime = vec3(1.0, 0.5, 0.38), mag = vec3(0.6, 0.38, 0.92), cy = vec3(1.0, 0.82, 0.25);
   float hue = clamp(uPitch, 0.0, 1.0);
   vec3 mainc = mix(lime, cy, hue * 0.8);
-  vec3 col = mix(vec3(0.0, 0.02, 0.06), vec3(0.14, 0.0, 0.3), smoothstep(0.0, 1.0, fbm(q * 2.0 + t * 0.02)));
-  col += vec3(0.5, 0.0, 0.7) * net * 0.35;
+  vec3 col = mix(vec3(0.0, 0.07, 0.11), vec3(0.0, 0.2, 0.24), smoothstep(0.0, 1.0, fbm(q * 2.0 + t * 0.02)));
+  col += vec3(0.0, 0.5, 0.48) * net * 0.35;
   col += mainc * glw * 0.25 * (0.5 + vl + lv);
   col = mix(col, mag, lA * 0.9);
   col = mix(col, cy, lC * 0.9);
@@ -646,7 +665,7 @@ void main() {
   col += mainc * lB * lv * 0.5;
   col += mag * tglow * 0.35 * (0.5 + ba);
   col = 1.0 - exp(-col * 1.4);
-  col = mix(col, mix(mag, vec3(1.0, 1.0, 0.85), smoothstep(tw, 0.0, ax)), trunk);
+  col = mix(col, mix(vec3(1.0, 0.45, 0.35), vec3(1.0, 0.95, 0.8), smoothstep(tw, 0.0, ax)), trunk);
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`,
 
@@ -673,16 +692,16 @@ void main() {
   float border = 1.0 - smoothstep(bw, bw + 1.5 * aa, e);
   float borderg = 1.0 - smoothstep(bw, bw + 1.5 * aa, eg);
   float ci = floor(hc * 6.0) + floor(clamp(uPitch, 0.0, 0.99) * 3.0);
-  vec3 fill = pick(ci);
+  vec3 fill = mm(ci);
   // a halftone shadow in each cell, thickest at its edge
   fill = mix(fill, fill * 0.45, step(d, smoothstep(0.15, 0.75, f1) * 0.8));
   // the target: rings out from the middle of some cells, turning with the music
   float tg = step(0.5, hc);
   float rg = mod(floor(f1 * 8.0 - t * 0.12 - bn * 3.0), 2.0);
-  vec3 ringc = mix(vec3(0.06, 0.02, 0.2), pick(ci + 2.0), rg);
+  vec3 ringc = mix(vec3(0.1, 0.06, 0.28), mm(ci + 2.0), rg);
   fill = mix(fill, ringc, tg * (1.0 - smoothstep(0.35 + 0.15 * bn, 0.37 + 0.15 * bn + aa, f1)));
-  vec3 ink = vec3(0.06, 0.02, 0.2);
-  vec3 col = mix(fill, vec3(1.0, 0.1, 0.65), borderg * (1.0 - border));
+  vec3 ink = vec3(0.1, 0.06, 0.28);
+  vec3 col = mix(fill, mm(2.0), borderg * (1.0 - border));
   col = mix(col, ink, border);
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
@@ -719,7 +738,8 @@ void main() {
   float d = dith();
   // the colour runs round the rainbow along the ridges, and further with every pass of the spiral
   float hue = h * 0.45 + lr * 0.3 + t * 0.02 + uPitch * 0.6 + 0.2 * lam;
-  vec3 col = pal(hue) * (0.25 + 1.0 * lam);
+  vec3 pastel = 0.64 + 0.3 * cos(6.28318 * (vec3(0.0, 0.33, 0.67) + hue));
+  vec3 col = mix(vec3(0.17, 0.14, 0.36), pastel, 0.15 + 0.85 * lam);
   col += vec3(1.0, 0.95, 0.9) * spec * (0.3 + 0.5 * vl + 0.4 * bt);
   col *= 0.55 + 0.7 * smoothstep(0.0, 0.1, length(p));
   col *= 1.0 - 0.3 * smoothstep(0.5, 1.2, length(uv));
@@ -746,14 +766,14 @@ void main() {
   float f = fract(rr);
   float bn = band(mod(n, 16.0));
   float ci = n + floor(clamp(uPitch, 0.0, 0.99) * 3.0);
-  vec3 cA = pick(ci + 1.0), cB = pick(ci + 2.0);
+  vec3 cA = ss(ci + 1.0), cB = ss(ci + 2.0);
   vec3 col = mix(cA, cB, step(d, smoothstep(0.55, 1.0, f)));
   col *= 0.5 + 0.9 * fib * (0.5 + 0.5 * fib2) + 0.35 * bn;
   // dark spokes between the fibres
   col *= 1.0 - 0.6 * step(0.66, fib2) * smoothstep(0.1, 0.6, r);
   float pr = 0.1 + 0.07 * ba;
   float rim = smoothstep(pr + 0.05, pr, r) * smoothstep(pr - 0.01, pr + 0.01, r);
-  col = mix(col, pick(2.0), rim * (0.6 + 0.4 * vl));
+  col = mix(col, ss(4.0), rim * (0.6 + 0.4 * vl));
   col = mix(vec3(0.0), col, step(d, smoothstep(pr - 0.015, pr + 0.01, r)));
   // two glints, which tick over to a bigger square on the beat
   vec2 g1 = p - vec2(0.09, 0.1);
@@ -786,16 +806,16 @@ void main() {
   float n = floor(s);
   float f = fract(s);
   float shiftc = floor(clamp(uPitch, 0.0, 0.99) * 4.0);
-  vec3 cA = pick(n + shiftc + floor(band(mod(n, 16.0)) * 2.0));
-  vec3 cB = pick(n + 1.0 + shiftc + floor(band(mod(n + 1.0, 16.0)) * 2.0));
+  vec3 cA = mm(n + shiftc + floor(band(mod(n, 16.0)) * 2.0));
+  vec3 cB = mm(n + 1.0 + shiftc + floor(band(mod(n + 1.0, 16.0)) * 2.0));
   vec3 col = mix(cA, cB, step(d, smoothstep(0.7, 1.0, f)));
   float fw = fwidth(s);
   float aa = max(fw * 1.5, 0.004);
   float seam = 1.0 - smoothstep(0.0, 0.05 + aa, min(f, 1.0 - f));
   float seam2 = 1.0 - smoothstep(0.0, 0.05 + aa, min(fract(s2), 1.0 - fract(s2)));
-  col = mix(col, vec3(0.0, 0.95, 1.0), seam2 * 0.8);
-  col = mix(col, vec3(0.06, 0.02, 0.2), seam);
-  col = mix(col, vec3(0.06, 0.02, 0.2), smoothstep(0.3, 0.6, fw));
+  col = mix(col, mm(0.0), seam2 * 0.8);
+  col = mix(col, vec3(0.1, 0.06, 0.28), seam);
+  col = mix(col, vec3(0.1, 0.06, 0.28), smoothstep(0.3, 0.6, fw));
   col *= 1.0 - 0.3 * smoothstep(0.5, 1.3, length(uv));
   gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
