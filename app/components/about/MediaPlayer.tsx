@@ -591,16 +591,15 @@ export default function MediaPlayer({
 
   // the display reads like the reference: the title, then the artist
   const lcdName = problem ? problem : track ? `${track.title}${track.artist ? ` - ${track.artist}` : ''}` : 'no music yet - file > open, or drop a song here';
-  const shortName = track ? `${track.artist ? `${track.artist} - ` : ''}${track.title}` : 'no music yet';
   const mini = (
     <div className="wd-mini" role="region" aria-label="music">
       <div className="wd-mini-prog" style={{ width: dur ? `${Math.min(100, (time / dur) * 100)}%` : '0%' }} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/about/icons/cd-16.png" alt="" width={16} height={16} />
       <button type="button" className="wd-mini-ttl" onClick={onExpand} title="open the player">
-        <span key={problem || shortName} className={`wd-mini-run${playing ? ' is-on' : ''}`}>
-          <span>{problem || shortName}</span>
-          <span aria-hidden="true">{problem || shortName}</span>
+        <span key={lcdName} className={`wd-mini-run${playing ? ' is-on' : ''}`}>
+          <span>{lcdName}</span>
+          <span aria-hidden="true">{lcdName}</span>
         </span>
       </button>
       <button type="button" className="wd-mpb" aria-label="previous" disabled={tracks.length < 2} style={{ '--g': G.prev } as React.CSSProperties} onClick={() => go(index - 1)} />
