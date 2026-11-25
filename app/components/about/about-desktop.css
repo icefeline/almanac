@@ -1122,8 +1122,6 @@ a.wd-pi:focus-visible {
   letter-spacing: 0;
   text-transform: uppercase;
   text-shadow: 0 0 3px rgba(232, 150, 47, 0.4);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 5px, #000 calc(100% - 10px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 5px, #000 calc(100% - 10px), transparent 100%);
 }
 /* the title drifts left like a marquee while a song plays; two copies with a gap make the loop seamless */
 .wd-mini-run {
@@ -1204,8 +1202,6 @@ html:has(.wd-root) body {
   overflow: hidden;
   white-space: nowrap;
   padding: 3px 5px;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
 }
 .wd-lcd-time {
   flex: none;
