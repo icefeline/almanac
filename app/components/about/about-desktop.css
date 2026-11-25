@@ -1175,26 +1175,26 @@ html:has(.wd-root) body {
   box-shadow: var(--field);
   color: #e8962f;
   font-family: var(--font-doto), 'VT323', monospace;
-  font-weight: 450;
+  font-weight: 600;
   font-variation-settings: 'ROND' 100;
-  font-size: 24px;
+  font-size: 12px;
   line-height: 1;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  text-shadow: 0 0 4px rgba(232, 150, 47, 0.45);
+  text-shadow: 0 0 3px rgba(232, 150, 47, 0.4);
 }
 .wd-lcd-name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  padding: 7px 6px;
+  padding: 3px 5px;
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent 100%);
 }
 .wd-lcd-time {
   flex: none;
-  padding: 7px 8px 7px 10px;
+  padding: 3px 6px 3px 8px;
   white-space: nowrap;
   border-left: 1px solid rgba(232, 150, 47, 0.25);
 }
