@@ -136,7 +136,7 @@ float bayer2(vec2 a) { a = floor(a); return fract(a.x / 2.0 + a.y * a.y * 0.75);
 float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
 float bayer8(vec2 a) { return bayer4(0.5 * a) * 0.25 + bayer2(a); }
 vec3 quant(vec3 c, float n, float d) { return floor(c * n + d) / n; }
-float cell() { return max(1.0, floor(uRes.y / 130.0)); }
+float cell() { return max(1.0, floor(uRes.y / 420.0)); } // a fine grain: one or two pixels
 float dith() { return bayer8(floor(gl_FragCoord.xy / cell())); }
 // six hard, acid, retro-future inks: hot pink, electric cyan, acid lime, uv violet, signal orange, chrome yellow
 vec3 pick(float i) {
@@ -179,8 +179,8 @@ vec3 sp(float i) {
 // crt scanlines and a hard posterise, the last thing every picture goes through
 vec3 retro(vec3 c, float d) {
   float row = floor(gl_FragCoord.y / cell());
-  c *= 0.84 + 0.16 * mod(row, 2.0);
-  return quant(clamp(c, 0.0, 1.0), 4.0, d * 0.75 + 0.12);
+  c *= 0.95 + 0.05 * mod(row, 2.0);
+  return quant(clamp(c, 0.0, 1.0), 8.0, d * 0.8 + 0.1);
 }
 // four kinds of kaleidoscope, so the new pictures needn't all bloom into the same flower. every one is built from
 // mirrors, so every join is a reflection:
@@ -326,7 +326,7 @@ float rule(vec2 uv, float ang, float freq, float seed, float t, float d, float v
   float thick = clamp(0.04 + 0.9 * along * along * (0.6 + 0.5 * hash(vec2(seed, 2.0))) + 0.15 * vl + 0.2 * ba, 0.04, 0.8);
   float wob = 0.05 * sin(q.y * 6.0 + t * 0.4 + seed);
   float dist = abs(fract((q.x + wob) * freq) - 0.5) * 2.0;
-  return step(dist, thick + (d - 0.5) * 0.45);
+  return step(dist, thick + (d - 0.5) * 0.22);
 }
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
@@ -345,7 +345,7 @@ void main() {
   float ws = w1 + w2 + w3 + 0.001;
   float c1 = w1 / ws, c2 = (w1 + w2) / ws;
   float spin = uSpin * 0.5 + 0.4 * vo * sin(t * 0.5);
-  float fa = 4.0 + 2.0 * ba, fb = 6.5 + 2.0 * ba, fc = 9.0 + 2.0 * ba;
+  float fa = 7.0 + 3.0 * ba, fb = 11.0 + 3.0 * ba, fc = 15.0 + 3.0 * ba;
   float m1 = rule(uv, 0.3 + spin, fa, 1.0, t, d, vl, ba);
   float m2 = rule(uv, 1.45 + spin * 0.6, fb, 2.0, t, d, vl, ba);
   float m3 = rule(uv, 2.5 - spin * 0.8, fc, 3.0, t, d, vl, ba);
