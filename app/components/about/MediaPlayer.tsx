@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { createPortal } from 'react-dom';
 import { glyph } from './pixels';
 import { MenuBar } from './WinMenu';
+import { analyseSong, arcAt, type Arc } from './arc';
 import { feed, makeGL, type Frame, type GLViz, type ShaderViz } from './shaders';
 import { TRACKS, type Track } from './tracks';
 
@@ -254,7 +255,7 @@ export default function MediaPlayer({
     const added = songs.map((f) => {
       const src = URL.createObjectURL(f);
       urls.current.push(src);
-      return { title: f.name.replace(/\.[^.]+$/, '').toLowerCase(), src };
+      return { title: f.name.replace(/\.[^.]+$/, '').toLowerCase(), src, file: f };
     });
     wantPlay.current = true;
     setTracks((t) => [...t, ...added]);
@@ -276,6 +277,23 @@ export default function MediaPlayer({
     gl.current = makeGL(c);
     setGlReady(!!gl.current);
   }, []);
+
+  // read the whole song ahead of time for its shape (hushed intro, build, full beat), so the picture can follow it
+  const arcRef = useRef<Arc | null>(null);
+  const trackSrc = tracks[index]?.src;
+  useEffect(() => {
+    arcRef.current = null;
+    const t = tracks[index];
+    if (!t) return;
+    let current = true;
+    void analyseSong(t.src, t.file ?? t.src).then((a) => {
+      if (current) arcRef.current = a;
+    });
+    return () => {
+      current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackSrc]);
 
   // the drawing loop
   useEffect(() => {
@@ -301,9 +319,10 @@ export default function MediaPlayer({
       fmean: 0, fdev: 0, prevFlux: 0, prevF: new Float32Array(6), last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0,
       spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0,
       alive: 0, ref: 0.3, track: null as string | null, level: 0,
+      arc: 0.5, build: 0, vFast: 0, vSlow: 0,
       vol: 0, vocal: 0, flux: 0, mVol: 0.4, mVocal: 0.4, mFlux: 0.4, peak: 0.5, peakAvg: 0.5, bright: 0.5, brightAvg: 0.5, pitch: 0.5, tone: 0.5,
     };
-    const frame: Frame = { t: 0, bass: 0, mid: 0, high: 0, vol: 0, vocal: 0, pitch: 0.5, bright: 0.5, flux: 0, beat: 0, chaos: 0, spin: 0, bands };
+    const frame: Frame = { arc: 0.5, build: 0, t: 0, bass: 0, mid: 0, high: 0, vol: 0, vocal: 0, pitch: 0.5, bright: 0.5, flux: 0, beat: 0, chaos: 0, spin: 0, bands };
     const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
@@ -403,6 +422,25 @@ export default function MediaPlayer({
       bt.pitch = clamp01(0.5 + (bt.peak - bt.peakAvg) * 2.6);
       bt.tone = clamp01(0.5 + (bt.bright - bt.brightAvg) * 3.2);
 
+      // where the song is in its own arc: how intense this part is (looking a moment ahead, so the picture lifts just
+      // before the music does) and whether it is building or falling away. Without the read-ahead, from the live volume.
+      const shape = arcRef.current;
+      let arcT = 0.6;
+      let buildT = 0;
+      if (hasTrack) {
+        const ct = audio.current?.currentTime ?? 0;
+        if (shape) {
+          arcT = arcAt(shape, ct + 0.8);
+          buildT = Math.max(-1, Math.min(1, (arcAt(shape, ct + 3.5) - arcAt(shape, ct)) * 2.2));
+        } else {
+          bt.vFast += (bt.vol - bt.vFast) * (1 - Math.exp(-dt * 0.7));
+          bt.vSlow += (bt.vol - bt.vSlow) * (1 - Math.exp(-dt * 0.05));
+          arcT = clamp01(0.5 + 3 * (bt.vFast - bt.vSlow));
+        }
+      }
+      bt.arc += (arcT - bt.arc) * (1 - Math.exp(-dt * 2.5));
+      bt.build += (buildT - bt.build) * (1 - Math.exp(-dt * 1.5));
+
       // the beat: a sudden jump in the low end (the bottom few bins) compared with how much that jumps about on this
       // song. Measured as the growth since the last frame, against a running average and spread of that growth, so it
       // finds the hits in a quiet, soft or bass-heavy song as readily as in a loud one (the old rule asked for a fixed
@@ -421,8 +459,10 @@ export default function MediaPlayer({
         const gap = (now - bt.last) / 1000;
         if (bt.last > 0 && gap < 2) bt.rate += (1 / gap - bt.rate) * 0.3; // beats a second, smoothed
         bt.last = now;
-        bt.beat = 1;
-        bt.spinV += bt.dir * (0.3 + 0.5 * bt.chaos); // a push that sets the picture gliding round...
+        // a soft hit in a hushed part, a full one in the thick of it
+        const strength = clamp01((flux - bt.fmean) / (3 * Math.sqrt(bt.fdev) + 0.03));
+        bt.beat = (0.35 + 0.65 * strength) * (0.45 + 0.55 * bt.arc);
+        bt.spinV += bt.dir * (0.3 + 0.5 * bt.chaos) * (0.4 + 0.6 * bt.arc); // a push that sets the picture gliding round...
         if (Math.random() < 0.2 + 0.5 * bt.chaos) bt.dir = -bt.dir; // ...and the busier it is, the more often it changes its mind
       }
       bt.beat *= Math.exp(-dt * 5);
@@ -433,15 +473,17 @@ export default function MediaPlayer({
       bt.spin += bt.spinVs * dt * 2.2 * bt.alive;
       bt.rate *= Math.exp(-dt * 0.12); // with no beats the tempo fades away
       // erratic = quick beats, and plenty going on
-      const target = clamp01((bt.rate - 1) / 3.2) * 0.65 + clamp01(((bass + mid + high) / 3) * 1.6 - 0.25) * 0.35;
+      const target = clamp01((bt.rate - 1) / 3.2) * 0.3 + clamp01(((bass + mid + high) / 3) * 1.6 - 0.25) * 0.2 + bt.arc * 0.5;
       bt.chaos += (target - bt.chaos) * (target > bt.chaos ? 0.06 : 0.02);
       // the picture's own clock runs faster the faster and harder the music is
-      bt.clock += dt * pace * bt.alive * (1 + bt.chaos * 2.4 + bt.beatS * 0.3);
+      bt.clock += dt * pace * bt.alive * (0.35 + 0.9 * bt.arc) * (1 + bt.chaos * 2.4 + bt.beatS * 0.3);
 
       frame.t = bt.clock;
       frame.bass = bass;
       frame.mid = mid;
       frame.high = high;
+      frame.arc = bt.arc;
+      frame.build = bt.build;
       // each measure is shown partly as it is and mostly as how far it is from this song's own usual, so a song that is
       // always loud, or always sung over, still makes the picture rise and fall with its dynamics
       const rel = (x: number, m: number) => clamp01(0.3 * x + 0.7 * (0.5 + 3.4 * (x - m)));
@@ -464,6 +506,8 @@ export default function MediaPlayer({
         feed.bass = bass;
         feed.mid = mid;
         feed.high = high;
+        feed.arc = frame.arc;
+        feed.build = frame.build;
         feed.vol = frame.vol;
         feed.vocal = frame.vocal;
         feed.pitch = frame.pitch;

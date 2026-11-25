@@ -9,6 +9,8 @@ export interface Track {
   title: string;
   artist?: string;
   src: string;
+  /** A song the visitor picked from their own device: read from the file itself, never fetched. */
+  file?: File;
 }
 
 export const TRACKS: Track[] = [
