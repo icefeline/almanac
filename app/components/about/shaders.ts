@@ -135,8 +135,25 @@ vec2 kfold(vec2 uv, float n) {
 float bayer2(vec2 a) { a = floor(a); return fract(a.x / 2.0 + a.y * a.y * 0.75); }
 float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
 float bayer8(vec2 a) { return bayer4(0.5 * a) * 0.25 + bayer2(a); }
-float dith() { return bayer8(floor(gl_FragCoord.xy / max(1.0, floor(uRes.y / 170.0)))); }
 vec3 quant(vec3 c, float n, float d) { return floor(c * n + d) / n; }
+float cell() { return max(1.0, floor(uRes.y / 130.0)); }
+float dith() { return bayer8(floor(gl_FragCoord.xy / cell())); }
+// six hard, acid, retro-future inks: hot pink, electric cyan, acid lime, uv violet, signal orange, chrome yellow
+vec3 pick(float i) {
+  i = mod(floor(i), 6.0);
+  if (i < 1.0) return vec3(1.0, 0.1, 0.8);
+  if (i < 2.0) return vec3(0.0, 0.95, 1.0);
+  if (i < 3.0) return vec3(0.78, 1.0, 0.0);
+  if (i < 4.0) return vec3(0.38, 0.1, 1.0);
+  if (i < 5.0) return vec3(1.0, 0.33, 0.0);
+  return vec3(1.0, 0.9, 0.0);
+}
+// crt scanlines and a hard posterise, the last thing every picture goes through
+vec3 retro(vec3 c, float d) {
+  float row = floor(gl_FragCoord.y / cell());
+  c *= 0.84 + 0.16 * mod(row, 2.0);
+  return quant(clamp(c, 0.0, 1.0), 4.0, d * 0.75 + 0.12);
+}
 // gentle tone mapping, so loud passages brighten without burning out to white
 vec3 soft(vec3 c) { return 1.0 - exp(-c * 1.25); }
 `;
@@ -278,9 +295,9 @@ void main() {
   uv *= 1.0 - 0.05 * uBeat - 0.05 * uVol - 0.1 * uBuild;
   uv += (0.12 + 0.1 * uChaos) * vec2(sin(t * 0.13), cos(t * 0.11));
   uv = rot(t * 0.04 + uSpin) * uv;
-  float e = 1.0;
   float line = 0.0;
   float glow = 0.0;
+  float fill = 0.0;
   for (int k = 0; k < 2; k++) {
     float fk = float(k);
     float ph = fract(t * 0.035 + fk * 0.5);
@@ -292,36 +309,32 @@ void main() {
     float ee = abs(F - 1.0);
     line = max(line, max(smoothstep(0.1, 0.03, ee), ring * 0.7) * fade);
     glow = max(glow, exp(-ee * 4.0) * fade);
+    fill = max(fill, smoothstep(0.9, 1.3, F) * fade);
   }
-  // the halftone: dots that grow where the drawing is dense, with rays from the middle
   float d = dith();
-  float off = 0.006 + 0.012 * uSFlux + 0.01 * uBeat;
-  float freq = 40.0 + 12.0 * uBright;
-  float tone = clamp(fbm(uv * 2.0 + vec2(t * 0.05, t * 0.03)) * 1.5 - 0.1 + 0.2 * uSFlux, 0.0, 1.0);
-  // two screens of dots printed slightly out of register, one red, one hot pink, drifting in and out of each other
+  float off = 0.01 + 0.016 * uSFlux + 0.014 * uBeat;
+  float freq = 34.0 + 12.0 * uBright;
+  float tone = clamp(fbm(uv * 2.0 + vec2(t * 0.05, t * 0.03)) * 1.5 - 0.05 + 0.25 * uSFlux, 0.0, 1.0);
   vec2 gA = fract(rot(0.6) * (uv + vec2(off, 0.0)) * freq) - 0.5;
   vec2 gB = fract(rot(0.95) * (uv - vec2(0.0, off)) * freq * 0.8) - 0.5;
   float dotsA = smoothstep(0.5 * tone + 0.06, 0.5 * tone - 0.04, length(gA));
-  float dotsB = smoothstep(0.42 * tone + 0.05, 0.42 * tone - 0.04, length(gB));
-  float ang = atan(uv.y, uv.x);
-  float rays = 0.5 + 0.5 * sin(ang * 14.0 + t * 0.15 + 6.0 * length(uv));
-  vec3 orange = vec3(1.0, 0.62, 0.3);
-  vec3 red = vec3(0.95, 0.2, 0.1);
-  vec3 pink = vec3(1.0, 0.25, 0.6);
-  // the ground between the dots is a dithered ramp from orange toward gold, so it stipples instead of banding
-  float ramp = clamp(0.5 + 0.8 * (fbm(uv * 1.4 - t * 0.02) - 0.5) + 0.25 * rays, 0.0, 1.0);
-  vec3 col = mix(orange, vec3(1.0, 0.85, 0.35), step(d, ramp * 0.7));
-  col = mix(col, red, dotsA * (0.55 + 0.45 * rays));
-  col = mix(col, pink, dotsB * 0.7 * (1.0 - dotsA));
-  vec3 ink = mix(vec3(0.1, 0.18, 1.0), vec3(0.45, 0.14, 1.0), uPitch);
-  vec3 ink2 = mix(vec3(0.0, 0.85, 1.0), vec3(1.0, 0.2, 0.85), uPitch);
-  float power = 0.65 + 0.5 * uArc + 0.2 * uVol;
+  float dotsB = smoothstep(0.45 * tone + 0.05, 0.45 * tone - 0.04, length(gB));
+  float shift = t * 0.04 + uPitch * 2.0 + uArc;
+  // the ground slides between two inks as a dither, the dots print over it in two more, out of register
+  float ramp = clamp(0.5 + 0.9 * (fbm(uv * 1.4 - t * 0.02) - 0.5) + 0.3 * sin(atan(uv.y, uv.x) * 7.0 + t * 0.12), 0.0, 1.0);
+  vec3 col = mix(pick(shift + 4.0), pick(shift + 0.0), step(d, ramp));
+  col = mix(col, pick(shift + 5.0), dotsA);
+  col = mix(col, pick(shift + 1.0), dotsB * (1.0 - dotsA));
+  // inside the bubbles the world inverts: a checker of the two opposite inks
+  vec2 ck = floor(gl_FragCoord.xy / (cell() * 2.0));
+  float chk = mod(ck.x + ck.y, 2.0);
+  col = mix(col, mix(pick(shift + 3.0), pick(shift + 2.0), chk), fill * step(d, 0.5 + 0.3 * uArc) * 0.9);
+  float power = 0.75 + 0.4 * uArc + 0.2 * uVol;
+  vec3 ink = vec3(0.04, 0.0, 0.25);
   col = mix(col, ink, clamp(line * power, 0.0, 1.0));
-  // the glow around every outline is stippled, in a second colour, rather than smooth
-  float halo = step(d, glow * 0.8 * power) * (1.0 - clamp(line, 0.0, 1.0));
-  col = mix(col, ink2, halo * 0.85);
-  col = quant(clamp(col, 0.0, 1.0), 5.0, d * 0.7 + 0.15);
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+  float halo = step(d, glow * 0.9 * power) * (1.0 - clamp(line, 0.0, 1.0));
+  col = mix(col, pick(shift + 1.0), halo);
+  gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 
   // lines of light stacked and folded over each other like a sheet of paper in the wind, on blue, falling inward for ever
@@ -356,32 +369,26 @@ void main() {
   // it breathes in and out slowly, so there is always more of the sheet to move into
   vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
   float d = dith();
-  // three passes, nudged apart, so the lines split into cyan, lime and pink fringes like a misaligned print
-  float off = 0.004 + 0.008 * uSFlux + 0.012 * uBeat + 0.006 * uVol;
+  float off = 0.008 + 0.012 * uSFlux + 0.018 * uBeat + 0.008 * uVol;
   float hA, hB, hC;
   float lA = sheet(q + vec2(-off, 0.0), t, hA);
   float lB = sheet(q, t, hB);
-  float lC = sheet(q + vec2(off, off * 0.5), t, hC);
-  // a haze of light low on the page, stippled into three steps of blue by the dither
+  float lC = sheet(q + vec2(off, off * 0.6), t, hC);
   float haze = smoothstep(0.1, 0.9, fbm(uv * 1.2 + vec2(0.0, t * 0.03) + 9.0)) * (0.35 + 0.4 * uArc);
-  float ramp = clamp(haze + 0.35 * (uv.y + 0.5) + 0.25 * hB * (0.4 + uVol), 0.0, 1.0) * 2.0;
-  vec3 deep = vec3(0.08, 0.14, 0.62);
-  vec3 blue = vec3(0.16, 0.27, 0.84);
-  vec3 sky = vec3(0.3, 0.62, 0.78);
-  vec3 col = ramp < 1.0 ? mix(deep, blue, step(d, ramp)) : mix(blue, sky, step(d, ramp - 1.0));
-  vec3 cyan = vec3(0.3, 1.0, 0.85);
-  vec3 green = vec3(0.74, 1.0, 0.1);
-  vec3 gold = vec3(1.0, 0.95, 0.2);
-  vec3 pink = vec3(1.0, 0.35, 0.8);
-  vec3 ink = mix(mix(cyan, green, smoothstep(0.0, 0.5, uPitch)), gold, smoothstep(0.5, 1.0, uPitch));
-  float pw = 0.7 + 0.3 * uArc;
-  col = mix(col, cyan, lA * 0.8 * pw);
-  col = mix(col, pink, lC * 0.8 * pw);
-  col = mix(col, ink, lB * pw);
-  // stippled halo round the lines, so every fold glows in chunky dithered pixels
-  col = mix(col, ink, step(d, hB * 0.55 * (0.5 + uVol + 0.5 * uArc)) * (1.0 - lB) * 0.6);
-  col = quant(clamp(col, 0.0, 1.0), 6.0, d * 0.6 + 0.2);
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+  float ramp = clamp(haze + 0.4 * (uv.y + 0.5) + 0.3 * hB * (0.4 + uVol), 0.0, 1.0) * 2.0;
+  float shift = t * 0.03 + uPitch * 2.0;
+  // night ground: uv violet, deep blue, a sunset glow low on the page, stepped by the dither
+  vec3 g0 = vec3(0.1, 0.02, 0.38);
+  vec3 g1 = vec3(0.12, 0.1, 0.9);
+  vec3 g2 = mix(pick(shift + 0.0), pick(shift + 4.0), 0.5);
+  vec3 col = ramp < 1.0 ? mix(g0, g1, step(d, ramp)) : mix(g1, g2, step(d, ramp - 1.0));
+  float pw = 0.8 + 0.3 * uArc;
+  // the three fringes are hard inks, and the main line walks through the palette down the page
+  col = mix(col, pick(shift + 1.0), lA * pw);
+  col = mix(col, pick(shift + 0.0), lC * pw);
+  col = mix(col, pick(shift + 2.0 + floor((uv.y + 1.0) * 1.5)), lB * pw);
+  col = mix(col, pick(shift + 5.0), step(d, hB * 0.6 * (0.5 + uVol + 0.5 * uArc)) * (1.0 - lB) * 0.7);
+  gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 
   // the contour lines of a landscape that is never still, in blue ink on white paper, falling into it for ever
@@ -416,24 +423,21 @@ void main() {
   uv = rot(t * 0.03 + uSpin) * uv;
   float hv, fw, lev, hv2, fw2, lev2;
   vec2 q = uv * (1.0 + 0.25 * sin(t * 0.07));
-  float off = 0.014 + 0.01 * uSFlux + 0.014 * uBeat;
+  float off = 0.012 + 0.012 * uSFlux + 0.016 * uBeat;
   float line = landscape(q, t, hv, fw, lev);
   float ghost = landscape(q + vec2(off, -off), t, hv2, fw2, lev2);
+  float ghost2 = landscape(q - vec2(off * 0.8, off * 0.4), t, hv2, fw2, lev2);
   float d = dith();
-  vec3 paper = vec3(0.985, 0.985, 0.99);
-  vec3 ink = mix(vec3(0.1, 0.1, 1.0), vec3(0.4, 0.12, 0.95), uPitch);
-  vec3 navy = vec3(0.07, 0.07, 0.4);
-  vec3 hot = mix(vec3(1.0, 0.25, 0.7), vec3(1.0, 0.6, 0.15), uPitch);
-  // the ground is shaded by altitude in stippled dither, so the hills read as ink wash in chunky pixels
-  float wash = smoothstep(0.22, 0.7, lev) * (1.0 + 0.4 * uArc) + 0.15 * sin(lev * 40.0 + t * 0.3) * uVol;
-  vec3 col = paper;
-  col = mix(col, vec3(0.62, 0.7, 1.0), step(d, clamp(wash * 0.9, 0.0, 1.0)));
-  col = mix(col, vec3(0.45, 0.5, 1.0), step(d, clamp(wash * 0.8 - 0.55, 0.0, 1.0)));
-  // a second printing, off to one side in hot pink, so the lines double
-  col = mix(col, hot, ghost * 0.9 * (1.0 - line));
-  col = mix(col, mix(ink, navy, hv * 0.8), line);
-  col = quant(clamp(col, 0.0, 1.0), 6.0, d * 0.5 + 0.25);
-  gl_FragColor = vec4(col, 1.0);
+  float shift = t * 0.03 + uPitch * 2.5;
+  // the ground is a stack of flat altitude bands in hard inks, each melting into the next as a dither
+  float x = lev * (5.0 + 3.0 * uArc);
+  float bi = floor(x);
+  vec3 col = mix(pick(shift + bi), pick(shift + bi + 1.0), step(d, fract(x) * 0.9));
+  col = mix(col, pick(shift + bi + 3.0), ghost2 * 0.9 * (1.0 - line));
+  col = mix(col, pick(shift + bi + 4.0), ghost * 0.9 * (1.0 - line));
+  vec3 ink = vec3(0.03, 0.0, 0.2);
+  col = mix(col, ink, line * (0.85 + 0.15 * hv));
+  gl_FragColor = vec4(retro(col, d), 1.0);
 }`,
 };
 
