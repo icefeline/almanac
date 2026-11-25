@@ -912,6 +912,7 @@ a.wd-pi:focus-visible {
   margin-bottom: 0;
 }
 .wd-mp-screen {
+  touch-action: none; /* a finger on the picture stirs it rather than scrolling the page */
   background: #021a05;
   box-shadow: var(--sunken);
   line-height: 0;

@@ -135,6 +135,9 @@ export default function MediaPlayer({
   const audio = useRef<HTMLAudioElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const glCanvas = useRef<HTMLCanvasElement>(null);
+  const screenEl = useRef<HTMLDivElement>(null);
+  // where the visitor's finger or pointer is, for stirring the picture
+  const ptr = useRef({ cx: -1, cy: -1, lastMove: 0, down: false });
   const gl = useRef<GLViz | null>(null);
   const [glReady, setGlReady] = useState(false);
   const picker = useRef<HTMLInputElement>(null);
@@ -278,6 +281,31 @@ export default function MediaPlayer({
     setGlReady(!!gl.current);
   }, []);
 
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      ptr.current.cx = e.clientX;
+      ptr.current.cy = e.clientY;
+      ptr.current.lastMove = performance.now();
+    };
+    const down = (e: PointerEvent) => {
+      move(e);
+      ptr.current.down = true;
+    };
+    const up = () => {
+      ptr.current.down = false;
+    };
+    window.addEventListener('pointermove', move, { passive: true });
+    window.addEventListener('pointerdown', down, { passive: true });
+    window.addEventListener('pointerup', up, { passive: true });
+    window.addEventListener('pointercancel', up, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+  }, []);
+
   // read the whole song ahead of time for its shape (hushed intro, build, full beat), so the picture can follow it
   const arcRef = useRef<Arc | null>(null);
   const trackSrc = tracks[index]?.src;
@@ -319,10 +347,10 @@ export default function MediaPlayer({
       fmean: 0, fdev: 0, prevFlux: 0, prevF: new Float32Array(6), last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0,
       spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0,
       alive: 0, ref: 0.3, track: null as string | null, level: 0,
-      arc: 0.5, build: 0, vFast: 0, vSlow: 0,
+      arc: 0.5, build: 0, vFast: 0, vSlow: 0, sBass: 0, sVocal: 0, sFlux: 0, px: 0.5, py: 0.5, pvx: 0, pvy: 0, touch: 0,
       vol: 0, vocal: 0, flux: 0, mVol: 0.4, mVocal: 0.4, mFlux: 0.4, peak: 0.5, peakAvg: 0.5, bright: 0.5, brightAvg: 0.5, pitch: 0.5, tone: 0.5,
     };
-    const frame: Frame = { arc: 0.5, build: 0, t: 0, bass: 0, mid: 0, high: 0, vol: 0, vocal: 0, pitch: 0.5, bright: 0.5, flux: 0, beat: 0, chaos: 0, spin: 0, bands };
+    const frame: Frame = { arc: 0.5, build: 0, sBass: 0, sVocal: 0, sFlux: 0, px: 0.5, py: 0.5, vx: 0, vy: 0, touch: 0, t: 0, bass: 0, mid: 0, high: 0, vol: 0, vocal: 0, pitch: 0.5, bright: 0.5, flux: 0, beat: 0, chaos: 0, spin: 0, bands };
     const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
@@ -343,7 +371,39 @@ export default function MediaPlayer({
         bt.track = trackKey;
       }
       // play: it comes up in about a second. Pause, stop or skip: it winds down over a couple of seconds
-      const wantAlive = !hasTrack || isPlaying ? 1 : 0;
+      // a finger or pointer on the picture (or anywhere on the screen, when it fills the desktop) stirs it; it lets go slowly
+      const el = screenEl.current;
+      const box = spread ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight } : el?.getBoundingClientRect();
+      const P = ptr.current;
+      let active = false;
+      if (box && box.width > 0 && P.cx >= 0 && (P.down || now - P.lastMove < 250)) {
+        const fx = (P.cx - box.left) / box.width;
+        const fy = 1 - (P.cy - box.top) / box.height;
+        if (fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1) {
+          active = true;
+          const px0 = bt.px;
+          const py0 = bt.py;
+          const follow = 1 - Math.exp(-dt * 14);
+          if (bt.touch < 0.05) {
+            bt.px = fx;
+            bt.py = fy;
+          } else {
+            bt.px += (fx - bt.px) * follow;
+            bt.py += (fy - bt.py) * follow;
+          }
+          const aspect = box.width / box.height;
+          const sm = 1 - Math.exp(-dt * 8);
+          bt.pvx += ((bt.px - px0) / dt * aspect - bt.pvx) * sm;
+          bt.pvy += ((bt.py - py0) / dt - bt.pvy) * sm;
+        }
+      }
+      if (!active) {
+        const sm = 1 - Math.exp(-dt * 3);
+        bt.pvx -= bt.pvx * sm;
+        bt.pvy -= bt.pvy * sm;
+      }
+      bt.touch += ((active ? 1 : 0) - bt.touch) * (1 - Math.exp(-dt * (active ? 6 : 1.1)));
+      const wantAlive = Math.max(!hasTrack || isPlaying ? 1 : 0, bt.touch * 0.6);
       bt.alive += (wantAlive - bt.alive) * (1 - Math.exp(-dt * (wantAlive > bt.alive ? 2.6 : 1.0)));
       if (bt.alive < 0.002 && wantAlive === 0) bt.alive = 0;
 
@@ -360,7 +420,7 @@ export default function MediaPlayer({
         f = silence;
       }
       // fully wound down and nothing left in the signal: hold still and stop spending the card's time
-      if (bt.alive === 0 && bt.level < 0.004 && drawn === key) return;
+      if (bt.alive === 0 && bt.level < 0.004 && bt.touch < 0.01 && drawn === key) return;
       drawn = key;
       const n = f.length;
       const half = n >> 1;
@@ -482,6 +542,18 @@ export default function MediaPlayer({
       frame.bass = bass;
       frame.mid = mid;
       frame.high = high;
+      const drift = 1 - Math.exp(-dt * 2.2);
+      bt.sBass += (bass - bt.sBass) * drift;
+      bt.sVocal += (frame.vocal - bt.sVocal) * drift;
+      bt.sFlux += (frame.flux - bt.sFlux) * drift;
+      frame.sBass = bt.sBass;
+      frame.sVocal = bt.sVocal;
+      frame.sFlux = bt.sFlux;
+      frame.px = bt.px;
+      frame.py = bt.py;
+      frame.vx = Math.max(-1.2, Math.min(1.2, bt.pvx));
+      frame.vy = Math.max(-1.2, Math.min(1.2, bt.pvy));
+      frame.touch = bt.touch;
       frame.arc = bt.arc;
       frame.build = bt.build;
       // each measure is shown partly as it is and mostly as how far it is from this song's own usual, so a song that is
@@ -506,6 +578,14 @@ export default function MediaPlayer({
         feed.bass = bass;
         feed.mid = mid;
         feed.high = high;
+        feed.sBass = frame.sBass;
+        feed.sVocal = frame.sVocal;
+        feed.sFlux = frame.sFlux;
+        feed.px = frame.px;
+        feed.py = frame.py;
+        feed.vx = frame.vx;
+        feed.vy = frame.vy;
+        feed.touch = frame.touch;
         feed.arc = frame.arc;
         feed.build = frame.build;
         feed.vol = frame.vol;
@@ -602,7 +682,7 @@ export default function MediaPlayer({
           },
         ]}
       />
-      <div className="wd-mp-screen" title={`visualisation: ${viz}`} onClick={() => setViz((v) => VIZ[(VIZ.indexOf(v) + 1) % VIZ.length])}>
+      <div ref={screenEl} className="wd-mp-screen" title={`visualisation: ${viz} (double-click for the next)`} onDoubleClick={() => setViz((v) => VIZ[(VIZ.indexOf(v) + 1) % VIZ.length])}>
         <canvas ref={glCanvas} width={480} height={270} className={showGL ? undefined : 'is-off'} aria-label="music visualiser" />
         <canvas ref={canvas} width={W} height={H} className={showGL ? 'is-off' : undefined} aria-hidden="true" />
       </div>
