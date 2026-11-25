@@ -639,7 +639,7 @@ export default function AboutDesktop() {
   const resizable = (n: Entry) => n.kind === 'folder' || n.kind === 'text';
 
   return (
-    <div ref={root} className={showMini ? 'wd-root has-mini' : 'wd-root'} data-wall={scene.wall} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
+    <div ref={root} className={showMini ? 'wd-root has-mini' : 'wd-root'} data-wall={scene.wall} data-app={milky ? 'milky' : undefined} style={{ ...GLYPH_VARS, ...sceneStyle(scene, 'var(--z)') } as CSSProperties}>
       <VizLayer />
       <div
         ref={desk}
