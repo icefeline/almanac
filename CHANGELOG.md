@@ -24,6 +24,9 @@ Unreleased
 
 ### What's new
 
+- sphinx and anima joined the about desktop, with their own icons, and the questions folder has five new answers.
+- The privacy policy and terms now cover sphinx and anima.
+
 - Readings are no longer capped at seven. The first day past seven now shows a one-time thank-you, with a link straight through to that day's reading — no code, nothing to unlock, and no wall after it.
 - The share control is a highlighted row on a VCR menu, lime on cobalt, in the same set-up-screen language as the sheet it opens. It was a dotted line before, and quiet enough to miss.
 

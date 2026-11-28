@@ -23,7 +23,7 @@ const sections: LegalSection[] = [
     title: 'Who is responsible',
     body: (
       <p>
-        slow garden is made and run by one individual rather than a company. This policy covers almanac, its dream interpreter, milky, and its sticker tracker, root. Questions about it go to the address in the last section.
+        slow garden is made and run by one individual rather than a company. This policy covers almanac, its dream interpreter, milky, its sticker tracker, root, its florist, sphinx, and its pet town, anima. Questions about it go to the address in the last section.
       </p>
     ),
   },
@@ -173,6 +173,58 @@ const sections: LegalSection[] = [
     ),
   },
   {
+    id: 'sphinx',
+    title: 'The florist (sphinx)',
+    body: (
+      <>
+        <p>sphinx has no account and no database. What matters is what travels in a link you send.</p>
+        <UL>
+          <li>
+            The vase you arrange and the letter you write are packed into the part of the link after the # symbol. Browsers
+            don&apos;t send that part to any server, so we never receive it. Anyone who has the link can open it and read it,
+            and a link you&apos;ve sent can&apos;t be taken back.
+          </li>
+          <li>
+            If you sign the letter, your name also goes in the part of the link before the #, so a chat app can show who it
+            is from in the preview. Our server receives that name when the link is opened or previewed. We don&apos;t save
+            it, though the preview page may be cached for up to a day.
+          </li>
+          <li>When you reply to a vase, your browser remembers who to address until you close the tab.</li>
+          <li>
+            sphinx loads its fonts from Google Fonts, so Google handles that request. Vercel hosts it, so it handles the
+            requests your browser makes to load the page.
+          </li>
+        </UL>
+      </>
+    ),
+  },
+  {
+    id: 'anima',
+    title: 'The pet town (anima)',
+    body: (
+      <>
+        <p>anima has no account. Your pet and your town are saved in your browser.</p>
+        <UL>
+          <li>
+            In your browser it saves your pet and its name, your coins, belongings, journal and furniture, your sound and
+            view settings, and, if you share it, your rough location.
+          </li>
+          <li>
+            For live weather, your browser asks Open-Meteo directly. By default it asks about Singapore. If you allow your
+            location, the coordinates are rounded to about a kilometre, kept on your device and sent to Open-Meteo, which
+            also receives your IP address as any website would. Once allowed, anima keeps following it until you choose
+            Singapore again or withdraw the permission in your browser.
+          </li>
+          <li>
+            It loads fonts from Google Fonts and its 3D library from unpkg, so those services handle those requests. Vercel
+            hosts it.
+          </li>
+          <li>anima doesn&apos;t have a backup copy feature, so clearing your browser data deletes your pet and town permanently.</li>
+        </UL>
+      </>
+    ),
+  },
+  {
     id: 'location',
     title: 'Where you are',
     body: (
@@ -273,8 +325,8 @@ export default function Privacy() {
   return (
     <LegalPage
       title="Privacy Policy"
-      updated="October 2026"
-      intro="How slow garden handles your data, including its dream interpreter, milky, and its sticker tracker, root. In short: nearly everything stays in your browser, and this page lists the few things that don't."
+      updated="November 2026"
+      intro="How slow garden handles your data, including milky, root, sphinx and anima. In short: nearly everything stays in your browser, and this page lists the few things that don't."
       sections={sections}
       seeAlso={{ href: '/terms', label: 'Terms of Service' }}
     />

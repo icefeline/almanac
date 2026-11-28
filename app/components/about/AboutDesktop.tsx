@@ -11,7 +11,7 @@ import './about-desktop.css';
 /*
  * The about page, laid out as an old desktop with working parts: folders and files open as windows you can drag,
  * minimise, maximise and close; the taskbar lists whatever is open; the Start menu reaches everything. The words all
- * come from ABOUT in AboutMenu.tsx, the same source the three apps share, so editing them there changes this page too.
+ * come from ABOUT in AboutMenu.tsx, the same source the apps share, so editing them there changes this page too.
  *
  * Everything that opens is a NODE below. To add a question to the faqs, add it to ABOUT.faq.items. To add a folder,
  * add a node with children and list it in DESK. The look lives in about-desktop.css; the icons are drawn by
@@ -125,8 +125,8 @@ const NODES: Record<string, Entry> = {
     kind: 'folder',
     w: 360,
     children: ABOUT.faq.items.map((_, i) => `faq-${i}`),
-    h: 150,
-    scatter: { 'faq-0': ['6%', 8], 'faq-1': ['38%', 70], 'faq-2': ['68%', 6] },
+    h: 268,
+    scatter: { 'faq-0': ['5%', 8], 'faq-1': ['37%', 40], 'faq-2': ['68%', 4], 'faq-3': ['4%', 96], 'faq-4': ['69%', 90], 'faq-5': ['36%', 126], 'faq-6': ['7%', 184], 'faq-7': ['66%', 178] },
   },
   why: { title: `${ABOUT.why.label}.txt`, icon: 'doc', kind: 'text', w: 360, body: <Paras list={ABOUT.why.paragraphs} /> },
   coffee: { title: 'buy me a coffee', icon: 'coffee', kind: 'link', w: 0, href: 'https://buymeacoffee.com/shxntxnx', shortcut: true },
@@ -165,7 +165,7 @@ const NODES: Record<string, Entry> = {
   },
 };
 // each question has its own picture, in the order they are asked; a question added later falls back to the bubble
-const FAQ_ICONS = ['gift', 'diary', 'tarot'];
+const FAQ_ICONS = ['gift', 'diary', 'tarot', 'sprout', 'question', 'monitor', 'lock', 'info'];
 ABOUT.faq.items.forEach((it, i) => {
   const pic = FAQ_ICONS[i] ?? 'question';
   // an answer is a plain window: the question in the title bar, the answer in a white box, nothing else
@@ -185,11 +185,13 @@ const DESK: { id: string; x: number; y: number }[] = [
   { id: 'app-almanac', x: 51, y: 46 },
   { id: 'app-milky', x: 42, y: 80 },
   { id: 'app-root', x: 10, y: 84 },
+  { id: 'app-sphinx', x: 69, y: 11 },
+  { id: 'app-anima', x: 29, y: 22 },
   { id: 'music', x: 80, y: 30 },
 ];
 
 /** The Start menu, top to bottom. null is a divider. */
-const START: (string | null)[] = ['faq', 'info', 'music', null, 'app-almanac', 'app-milky', 'app-root', 'app-enter', null, 'display', null, 'home'];
+const START: (string | null)[] = ['faq', 'info', 'music', null, 'app-almanac', 'app-milky', 'app-root', 'app-sphinx', 'app-anima', 'app-enter', null, 'display', null, 'home'];
 
 interface Win {
   id: string;
