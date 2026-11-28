@@ -6,8 +6,8 @@ import { useEffect, useState, type CSSProperties } from 'react';
  * The "about" link that sits at the bottom left of every page in the slow garden: tap it and a short list opens
  * (why i made this, faqs, terms); tap an entry and its text opens above the list, one at a time.
  *
- * The same component, with the same words, is in each app's repo (slow-garden, almanac, sticker-tracker). The words
- * live in ABOUT below; change them in all three together.
+ * The same component, with the same words, is in the slow-garden, almanac and sticker-tracker repos. The words live in
+ * ABOUT below; change them in all three together.
  */
 
 type Tab = 'why' | 'faq' | 'terms';
@@ -17,6 +17,7 @@ export const ABOUT = {
     label: 'why i made this',
     paragraphs: [
       'i wanted a few small places to slow down in. somewhere to notice a card in the morning, somewhere to put a dream down before it slips away, somewhere to keep track of the little things, like sleep and food, without it turning into a score.',
+      'then somewhere to stand flowers in water and send them to someone, and a small town to wander with a cat or a dog.',
       'each one is its own little world, and they live together here, like charms on a bracelet.',
       "i made them slowly, over a lot of evenings, for myself first. you're welcome to keep yours here too.",
     ],
@@ -24,16 +25,21 @@ export const ABOUT = {
   faq: {
     label: 'faqs',
     items: [
-      { q: 'is it free?', a: 'yes, all three apps.' },
-      { q: 'who sees what i write?', a: "only you. i don't sell or share anything." },
+      { q: 'is it free?', a: 'yes, all of it.' },
+      { q: 'who sees what i write?', a: "not me. it's kept in your browser and i don't sell it. the almanac and milky send a little away to write your reading, and a sphinx letter goes to whoever has the link. the privacy policy has the details." },
       { q: 'is the tarot real?', a: "it's real cards. what they mean is up to you." },
+      { q: "what's on the bracelet?", a: 'almanac is a card a day. milky reads your dreams. root is a sticker card for sleep, food, movement and mood. sphinx is flowers and a letter. anima is a small town you share with a cat or a dog.' },
+      { q: 'do i need an account?', a: "no. there's nothing to sign up for." },
+      { q: 'what if i change phones?', a: "your things live in the browser, so they don't follow you by themselves, and clearing it clears them. the almanac can make you a backup copy." },
+      { q: 'who can open a vase i send?', a: "anyone with the link. the vase and letter travel inside the link itself, so i never receive them, and once it's sent it can't be taken back." },
+      { q: 'does anima know where i am?', a: "only if you let it, so the weather can match yours, and only roughly, to about a kilometre. otherwise it borrows singapore's." },
     ],
   },
   terms: {
     label: 'terms',
     paragraphs: [
-      "slowww.garden is for reflection, not advice. almanac, milky and root aren't a substitute for a doctor, therapist or anyone who knows you.",
-      'what you write stays yours. you can delete it whenever you like.',
+      "slowww.garden is for reflection and play, not advice. nothing here (almanac, milky, root, sphinx or anima) is a substitute for a doctor, therapist, vet or anyone who knows you.",
+      'what you write stays yours. you can delete what is kept on your device whenever you like.',
       "be kind here. that's most of it.",
     ],
     links: [
@@ -43,21 +49,25 @@ export const ABOUT = {
   },
 } as const;
 
-/** The four apps, for the little switcher above the about link. Icons are copies kept in each app's public/about-apps. */
+/** The apps, for the little switcher above the about link. Icons are copies kept in each app's public/about-apps. */
 export const APPS = [
   { key: 'enter', label: 'back to the bracelet', href: 'https://enter.slowww.garden', icon: '/about-apps/enter.png' },
   { key: 'almanac', label: 'almanac', href: 'https://slowww.garden', icon: '/about-apps/almanac.png' },
   { key: 'milky', label: 'milky', href: 'https://milky.slowww.garden', icon: '/about-apps/milky.png' },
   { key: 'root', label: 'root', href: 'https://root.slowww.garden', icon: '/about-apps/root.png' },
+  { key: 'sphinx', label: 'sphinx', href: 'https://sphinx.slowww.garden', icon: '/about-apps/sphinx.png' },
+  { key: 'anima', label: 'anima', href: 'https://anima.slowww.garden', icon: '/about-apps/anima.png' },
 ] as const;
 export type AppKey = (typeof APPS)[number]['key'];
 
 /** Each app tosses the other charms down in its own order and angles, so the corner is never the same twice. */
 const LAYOUT: Record<AppKey, { key: AppKey; r: number; x: number; y: number }[]> = {
-  almanac: [{ key: 'enter', r: -14, x: 2, y: 0 }, { key: 'milky', r: 9, x: 20, y: -5 }, { key: 'root', r: -4, x: 6, y: -2 }],
-  milky: [{ key: 'root', r: 12, x: 18, y: 0 }, { key: 'enter', r: -8, x: 2, y: -6 }, { key: 'almanac', r: 16, x: 22, y: -3 }],
-  root: [{ key: 'almanac', r: 15, x: 4, y: 0 }, { key: 'milky', r: -12, x: 20, y: -5 }, { key: 'enter', r: 5, x: 8, y: -2 }],
+  almanac: [{ key: 'enter', r: -14, x: 2, y: 0 }, { key: 'milky', r: 9, x: 20, y: -5 }, { key: 'root', r: -4, x: 6, y: -2 }, { key: 'sphinx', r: 13, x: 18, y: -4 }, { key: 'anima', r: -9, x: 3, y: -3 }],
+  milky: [{ key: 'root', r: 12, x: 18, y: 0 }, { key: 'enter', r: -8, x: 2, y: -6 }, { key: 'almanac', r: 16, x: 22, y: -3 }, { key: 'anima', r: -11, x: 5, y: -4 }, { key: 'sphinx', r: 7, x: 19, y: -2 }],
+  root: [{ key: 'almanac', r: 15, x: 4, y: 0 }, { key: 'milky', r: -12, x: 20, y: -5 }, { key: 'enter', r: 5, x: 8, y: -2 }, { key: 'sphinx', r: -14, x: 21, y: -4 }, { key: 'anima', r: 10, x: 4, y: -3 }],
   enter: [],
+  sphinx: [],
+  anima: [],
 };
 
 export interface AboutMenuProps {
@@ -147,6 +157,8 @@ export default function AboutMenu({
     ...(open && panelBackground ? ({ '--sg-about-bg': panelBackground } as CSSProperties) : null),
   };
   const panel: CSSProperties = { width: '27.5em', maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 6, textWrap: 'pretty' };
+  // the questions have outgrown a short screen, so they scroll inside the panel
+  const scrolls: CSSProperties = { maxHeight: '62dvh', overflowY: 'auto', overscrollBehavior: 'contain', pointerEvents: 'auto' };
   const heading: CSSProperties = { letterSpacing: '.12em' };
 
   const pick = (t: Tab) => setTab((cur) => (cur === t ? null : t));
@@ -167,7 +179,7 @@ export default function AboutMenu({
       )}
 
       {open && tab === 'faq' && (
-        <div style={{ ...panel, gap: 8 }}>
+        <div style={{ ...panel, ...scrolls, gap: 8 }}>
           <div style={heading}>{ABOUT.faq.label}</div>
           {ABOUT.faq.items.map((it) => (
             <div key={it.q} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -240,7 +252,7 @@ export default function AboutMenu({
         {(current ? LAYOUT[current] : []).map(({ key, r, x, y }, i) => {
           const a = APPS.find((app) => app.key === key)!;
           return (
-            <a key={a.key} href={a.href} title={a.label} aria-label={a.label} className="sg-about-app" onClick={(e) => { if (!fan && window.matchMedia('(max-width:767px)').matches) { e.preventDefault(); setFan(true); } }} style={{ '--r': `${r}deg`, '--x': `${x}px`, '--y': `${y}px`, '--i': i, '--pr': `${[-6, 5, -2][i] ?? 0}deg`, '--px': `${i * 3}px`, '--py': `${i * 2}px`, '--d': `${(x % 5) * -0.7}s` } as CSSProperties}>
+            <a key={a.key} href={a.href} title={a.label} aria-label={a.label} className="sg-about-app" onClick={(e) => { if (!fan && window.matchMedia('(max-width:767px)').matches) { e.preventDefault(); setFan(true); } }} style={{ '--r': `${r}deg`, '--x': `${x}px`, '--y': `${y}px`, '--i': i, '--pr': `${[-6, 5, -2, 7, -4][i] ?? 0}deg`, '--px': `${i * 3}px`, '--py': `${i * 2}px`, '--d': `${(x % 5) * -0.7}s` } as CSSProperties}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={a.icon} alt="" height={26} />
             </a>

@@ -67,7 +67,7 @@ const sections: LegalSection[] = [
     title: 'What you write stays yours',
     body: (
       <p>
-        Your reflections belong to you. We claim no licence over them and no right to use them. That&apos;s easy to promise, because they never leave your device in the first place.
+        Your reflections belong to you. We claim no licence over them and no right to use them. That&apos;s easy to promise, because they never leave your device in the first place. The vases and letters you make in sphinx are yours too. Whoever you send a link to can read it, so please send only what you&apos;re happy for them to keep, and nothing abusive.
       </p>
     ),
   },
@@ -78,7 +78,7 @@ const sections: LegalSection[] = [
       <>
         <p>This part matters most:</p>
         <p>
-          Nothing in slow garden, including root&apos;s tracking of sleep, food, movement and mood, is medical, psychological, legal or financial advice. Don&apos;t use it in place of a
+          Nothing in slow garden, including root&apos;s tracking of sleep, food, movement and mood and anima&apos;s notes on looking after animals, is medical, veterinary, psychological, legal or financial advice. Don&apos;t use it in place of a
           professional who knows your situation.
         </p>
         <p>
@@ -164,8 +164,8 @@ export default function Terms() {
   return (
     <LegalPage
       title="Terms of Service"
-      updated="October 2026"
-      intro="The terms for using slow garden, including its dream interpreter, milky, and its sticker tracker, root. In short, it's free and it isn't advice."
+      updated="November 2026"
+      intro="The terms for using slow garden, including milky, root, sphinx and anima. In short, it's free and it isn't advice."
       sections={sections}
       seeAlso={{ href: '/privacy', label: 'Privacy Policy' }}
     />

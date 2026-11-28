@@ -7,8 +7,8 @@ surface turns. The 16px set is drawn natively, not shrunk from the 32px one, so 
     python3 scripts/about-icons.py          # writes public/about/icons/<name>-32.png and -16.png
     python3 scripts/about-icons.py --check  # also audits every file (see audit())
 
-The drawings are original. The four app icons are redrawn from the apps' own artwork: the snail's spiral, the swirl
-card, the lotus and the smiley. Needs Pillow and numpy.
+The drawings are original. The app icons are redrawn from the apps' own artwork: the snail's spiral, the swirl
+card, the lotus, the smiley, the moth blossom and the tree. Needs Pillow and numpy.
 """
 import math
 import re
@@ -583,6 +583,42 @@ def root32():
     return v
 
 
+def sphinx32():
+    """sphinx: the moth blossom, cut out of sphinx's own app icon, with its garnet eye and gold fringe put back."""
+    v = Cv()
+    src = np.array(Image.open(SRC / 'sphinx-icon-512.png').convert('RGB'))
+    mask = _cutout(src, (242, 89, 15), 90)
+    rgb, a, (x0, y0, x1, y1) = _fit(src, mask, 29)
+    alpha = np.array(a) > 120
+    # sorted into the logo's own colours: each pixel is wing green unless enough of it is one of the markings
+    inks = {'6f9132': 0, '2c4a16': 0.34, 'e6ecc0': 0.2, 'ffb7a2': 0.3, '74182a': 0.3}
+    pal = np.array([c(k)[:3] for k in inks] + [c('101808')[:3]])
+    near = np.argmin(((src[..., None, :].astype(int) - pal) ** 2).sum(-1), -1)
+    shades = np.zeros((*alpha.shape, 3), int) + pal[0]
+    for k, (ink, bar) in enumerate(inks.items()):
+        if k:
+            cov = Image.fromarray((((near == k) & mask)[y0:y1, x0:x1] * 255).astype('uint8')).resize(rgb.size, Image.BOX)
+            shades[np.array(cov) > bar * 255] = pal[k]
+    # the silhouette of each wing against its neighbour
+    edge = Image.fromarray((((near == len(inks)) & mask)[y0:y1, x0:x1] * 255).astype('uint8')).resize(rgb.size, Image.BOX)
+    shades[np.array(edge) > 0.38 * 255] = pal[-1]
+    _put(v, shades, alpha)
+    # the eye is only a few pixels, so colour reduction would lose it: draw it back, in its fringe
+    v.paint(v.pattern(['..X..', '.XXX.', 'XXXXX', '.XXX.', '..X..'], 13, 13), c('ffe28a'))
+    v.paint(v.rect(14, 14, 16, 16), c('74182a'))
+    v.paint(v.dots([(14, 14)]), c('ffb7a2'))
+    v.outline()
+    return v
+
+
+def anima32():
+    """anima: the fruiting tree from anima's app icon, which is drawn at this size to begin with."""
+    v = Cv()
+    v.p[:] = np.array(Image.open(SRC / 'anima-tree.png').convert('RGBA'))
+    v.outline()
+    return v
+
+
 # ── 16px, drawn on their own grid ───────────────────────────────────────────
 
 def folder16(badge=False):
@@ -784,7 +820,7 @@ DRAW = {
         'question': lambda: bubble32('q'), 'info': lambda: bubble32('i'),
         'coffee': coffee32, 'sprout': sprout32, 'monitor': monitor32,
         'gift': gift32, 'diary': diary32, 'tarot': tarot32, 'cd': cd32,
-        'enter': enter32, 'almanac': almanac32, 'milky': milky32, 'root': root32,
+        'enter': enter32, 'almanac': almanac32, 'milky': milky32, 'root': root32, 'sphinx': sphinx32, 'anima': anima32,
         'shortcut': lambda: shortcut(32),
     },
     16: {
