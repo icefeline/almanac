@@ -24,6 +24,7 @@ Unreleased
 
 ### What's new
 
+- The pictures in the about page's player now pulse in time with every song it comes with.
 - A new song in the about page's player: the word II, by Shigeo Sekito.
 - The first message after onboarding now sits straight on the sky, without the pale panel behind it.
 - sphinx and anima joined the about desktop, with their own icons, and the questions folder has five new answers.
