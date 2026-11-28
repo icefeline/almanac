@@ -150,8 +150,8 @@ export default function MediaPlayer({
   const urls = useRef<string[]>([]);
   const wantPlay = useRef(false);
   // the drawing loop reads these rather than being rebuilt each time they change
-  const live = useRef({ playing: false, hasTrack: false, viz: 'kaleidoscope' as Viz, fill: false, trackKey: '' });
-  live.current = { playing, hasTrack: tracks.length > 0, viz, fill, trackKey: tracks[index]?.src ?? '' };
+  const live = useRef({ playing: false, hasTrack: false, viz: 'kaleidoscope' as Viz, fill: false, trackKey: '', beats: undefined as number[] | undefined });
+  live.current = { playing, hasTrack: tracks.length > 0, viz, fill, trackKey: tracks[index]?.src ?? '', beats: tracks[index]?.beats };
 
   const track: Track | undefined = tracks[index];
 
@@ -342,7 +342,7 @@ export default function MediaPlayer({
     const bt = {
       fmean: 0, fdev: 0, prevFlux: 0, prevF: new Float32Array(6), last: 0, rate: 0, beat: 0, beatS: 0, chaos: 0,
       spinV: 0, spinVs: 0, spin: 0, dir: 1, clock: 0, prevNow: 0,
-      alive: 0, ref: 0.3, track: null as string | null, level: 0,
+      alive: 0, ref: 0.3, track: null as string | null, level: 0, passed: 0,
       arc: 0.5, build: 0, vFast: 0, vSlow: 0, sBass: 0, sVocal: 0, sFlux: 0,
       vol: 0, vocal: 0, flux: 0, mVol: 0.4, mVocal: 0.4, mFlux: 0.4, peak: 0.5, peakAvg: 0.5, bright: 0.5, brightAvg: 0.5, pitch: 0.5, tone: 0.5,
     };
@@ -478,14 +478,24 @@ export default function MediaPlayer({
       flux /= 255 * 6;
       bt.fdev += ((flux - bt.fmean) ** 2 - bt.fdev) * 0.04;
       bt.fmean += (flux - bt.fmean) * 0.04;
-      const hit = flux > bt.fmean + 1.3 * Math.sqrt(bt.fdev) + 0.004 && flux > bt.prevFlux && now - bt.last > 140;
+      let hit = flux > bt.fmean + 1.3 * Math.sqrt(bt.fdev) + 0.004 && flux > bt.prevFlux && now - bt.last > 140;
+      // a song with its beats already measured hits on those instead: one for each the playhead has just crossed
+      const grid = live.current.beats;
+      if (grid) {
+        const ct = audio.current?.currentTime ?? 0;
+        let passed = Math.min(bt.passed, grid.length);
+        while (passed < grid.length && grid[passed] <= ct) passed++;
+        while (passed > 0 && grid[passed - 1] > ct) passed--;
+        hit = isPlaying && passed === bt.passed + 1; // a jump through the song crosses many at once, and isn't a beat
+        bt.passed = passed;
+      }
       bt.prevFlux = flux;
       if (hit) {
         const gap = (now - bt.last) / 1000;
         if (bt.last > 0 && gap < 2) bt.rate += (1 / gap - bt.rate) * 0.3; // beats a second, smoothed
         bt.last = now;
         // a soft hit in a hushed part, a full one in the thick of it
-        const strength = clamp01((flux - bt.fmean) / (3 * Math.sqrt(bt.fdev) + 0.03));
+        const strength = grid ? 0.75 : clamp01((flux - bt.fmean) / (3 * Math.sqrt(bt.fdev) + 0.03));
         bt.beat = (0.35 + 0.65 * strength) * (0.45 + 0.55 * bt.arc);
         bt.spinV += bt.dir * (0.3 + 0.5 * bt.chaos) * (0.4 + 0.6 * bt.arc); // a push that sets the picture gliding round...
         if (Math.random() < 0.2 + 0.5 * bt.chaos) bt.dir = -bt.dir; // ...and the busier it is, the more often it changes its mind

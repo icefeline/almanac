@@ -5,10 +5,14 @@
  * Only add music you have the right to host; anything else can still be played by whoever is visiting, from their
  * own device, with file > open in the player or by dropping a song onto it. Those never leave their browser.
  */
+import { THE_WORD_II } from './beats';
+
 export interface Track {
   title: string;
   artist?: string;
   src: string;
+  /** Beat times in seconds, measured ahead of time; without them the player listens for the beat as it plays. */
+  beats?: number[];
   /** A song the visitor picked from their own device: read from the file itself, never fetched. */
   file?: File;
 }
@@ -22,5 +26,6 @@ export const TRACKS: Track[] = [
   { title: 'midnight pretenders', artist: 'tomoko aran', src: '/about/music/midnight-pretenders.mp3' },
   { title: 'lady brown', artist: 'nujabes', src: '/about/music/lady-brown.mp3' },
   { title: 'playing god', artist: 'paramore', src: '/about/music/playing-god.mp3' },
+  { title: 'the word II', artist: 'shigeo sekito', src: '/about/music/the-word-ii.mp3', beats: THE_WORD_II },
   // { title: 'sunflower', artist: 'rex orange county', src: '/about/music/sunflower.mp3' },
 ];
